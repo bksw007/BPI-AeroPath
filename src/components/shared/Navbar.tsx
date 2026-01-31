@@ -33,7 +33,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <Image
-              src="/icons/Logo no bg.png"
+              src="/images/Logo no bg.svg"
               alt="BPI AeroPath Logo"
               width={140}
               height={140}

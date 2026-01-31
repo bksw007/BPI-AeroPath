@@ -23,11 +23,11 @@
   /* --background: linear-gradient(180deg, rgba(255,250,172,1) 10.3%, rgba(13,167,168,1) 148%); */
 
   /* 
-   * Option 3: Sky Paper Plane Image
+   * Option 3: Sky Paper Plane Image (Updated to Vector)
    * Status: ACTIVE
-   * Descr: Blue sky with paper plane clouds.
+   * Descr: SVG vector background with flying paper airplanes.
    */
-  --background: url('/images/sky-paper-plane-bg.jpg');
+  --background: url('/images/paper-airplanes-flying.svg');
 
   --foreground: #1a1a2e;
 

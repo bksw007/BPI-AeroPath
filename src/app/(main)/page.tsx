@@ -41,7 +41,7 @@ export default function Home() {
           <div className="max-w-5xl mx-auto text-center space-y-8">
             <div className="flex justify-center animate-fade-in">
               <Image
-                src="/icons/Logo h no bg.png"
+                src="/images/Logo h no bg.svg"
                 alt="BPI AeroPath"
                 width={800}
                 height={192}
