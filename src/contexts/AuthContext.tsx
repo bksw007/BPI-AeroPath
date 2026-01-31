@@ -1,51 +1,67 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { 
-  onAuthStateChanged, 
-  User as FirebaseUser,
-  signOut as firebaseSignOut 
-} from "firebase/auth";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase/config";
+import { User as FirebaseUser } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { AuthService, AuthError } from "@/lib/firebase/services";
 import { User } from "@/types/user";
+
+// ------------------------------------------------------------------
+// 🔧 Types
+// ------------------------------------------------------------------
 
 interface AuthContextType {
   user: User | null;
+  firebaseUser: FirebaseUser | null;
   loading: boolean;
+  error: AuthError | null;
+  // Auth Actions
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: AuthError }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: AuthError }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: AuthError }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: AuthError }>;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ------------------------------------------------------------------
+// 🔥 Auth Provider
+// ------------------------------------------------------------------
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<AuthError | null>(null);
 
+  // Listen for auth state changes
   useEffect(() => {
-    // 🔸 Listen for auth state changes
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // 🔹 Get additional user data from Firestore
-        const userDocRef = doc(db, "users", firebaseUser.uid);
+    const unsubscribeAuth = AuthService.onAuthStateChange(async (fbUser) => {
+      setFirebaseUser(fbUser);
+      
+      if (fbUser) {
+        // Get additional user data from Firestore with real-time updates
+        const userDocRef = doc(db, "users", fbUser.uid);
         
-        // Use onSnapshot for real-time updates to user role/status
         const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             const userData = docSnap.data();
             setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              displayName: userData.displayName || firebaseUser.displayName || "",
+              uid: fbUser.uid,
+              email: fbUser.email || "",
+              displayName: userData.displayName || fbUser.displayName || "",
               role: userData.role || "staff",
               department: userData.department || "",
-              photoURL: userData.photoURL || firebaseUser.photoURL || undefined,
+              photoURL: userData.photoURL || fbUser.photoURL || undefined,
               createdAt: userData.createdAt?.toDate() || new Date(),
               lastLogin: userData.lastLogin?.toDate() || new Date(),
               status: userData.status || "pending",
             });
           } else {
-            // New user, not yet in Firestore
+            // User doc not yet created (edge case)
             setUser(null);
           }
           setLoading(false);
@@ -61,20 +77,104 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribeAuth();
   }, []);
 
+  // ✅ Sign In (Email/Password)
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    
+    const result = await AuthService.signIn(email, password);
+    
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+      return { success: false, error: result.error };
+    }
+    
+    return { success: true };
+  };
+
+  // ✅ Sign Up (Email/Password)
+  const signUp = async (email: string, password: string, displayName: string) => {
+    setLoading(true);
+    setError(null);
+    
+    const result = await AuthService.signUp(email, password, displayName);
+    
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+      return { success: false, error: result.error };
+    }
+    
+    return { success: true };
+  };
+
+  // ✅ Sign In with Google
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const result = await AuthService.signInWithGoogle();
+    
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+      return { success: false, error: result.error };
+    }
+    
+    return { success: true };
+  };
+
+  // ✅ Sign Out
   const signOut = async () => {
-    try {
-      await firebaseSignOut(auth);
-    } catch (error) {
-      console.error("Error signing out:", error);
+    setError(null);
+    const result = await AuthService.signOut();
+    
+    if (result.error) {
+      setError(result.error);
     }
   };
 
+  // ✅ Reset Password
+  const resetPassword = async (email: string) => {
+    setError(null);
+    
+    const result = await AuthService.resetPassword(email);
+    
+    if (result.error) {
+      setError(result.error);
+      return { success: false, error: result.error };
+    }
+    
+    return { success: true };
+  };
+
+  // ✅ Clear Error
+  const clearError = () => setError(null);
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        firebaseUser,
+        loading, 
+        error,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signOut,
+        resetPassword,
+        clearError,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
+
+// ------------------------------------------------------------------
+// 🪝 useAuth Hook
+// ------------------------------------------------------------------
 
 export function useAuth() {
   const context = useContext(AuthContext);

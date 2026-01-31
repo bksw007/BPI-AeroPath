@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { AuthProvider } from "@/contexts/AuthContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +33,9 @@ export default function RootLayout({
         className={`${notoSansThai.variable} antialiased bg-app-gradient`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
