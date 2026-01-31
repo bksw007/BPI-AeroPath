@@ -1,0 +1,383 @@
+@import "tailwindcss";
+
+/* ===================================
+   🎨 CSS Variables & Theme
+   =================================== */
+
+:root {
+  /* =========================================================
+     🎨 THEME SELECTION
+     ========================================================= */
+
+  /* 
+   * Option 1: Pastel Peach → Rose → Mint (Original)
+   * Status: Inactive (Uncomment to use)
+   */
+  /* --background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #a8edea 100%); */
+
+  /* 
+   * Option 2: Yellow → Teal (Current Light Theme)
+   * Status: INACTIVE (Previous Choice)
+   * Descr: Bright yellow top fading to deep teal bottom.
+   */
+  /* --background: linear-gradient(180deg, rgba(255,250,172,1) 10.3%, rgba(13,167,168,1) 148%); */
+
+  /* 
+   * Option 3: Sky Paper Plane Image
+   * Status: ACTIVE
+   * Descr: Blue sky with paper plane clouds.
+   */
+  --background: url('/images/sky-paper-plane-bg.jpg');
+
+  --foreground: #1a1a2e;
+
+  /* Glassmorphism Colors - Light Theme */
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-hover: rgba(255, 255, 255, 0.55);
+
+  /* Gradient Colors - Light 3-Color Palette */
+  /* Soft Peach → Rose → Mint */
+  --gradient-start: #ffecd2;
+  --gradient-mid: #fcb69f;
+  --gradient-end: #a8edea;
+
+  /* Accent Colors */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #06b6d4;
+}
+
+@theme inline {
+  --color-background: #ffecd2;
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-noto-sans-thai), system-ui, -apple-system, sans-serif;
+}
+
+/* ===================================
+   🌐 Global Styles
+   =================================== */
+
+/* Note: Tailwind CSS handles resets via @import "tailwindcss";
+   ไม่ต้องเขียน * { margin: 0; padding: 0; } เพิ่มเพราะจะ override Tailwind utilities */
+
+body {
+  background: var(--background);
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--foreground);
+  font-family: var(--font-noto-sans-thai), system-ui, -apple-system, sans-serif;
+  font-weight: 300; /* Light weight for Noto Sans Thai looks modern */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ===================================
+   🎨 Gradient Background
+   =================================== */
+
+.bg-app-gradient {
+  background: var(--background);
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(
+    circle at center,
+    rgba(252, 182, 159, 0.3),
+    transparent 70%
+  );
+}
+
+/* ===================================
+   ✨ Glassmorphism Utilities (Light Theme)
+   =================================== */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.glass-card-hover {
+  transition: all 0.3s ease-out;
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.25);
+}
+
+/* ===================================
+   🎯 Gradient Text
+   =================================== */
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===================================
+   ⚡ Animations
+   =================================== */
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Shimmer animation for text */
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: -100% 50%; }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Shake animation for buttons */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-2deg); }
+  30% { transform: rotate(2deg); }
+  45% { transform: rotate(-2deg); }
+  60% { transform: rotate(2deg); }
+  75% { transform: rotate(-1deg); }
+  90% { transform: rotate(1deg); }
+}
+
+@keyframes wiggle-subtle {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+}
+
+.animate-wiggle {
+  animation: wiggle 2.5s ease-in-out infinite;
+}
+
+.hover-wiggle:hover {
+  animation: wiggle-subtle 0.4s ease-in-out;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Smooth scroll with bounce effect */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===================================
+   📱 Scrollbar Styling
+   =================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===================================
+   🎨 Typography
+   =================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+/* ===================================
+   🔗 Links & Buttons
+   =================================== */
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ===================================
+   🎯 Utility Classes
+   =================================== */
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.container-custom {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .container-custom {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-custom {
+    padding: 0 3rem;
+  }
+}

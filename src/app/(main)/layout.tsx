@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Thai } from "next/font/google";
-
-import "./(main)/globals.css";
+import { Noto_Sans_Thai } from "next/font/google"; // Correct import
+import "./globals.css";
+import { Navbar } from "@/components/shared/Navbar";
+import { AuthProvider } from "@/contexts/AuthContext"; // Moved to top level
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
@@ -26,13 +27,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${notoSansThai.variable} antialiased bg-app-gradient`}
-        suppressHydrationWarning={true}
-      >
-        {children}
-      </body>
-    </html>
+    <AuthProvider>
+      <Navbar />
+      <div className={`${notoSansThai.variable} antialiased`}>{children}</div>
+    </AuthProvider>
   );
 }
