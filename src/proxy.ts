@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 /**
  * Middleware สำหรับป้องกันการเข้าถึงหน้าที่ต้อง Login
  * และจัดการการ Redirect สำหรับ User ที่ Login แล้ว
  */
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export function proxy() {
 
-  // 🔸 กำหนดกลุ่มของ Public Routes
-  const isPublicRoute = 
-    pathname === "/" || 
-    pathname.startsWith("/login") || 
-    pathname.startsWith("/signup") ||
-    pathname.startsWith("/public");
+
+
 
   // ในเวอร์ชันนี้เราจะปล่อยให้ Client-side (AuthContext) จัดการเป็นหลักก่อน 
   // เพราะ Firebase Auth token จัดการใน Server-side ของ Next.js middleware 
