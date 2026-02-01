@@ -18,7 +18,13 @@ import {
   Lock,
   Warehouse,
   Truck,
-  FileText
+  FileText,
+  AlertCircle,
+  CheckCircle2,
+  UserCircle,
+  RefreshCw,
+  BarChart3,
+  GlobeLock
 } from "lucide-react";
 
 // ------------------------------------------------------------------
@@ -438,12 +444,6 @@ export default function PendingPage() {
       {/* 4. System Showcase (Infographic Section) */}
       <section 
         className="py-20 relative"
-        style={{
-          backgroundImage: "url('/images/airplanes-leader-flying2.svg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
       >
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/60 pointer-events-none"></div>
@@ -537,7 +537,178 @@ export default function PendingPage() {
         </div>
       </section>
 
-      {/* 5. Custom Footer */}
+      {/* 5. Problem & Solution Section */}
+      <section className="mx-auto max-w-7xl px-6 py-24 bg-white/50 backdrop-blur-sm rounded-3xl my-10 border border-white/40">
+        <h2 className="text-3xl font-bold mb-4 text-center text-slate-800">
+          Common Challenges in Warehouse Operations
+        </h2>
+        <p className="text-center text-slate-500 mb-16 max-w-2xl mx-auto">
+          Manual operations lead to errors, delays, and significant hidden costs.
+        </p>
+        
+        <div className="grid gap-10 md:grid-cols-2">
+          <GlassCard className="p-8 hover:shadow-lg transition-all border-white/60 bg-white/60">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-rose-100 rounded-lg text-rose-600">
+                 <AlertCircle size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-slate-800">Manual & Fragmented Workflow</h3>
+                <p className="mt-4 text-slate-600 leading-relaxed">
+                  Using multiple paper systems leads to data mismatch. 
+                  Redundant data entry wastes time and increases error rates, distracting the team from core operational tasks.
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 pt-6 border-t border-slate-200/50">
+              <p className="flex items-center gap-2 font-bold text-indigo-600">
+                <CheckCircle2 size={20} /> Real-time Digital Workflow
+              </p>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-8 hover:shadow-lg transition-all border-white/60 bg-white/60">
+             <div className="flex items-start gap-4">
+              <div className="p-3 bg-amber-100 rounded-lg text-amber-600">
+                 <AlertCircle size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-slate-800">Lack of Visibility</h3>
+                <p className="mt-4 text-slate-600 leading-relaxed">
+                  Executives lack real-time visibility into operations. 
+                  Reporting that lags by days or weeks leads to decisions based on outdated and potentially inaccurate information.
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 pt-6 border-t border-slate-200/50">
+              <p className="flex items-center gap-2 font-bold text-indigo-600">
+                 <CheckCircle2 size={20} /> Instant Live Dashboard
+              </p>
+            </div>
+          </GlassCard>
+        </div>
+      </section>
+
+      {/* 5.5 Business Impact Section */}
+      <section className="mx-auto max-w-7xl px-6 pb-24">
+        <h2 className="text-3xl font-bold mb-12 text-center text-slate-800">
+          Measurable Business Impact
+        </h2>
+        <div className="grid gap-8 md:grid-cols-3">
+          
+          <GlassCard className="p-10 flex flex-col items-center text-center bg-white/70 hover:scale-105 transition-transform duration-300 border-white/60">
+            <span className="text-5xl font-black text-sky-500 mb-4 tracking-tight">-80%</span>
+            <h3 className="text-xl font-bold text-slate-800 mb-3">Infrastructure Cost</h3>
+            <p className="text-slate-500 leading-relaxed text-sm">
+              No server hardware required. <br/> Pay only for what you use.
+            </p>
+          </GlassCard>
+
+          <GlassCard className="p-10 flex flex-col items-center text-center bg-white/70 hover:scale-105 transition-transform duration-300 border-white/60">
+            <span className="text-5xl font-black text-sky-500 mb-4 tracking-tight">+30%</span>
+            <h3 className="text-xl font-bold text-slate-800 mb-3">Operational Efficiency</h3>
+            <p className="text-slate-500 leading-relaxed text-sm">
+               Accelerate workflows, reduce redundancy, and minimize human error.
+            </p>
+          </GlassCard>
+
+          <GlassCard className="p-10 flex flex-col items-center text-center bg-white/70 hover:scale-105 transition-transform duration-300 border-white/60">
+            <span className="text-5xl font-black text-sky-500 mb-4 tracking-tight">1-4</span>
+            <h3 className="text-xl font-bold text-slate-800 mb-3">Weeks to Value</h3>
+            <p className="text-slate-500 leading-relaxed text-sm">
+               Rapid deployment. <br/> Go live in weeks, not years.
+            </p>
+          </GlassCard>
+
+        </div>
+      </section>
+
+      {/* 6. How It Works Section */}
+      <section className="mx-auto max-w-7xl px-6 py-24">
+        <h2 className="text-3xl font-bold mb-16 text-center text-slate-800">
+          How It Works
+        </h2>
+        <div className="grid gap-10 md:grid-cols-4 text-center">
+          {[
+            {
+              icon: UserCircle,
+              step: '1',
+              title: 'Login',
+              desc: 'Secure role-based access control with verifiable audit trails.'
+            },
+            {
+              icon: Truck,
+              step: '2',
+              title: 'Operate',
+              desc: 'Receive & Dispatch tasks directly via mobile or tablet devices.'
+            },
+            {
+              icon: RefreshCw,
+              step: '3',
+              title: 'Realtime Update',
+              desc: 'Instant data synchronization across all devices. No need to wait for sync.'
+            },
+            {
+              icon: BarChart3,
+              step: '4',
+              title: 'Decision',
+              desc: 'Live Dashboard & automated alerts for precise, data-driven decisions.'
+            }
+          ].map((item, index) => (
+            <GlassCard key={index} className="p-8 flex flex-col items-center hover:border-indigo-400 transition-colors group bg-white/70">
+              <div className="mb-6 p-4 rounded-full bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <item.icon size={32} />
+              </div>
+              <p className="text-4xl font-black text-indigo-200 group-hover:text-indigo-600 transition-colors mb-2">{item.step}</p>
+              <h4 className="mt-2 font-bold text-lg text-slate-800">{item.title}</h4>
+              <p className="mt-2 text-sm text-slate-500">{item.desc}</p>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
+
+      {/* 7. Security Layers Section */}
+      <section className="py-24 bg-slate-50/50 backdrop-blur-sm border-y border-white">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-3xl font-bold mb-16 text-center text-slate-800">
+            Enterprise-Grade Architecture & Security
+          </h2>
+          <div className="grid gap-8 md:grid-cols-4">
+            {[
+              {
+                icon: ShieldCheck,
+                title: "Authentication",
+                desc: "Firebase Auth · MFA · Role-Based Access Control"
+              },
+              {
+                icon: Database,
+                title: "Realtime Database",
+                desc: "Cloud Firestore · Instant Realtime Sync"
+              },
+              {
+                icon: Server,
+                title: "Serverless Backend",
+                desc: "Cloud Functions · Auto Scaling Infrastructure"
+              },
+              {
+                icon: GlobeLock,
+                title: "Infrastructure",
+                desc: "Vercel Edge Network · HTTPS · DDoS Protection"
+              }
+            ].map((item, index) => (
+               <div key={index} className="rounded-2xl bg-white p-8 shadow-sm hover:shadow-lg transition-all border border-slate-100">
+                  <div className="mb-4 text-indigo-600 bg-indigo-50 w-fit p-3 rounded-xl">
+                      <item.icon size={24} />
+                  </div>
+                  <h4 className="font-bold mb-2 text-lg text-slate-800">{item.title}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. Custom Footer */}
       <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
         <div className="container-custom text-center">
           <div className="flex justify-center items-center gap-3 mb-8">
