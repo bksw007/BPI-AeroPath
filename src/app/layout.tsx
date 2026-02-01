@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Thai } from "next/font/google";
+import { Noto_Sans_Thai, Montserrat_Alternates } from "next/font/google";
 
 import "./(main)/globals.css";
 
@@ -7,6 +7,14 @@ const notoSansThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-noto-sans-thai",
+  display: "swap",
+});
+
+const montserratAlt = Montserrat_Alternates({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: "italic",
+  variable: "--font-montserrat-alt",
   display: "swap",
 });
 
@@ -30,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${notoSansThai.variable} antialiased bg-app-gradient`}
+        className={`${notoSansThai.variable} ${montserratAlt.variable} antialiased bg-app-gradient`}
         suppressHydrationWarning={true}
       >
         <AuthProvider>

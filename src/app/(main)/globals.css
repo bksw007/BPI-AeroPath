@@ -312,6 +312,24 @@ html {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Thin scrollbar for widgets */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
+}
+
 /* ===================================
    🎨 Typography
    =================================== */

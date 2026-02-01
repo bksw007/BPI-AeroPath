@@ -24,7 +24,7 @@ import {
 // ------------------------------------------------------------------
 // 🕒 Components: World Clock
 // ------------------------------------------------------------------
-function WorldClock({ city, region, timezone }: { city: string; region: string; timezone: string }) {
+function WorldClock({ city, timezone }: { city: string; timezone: string }) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -33,12 +33,11 @@ function WorldClock({ city, region, timezone }: { city: string; region: string; 
   }, []);
 
   return (
-    <div className="flex flex-col items-center p-3 bg-white/40 rounded-xl backdrop-blur-sm border border-white/30">
-      <span className="text-xs text-slate-500 font-medium tracking-wider uppercase">{region}</span>
-      <span className="text-lg font-bold text-slate-700 font-mono my-1">
+    <div className="flex flex-col items-center p-2.5 bg-white/40 rounded-xl backdrop-blur-sm border border-white/30 min-w-[70px]">
+      <span className="text-lg font-bold text-slate-700 font-mono">
         {time.toLocaleTimeString("en-US", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hour12: false })}
       </span>
-      <span className="text-xs text-slate-400">{city}</span>
+      <span className="text-[10px] text-slate-500 font-medium">{city}</span>
     </div>
   );
 }
@@ -88,9 +87,12 @@ function OilPriceWidget() {
       try {
         const res = await fetch("/api/oil-price");
         const data = await res.json();
-        if (Array.isArray(data)) {
-          // Flatten data and show ALL valid oil types
-          const allFuels = (data as { OilName?: string; PriceToday?: number }[])
+        if (Array.isArray(data) && data.length > 0 && data[0].OilList) {
+          // OilList is a JSON string inside the first element
+          const oilListStr = data[0].OilList;
+          const oilList = typeof oilListStr === 'string' ? JSON.parse(oilListStr) : oilListStr;
+          
+          const allFuels = (oilList as { OilName?: string; PriceToday?: number }[])
             .filter((item) => item?.OilName && typeof item.OilName === "string")
             .map(item => ({
               OilName: item.OilName!,
@@ -108,41 +110,44 @@ function OilPriceWidget() {
   }, []);
 
   return (
-    <GlassCard className="h-full p-6 flex flex-col relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/50">
+    <GlassCard className="h-full flex flex-col p-6 relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200/50 flex-shrink-0">
         <div className="flex items-center gap-2 text-slate-700">
           <Droplet className="w-5 h-5 text-indigo-600" />
           <h3 className="font-bold text-base">Oil Prices</h3>
         </div>
-        <div className="flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 shadow-sm">
-           {/* Bangchak Logo Representation */}
-           <div className="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center">
-             <div className="w-2 h-2 rounded-full border-2 border-white"></div>
+        <div className="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
+           <div className="w-3 h-3 rounded-full bg-green-600 flex items-center justify-center">
+             <div className="w-1.5 h-1.5 rounded-full border border-white"></div>
            </div>
-           <span className="text-[11px] font-black text-green-700 tracking-wider">BANGCHAK</span>
+           <span className="text-[10px] font-black text-green-700 tracking-wider">BANGCHAK</span>
         </div>
       </div>
       
-      <div className="space-y-3 flex-1">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
         {loading ? (
-          [1, 2, 3, 4, 5].map(i => <div key={i} className="h-10 bg-slate-100/50 rounded-lg animate-pulse" />)
+          [1, 2, 3, 4, 5].map(i => <div key={i} className="h-9 bg-slate-100/50 rounded-lg animate-pulse" />)
         ) : (
           prices.map((fuel, idx) => (
-            <div key={idx} className="flex justify-between items-center text-sm p-3 bg-white/40 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-slate-100 shadow-sm hover:shadow-md group">
-              <span className="text-slate-600 font-medium group-hover:text-slate-800 transition-colors">{fuel.OilName}</span>
-              <span className="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg text-xs shadow-sm border border-slate-100 group-hover:text-indigo-600 transition-colors">
+            <div key={idx} className="flex justify-between items-center text-sm p-2.5 bg-white/40 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-slate-100 shadow-sm hover:shadow-md group">
+              <span className="text-slate-600 font-medium group-hover:text-slate-800 transition-colors text-xs">{fuel.OilName}</span>
+              <span className="font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-slate-100 group-hover:text-indigo-600 transition-colors">
                 {fuel.PriceToday} ฿
               </span>
             </div>
           ))
         )}
         {prices.length === 0 && !loading && (
-          <div className="text-center py-8 text-slate-400 text-sm">
+          <div className="text-center py-6 text-slate-400 text-sm">
              Unable to load prices
           </div>
         )}
       </div>
-      <p className="text-[10px] text-slate-400 mt-6 text-center">Updated Daily • Source: Bangchak API</p>
+      
+      {/* Footer */}
+      <p className="text-[9px] text-slate-400 mt-3 text-center flex-shrink-0">Updated Daily • Bangchak API</p>
     </GlassCard>
   );
 }
@@ -246,27 +251,37 @@ export default function PendingPage() {
   }, [user, router]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div 
+      className="min-h-screen"
+      style={{
+        backgroundImage: "url('/images/airplanes-leader-flying.svg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       
       {/* 1. Header / Top Bar */}
-      <header className="bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-white/30 backdrop-blur-2xl border-b border-white/20 sticky top-0 z-50 shadow-sm">
         <div className="container-custom py-3.5 flex justify-between items-center">
           <div className="flex items-center gap-3.5">
-            <div className="relative w-10 h-10 shadow-lg rounded-xl overflow-hidden bg-white">
-               <Image src="/icons/Logo no bg.png" alt="Logo" width={40} height={40} className="w-full h-full object-contain p-1" />
-            </div>
-            <div>
-                <h1 className="font-extrabold text-slate-800 tracking-tight leading-none text-lg">BPI AeroPath</h1>
-                <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase">Public Hub Portal</p>
-            </div>
+            <Image 
+              src="/images/Logo no bg.svg" 
+              alt="BPI AeroPath Logo" 
+              width={160} 
+              height={48} 
+              className="h-10 w-auto object-contain" 
+              priority
+            />
           </div>
           
           <div className="flex items-center gap-6">
             <div className="hidden lg:flex gap-4">
-              <WorldClock city="Bangkok" region="TH" timezone="Asia/Bangkok" />
-              <WorldClock city="Tokyo" region="JP" timezone="Asia/Tokyo" />
-              <WorldClock city="New York" region="US" timezone="America/New_York" />
-              <WorldClock city="London" region="EU" timezone="Europe/London" />
+              <WorldClock city="Bangkok" timezone="Asia/Bangkok" />
+              <WorldClock city="Tokyo" timezone="Asia/Tokyo" />
+              <WorldClock city="New York" timezone="America/New_York" />
+              <WorldClock city="London" timezone="Europe/London" />
             </div>
             
             <div className="h-8 w-px bg-slate-200 hidden lg:block"></div>
@@ -282,75 +297,103 @@ export default function PendingPage() {
         </div>
       </header>
 
+      {/* Sticky Notification Bar */}
+      <div className="sticky top-[57px] z-40 w-full py-3 flex justify-center">
+        <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-white/30 backdrop-blur-xl border border-white/40 rounded-full shadow-lg shadow-black/5">
+          <div className="relative">
+            <Clock className="w-4 h-4 text-amber-600" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full"></span>
+          </div>
+          <span className="text-sm font-semibold text-amber-700 tracking-wide">ACCOUNT PENDING APPROVAL</span>
+        </div>
+      </div>
+
       {/* 2. Welcome Message */}
       <section 
-        className="relative overflow-hidden bg-gradient-to-b from-white via-indigo-50/30 to-slate-50"
-        style={{ paddingTop: '40px', paddingBottom: '80px' }} // Adjusted padding for balance
+        className="relative overflow-hidden bg-gradient-to-b from-white/50 via-indigo-50/20 to-transparent -mt-[110px]"
+        style={{ 
+          paddingTop: '130px', 
+          paddingBottom: '80px',
+          backgroundImage: "url('/images/Clouds_Background_With_Blue_Sky%20(1).svg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
         
-        <div className="container-custom relative z-10 pt-10"> {/* Added top padding for inner content */}
+        <div className="container-custom relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-50 text-amber-700 rounded-full text-xs font-bold mb-6 border border-amber-100 shadow-sm animate-fade-in-up">
-              <Clock className="w-3.5 h-3.5" />
-              <span>ACCOUNT PENDING APPROVAL</span>
+            {/* Logo */}
+            <div className="flex justify-center mb-8 animate-fade-in">
+              <Image 
+                src="/images/Logo h no bg.svg" 
+                alt="BPI AeroPath" 
+                width={800} 
+                height={240} 
+                className="h-40 md:h-56 w-auto object-contain drop-shadow-lg animate-float"
+                priority
+              />
             </div>
-            <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight leading-tight animate-fade-in-up delay-100">
-              Welcome to the <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Digital Workspace</span>
+            
+
+            <h1 
+              className="text-4xl md:text-6xl mb-10 tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-indigo-800 to-slate-900 animate-fade-in-up animate-pulse" 
+              style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 600, fontStyle: 'italic', animationDuration: '1.5s' }}
+            >
+              Consolidate Your <br />
+              <span className="lg:whitespace-nowrap text-3xl md:text-5xl">Operating System Workflow</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto animate-fade-in-up delay-200">
-              Your account is currently under review by the administrator. <br className="hidden md:block"/>
-              In the meantime, explore our public hub for updates and insights.
+            <p className="text-lg md:text-xl leading-relaxed max-w-none mx-auto text-center" style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 400, fontStyle: 'italic' }}>
+              <span className="block text-slate-700 animate-fade-in-up delay-150 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
+                Transform your warehouse operations into a streamlined, digital powerhouse.
+              </span>
+              <span className="block text-slate-600 animate-fade-in-up delay-200 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
+                Real-time tracking, seamless syncing, enterprise-grade security — all in one hub.
+              </span>
             </p>
           </div>
 
-          {/* Widgets Grid - New Sidebar Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-start">
+          {/* Widgets Grid - Single Row Aligned Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             
-            {/* Left Main Content (Span 3) */}
-            <div className="lg:col-span-3 flex flex-col gap-6">
-              
-              {/* Top Row: Weather + Feature */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[320px]">
-                {/* Weather - Fixed Height */}
-                <div className="md:col-span-1 h-full">
-                   <WeatherWidget />
-                </div>
-                
-                {/* Feature - Fixed Height */}
-                <div className="md:col-span-2 h-full bg-slate-900 rounded-3xl shadow-xl overflow-hidden relative group">
-                  <Image 
-                      src="/images/sky-paper-plane-bg.jpg" 
-                      alt="Highlight" 
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700 blur-[2px] group-hover:blur-0 scale-105 group-hover:scale-100" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-90"></div>
-                  <div className="absolute bottom-0 left-0 p-8 text-white w-full">
-                    <span className="bg-indigo-500 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-3 inline-block shadow-lg shadow-indigo-500/30">
-                      Latest Feature
-                    </span>
-                    <h3 className="text-3xl font-bold mb-2 leading-tight">Logistics AI Module</h3>
-                    <p className="text-slate-300 text-sm leading-relaxed max-w-md">
-                      Our new AI-powered route optimization is now live. Reduce delivery times by up to 25% with smart traffic analysis.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Row: Exchange Rates */}
-              <div className="w-full">
-                <CurrencyWidgetHorizontal />
+            {/* Weather - Col 1 */}
+            <div className="lg:col-span-1 h-[320px]">
+              <WeatherWidget />
+            </div>
+            
+            {/* Feature - Col 2-3 */}
+            <div className="lg:col-span-2 h-[320px] bg-slate-900 rounded-3xl shadow-xl overflow-hidden relative group">
+              <Image 
+                  src="/images/sky-paper-plane-bg.jpg" 
+                  alt="Highlight" 
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-90"></div>
+              <div className="absolute bottom-0 left-0 p-8 text-white w-full">
+                <span className="bg-indigo-500 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-3 inline-block">
+                  LATEST FEATURE
+                </span>
+                <h3 className="text-3xl font-bold mb-2 leading-tight">Logistics AI Module</h3>
+                <p className="text-slate-300 text-sm leading-relaxed max-w-md">
+                  Our new AI-powered route optimization is now live. Reduce delivery times by up to 25%.
+                </p>
               </div>
             </div>
 
-            {/* Right Sidebar: Oil Prices (Span 1) - Tall */}
-            <div className="lg:col-span-1">
+            {/* Oil Prices - Col 4 - Fixed Height to Match */}
+            <div className="lg:col-span-1 h-[320px]">
               <OilPriceWidget />
             </div>
 
+          </div>
+
+          {/* Exchange Rates - Separate Full Width Row */}
+          <div className="w-full max-w-7xl mx-auto mt-6">
+            <CurrencyWidgetHorizontal />
           </div>
         </div>
       </section>
@@ -393,8 +436,19 @@ export default function PendingPage() {
       </section>
 
       {/* 4. System Showcase (Infographic Section) */}
-      <section className="py-20 bg-slate-50">
-        <div className="container-custom">
+      <section 
+        className="py-20 relative"
+        style={{
+          backgroundImage: "url('/images/airplanes-leader-flying2.svg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/60 pointer-events-none"></div>
+        
+        <div className="container-custom relative z-10">
           
           {/* Intro */}
           <div className="text-center mb-16">
