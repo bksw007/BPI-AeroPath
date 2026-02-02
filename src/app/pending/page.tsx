@@ -9,8 +9,15 @@ import {
   LogOut, 
   Clock, 
   CloudSun, 
+  CloudRain,
+  CloudLightning,
+  CloudFog,
+  Cloud,
+  Sun,
+  Moon,
   Droplet, 
-  DollarSign, 
+  TrendingUp,
+  Coins,
   Newspaper, 
   ShieldCheck, 
   Database, 
@@ -26,6 +33,9 @@ import {
   BarChart3,
   GlobeLock
 } from "lucide-react";
+import { ParallaxProvider } from "@/contexts/ParallaxContext";
+import { ParallaxElement } from "@/components/effects/ParallaxElement";
+import { FloatingElements } from "@/components/effects/FloatingElements";
 
 // ------------------------------------------------------------------
 // 🕒 Components: World Clock
@@ -49,27 +59,141 @@ function WorldClock({ city, timezone }: { city: string; timezone: string }) {
 }
 
 // ------------------------------------------------------------------
-// ⛅ Components: Weather Widget (Mock for now, easy to swap with API)
+// ⛅ Components: Weather Widget
 // ------------------------------------------------------------------
+interface WeatherData {
+  temp: number;
+  condition: string;
+  description: string;
+  humidity: number;
+  high: number;
+  low: number;
+  city: string;
+  icon_code: string;
+  is_mock?: boolean;
+}
+
 function WeatherWidget() {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchWeather(lat?: number, lon?: number) {
+      try {
+        const query = lat && lon ? `?lat=${lat}&lon=${lon}` : "";
+        const res = await fetch(`/api/weather${query}`);
+        const data = await res.json();
+        setWeather(data);
+      } catch (err) {
+        console.error("Failed to load weather", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          fetchWeather(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.warn("Geolocation denied/error:", error);
+          fetchWeather(); // Fallback to default (Bangkok)
+        }
+      );
+    } else {
+      fetchWeather();
+    }
+  }, []);
+
+  const getWeatherIcon = (code: string) => {
+    // OpenWeatherMap Icon Codes
+    // 01d/n: Clear
+    // 02d/n: Few clouds
+    // 03d/n: Scattered clouds
+    // 04d/n: Broken clouds
+    // 09d/n: Shower rain
+    // 10d/n: Rain
+    // 11d/n: Thunderstorm
+    // 13d/n: Snow
+    // 50d/n: Mist
+    const isNight = code.endsWith('n');
+    
+    if (code.startsWith('01')) return isNight ? <Moon className="w-16 h-16 text-indigo-200" /> : <Sun className="w-16 h-16 text-yellow-500" />;
+    if (code.startsWith('02')) return <CloudSun className="w-16 h-16 text-yellow-500" />;
+    if (code.startsWith('03') || code.startsWith('04')) return <Cloud className="w-16 h-16 text-slate-400" />;
+    if (code.startsWith('09') || code.startsWith('10')) return <CloudRain className="w-16 h-16 text-blue-400" />;
+    if (code.startsWith('11')) return <CloudLightning className="w-16 h-16 text-purple-500" />;
+    if (code.startsWith('13')) return <CloudSun className="w-16 h-16 text-cyan-200" />; // Snow fallback
+    if (code.startsWith('50')) return <CloudFog className="w-16 h-16 text-slate-300" />;
+    
+    return <CloudSun className="w-16 h-16 text-yellow-500" />;
+  };
+
+  const getWeatherImage = (code: string) => {
+     // Exact filename mapping based on user request and available files
+     switch(code) {
+       case '01d': return "01d Clear sky.png";
+       case '01n': return "01n Clear sky (Night).png";
+       case '02d': return "02d Few clouds.png";
+       case '02n': return "02n _ 03n Few _ Scattered clouds (Night).png"; 
+       case '03d': return "03d Scattered clouds.png";
+       case '03n': return "02n _ 03n Few _ Scattered clouds (Night).png";
+       case '04d': return "04d Broken _ Overcast clouds.png";
+       case '04n': return "04n_Overcast clouds (Night).png";
+       case '09d': case '09n': return "09d Shower rain _ Drizzle.png";
+       case '10d': case '10n': return "10d Rain.png";
+       case '11d': case '11n': return "11d Thunderstorm.png"; // Defaulting to generic thunderstorm
+       case '50d': case '50n': return "50d Mist _ Haze _ Fog.png";
+       default: return "01d Clear sky.png";
+     }
+  };
+
+  if (loading) {
+    return (
+      <GlassCard className="h-full p-6 flex items-center justify-center">
+         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      </GlassCard>
+    );
+  }
+
+  const data = weather || {
+    temp: 32, condition: "Partly Cloudy", description: "partly cloudy", humidity: 65, high: 34, low: 28, city: "Bangkok", icon_code: "02d"
+  };
+
   return (
     <GlassCard className="h-full p-6 flex flex-col justify-between relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none z-0" />
       
-      <div className="flex justify-between items-start z-10">
+      {/* Large Centered Custom Icon */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+         <div className="relative w-[270px] h-[270px] drop-shadow-2xl opacity-90">
+            <Image 
+              src={`/icons/icon-weather/${getWeatherImage(data.icon_code)}`}
+              alt={data.description}
+              fill
+              className="object-contain"
+            />
+         </div>
+      </div>
+
+      <div className="flex justify-between items-start z-10 relative">
         <div>
-          <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">Bangkok</h3>
-          <p className="text-xs text-slate-400 mt-1">Partly Cloudy</p>
+          <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">{data.city}</h3>
+          <p className="text-xs text-slate-400 mt-1 capitalize">{data.description}</p>
+          {data.is_mock && <span className="text-[9px] text-rose-400 block mt-1">(Using Standard Data)</span>}
         </div>
-        <CloudSun className="w-8 h-8 text-yellow-500" />
+        <div className="-mt-1 -mr-1 opacity-80 scale-90">
+           {getWeatherIcon(data.icon_code)}
+        </div>
       </div>
       
-      <div className="mt-4 z-10">
-        <h2 className="text-4xl font-bold text-slate-700">32°C</h2>
-        <div className="flex gap-3 mt-2 text-xs text-slate-500">
-          <span>H: 34°</span>
-          <span>L: 28°</span>
-          <span>Humidity: 65%</span>
+      <div className="mt-4 z-10 relative">
+        <h2 className="text-4xl font-bold text-slate-700">{data.temp}°C</h2>
+        <div className="flex gap-3 mt-2 text-xs text-slate-500 font-medium">
+          <span>H: {data.high}°</span>
+          <span>L: {data.low}°</span>
+          <span>Humidity: {data.humidity}%</span>
         </div>
       </div>
     </GlassCard>
@@ -92,7 +216,11 @@ function OilPriceWidget() {
     async function fetchOilPrices() {
       try {
         const res = await fetch("/api/oil-price");
-        const data = await res.json();
+        const json = await res.json();
+        
+        // Wrapper support: json.data contains the array
+        const data = json.data || json;
+
         if (Array.isArray(data) && data.length > 0 && data[0].OilList) {
           // OilList is a JSON string inside the first element
           const oilListStr = data[0].OilList;
@@ -116,23 +244,25 @@ function OilPriceWidget() {
   }, []);
 
   return (
-    <GlassCard className="h-full flex flex-col p-6 relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
+    <GlassCard className="h-full flex flex-col px-6 pb-6 pt-3 relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200/50 flex-shrink-0">
-        <div className="flex items-center gap-2 text-slate-700">
-          <Droplet className="w-5 h-5 text-indigo-600" />
-          <h3 className="font-bold text-base">Oil Prices</h3>
+      <div className="flex flex-col items-center gap-1 mb-4 pb-3 border-b border-slate-200/50 flex-shrink-0">
+        <div className="relative w-full h-16">
+           <Image
+             src="/images/Logo bangchak horizontal.svg"
+             alt="Bangchak"
+             fill
+             className="object-contain object-center"
+           />
         </div>
-        <div className="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
-           <div className="w-3 h-3 rounded-full bg-green-600 flex items-center justify-center">
-             <div className="w-1.5 h-1.5 rounded-full border border-white"></div>
-           </div>
-           <span className="text-[10px] font-black text-green-700 tracking-wider">BANGCHAK</span>
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <Droplet className="w-3.5 h-3.5" />
+          <span className="text-xs font-semibold tracking-wider uppercase">Oil Prices</span>
         </div>
       </div>
       
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+      {/* Content Area */}
+      <div className="flex-1 space-y-2">
         {loading ? (
           [1, 2, 3, 4, 5].map(i => <div key={i} className="h-9 bg-slate-100/50 rounded-lg animate-pulse" />)
         ) : (
@@ -164,66 +294,141 @@ function OilPriceWidget() {
 // ------------------------------------------------------------------
 // 💸 Components: Currency Widget (Mock Data)
 // ------------------------------------------------------------------
-function CurrencyWidgetHorizontal() {
+// ------------------------------------------------------------------
+// 💸 Components: Currency Widget (Mock Data)
+// ------------------------------------------------------------------
+const CURRENCY_FLAGS: Record<string, string> = {
+  USD: "🇺🇸",
+  EUR: "🇪🇺",
+  JPY: "🇯🇵",
+  GBP: "🇬🇧",
+  CNY: "🇨🇳",
+  SGD: "🇸🇬",
+  AUD: "🇦🇺",
+  HKD: "🇭🇰",
+  KRW: "🇰🇷",
+  MYR: "🇲🇾"
+};
+
+const TARGET_CURRENCIES = ["USD", "EUR", "JPY", "GBP", "CNY", "SGD"];
+
+interface ExchangeRate {
+  currency_id: string;
+  selling: string;
+  period: string;
+  change: number;
+  trend: "up" | "down" | "flat";
+}
+
+function CurrencyWidget() {
+  const [rates, setRates] = useState<ExchangeRate[]>([]);
+  const [date, setDate] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchRates() {
+      try {
+        const res = await fetch("/api/exchange-rates");
+        const json = await res.json();
+        
+        if (json.error) {
+          throw new Error(json.details || "Failed to load rates");
+        }
+
+        const data = json.data || [];
+        
+        // Get date from response
+        if (json.last_updated) {
+           const [y, m, d] = json.last_updated.split('-');
+           setDate(`${d}-${m}-${y}`);
+        }
+
+        // Filter and map
+        const filtered = data.filter((item: ExchangeRate) => TARGET_CURRENCIES.includes(item.currency_id));
+        setRates(filtered);
+      } catch (err) {
+        console.error("Failed to fetch rates:", err);
+        setError("Unavailable");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRates();
+  }, []);
+
   return (
-    <GlassCard className="h-full px-8 py-5 flex items-center justify-between relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
-      <div className="flex items-center gap-3">
-        <div className="bg-emerald-100 p-2 rounded-full">
-          <DollarSign className="w-5 h-5 text-emerald-600" />
+    <GlassCard className="w-full h-full px-6 pb-6 pt-3 flex flex-col relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
+      <div className="flex flex-col items-center gap-1 mb-6 pb-3 border-b border-slate-200/50 flex-shrink-0">
+        <div className="relative w-full h-16 mb-2">
+          <Image
+            src="/images/BOT_logo_1.png"
+            alt="Bank of Thailand"
+            fill
+            className="object-contain object-center"
+          />
         </div>
-        <div>
-           <h3 className="font-bold text-slate-800">Exchange Rates</h3>
-           <p className="text-xs text-slate-500">Real-time updates</p>
+        <div className="flex items-center gap-1.5 text-slate-500">
+           <Coins className="w-3.5 h-3.5" />
+           <span className="text-xs font-semibold tracking-wider uppercase">Exchange Rates</span>
         </div>
       </div>
-      
-      <div className="flex gap-8 md:gap-12 text-sm">
-        <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl border border-white/60 shadow-sm">
-           <span className="text-2xl">🇺🇸</span>
-           <div>
-              <div className="flex items-center gap-2">
-                 <span className="font-bold text-slate-700">USD/THB</span>
-                 <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+0.15%</span>
-              </div>
-              <span className="text-lg font-black text-slate-800">34.25</span>
-           </div>
-        </div>
 
-        <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl border border-white/60 shadow-sm">
-           <span className="text-2xl">🇯🇵</span>
-           <div>
-              <div className="flex items-center gap-2">
-                 <span className="font-bold text-slate-700">JPY/THB</span>
-                 <span className="text-[10px] text-rose-500 font-bold bg-rose-50 px-1.5 py-0.5 rounded">-0.05%</span>
-              </div>
-              <span className="text-lg font-black text-slate-800">23.12</span>
-           </div>
+      <div className="flex-1 overflow-y-auto flex flex-col lg:justify-center">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+        {loading ? (
+           [1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-12 bg-slate-100/50 rounded-xl animate-pulse" />)
+        ) : error ? (
+           <div className="text-center py-4 text-slate-400 text-xs">{error}</div>
+        ) : (
+          rates.map((rate) => (
+            <div key={rate.currency_id} className="flex items-center justify-between bg-white/40 px-3 py-3 rounded-xl border border-white/50 hover:bg-white/60 transition-colors">
+               <div className="flex items-center gap-2">
+                 <span className="text-2xl">{CURRENCY_FLAGS[rate.currency_id] || "🏳️"}</span>
+                 <span className="font-bold text-slate-700 text-sm">{rate.currency_id}</span>
+               </div>
+               <div className="text-right">
+                  <span className="block text-sm font-bold text-slate-800 leading-none mb-1">
+                    {parseFloat(rate.selling).toFixed(2)}
+                  </span>
+                  <div className={`flex items-center justify-end gap-0.5 text-[10px] font-medium ${
+                    rate.trend === 'up' ? 'text-emerald-500' : rate.trend === 'down' ? 'text-rose-500' : 'text-slate-400'
+                  }`}>
+                    {rate.trend === 'up' && <TrendingUp className="w-3 h-3" />}
+                    {rate.trend === 'down' && <TrendingUp className="w-3 h-3 rotate-180" />}
+                    <span>{Math.abs(rate.change).toFixed(2)}</span>
+                  </div>
+               </div>
+            </div>
+          ))
+        )}
         </div>
-        
-        <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl border border-white/60 shadow-sm">
-           <span className="text-2xl">🇪🇺</span>
-           <div>
-              <div className="flex items-center gap-2">
-                 <span className="font-bold text-slate-700">EUR/THB</span>
-                 <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+0.08%</span>
-              </div>
-              <span className="text-lg font-black text-slate-800">37.45</span>
-           </div>
-        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+        <span className="font-medium">Bank of Thailand</span>
+        {date && (
+          <>
+            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+            <span>{date}</span>
+          </>
+        )}
       </div>
     </GlassCard>
   );
 }
 
 // ------------------------------------------------------------------
-//  Components: News Card
+// 📰 Components: News Card
 // ------------------------------------------------------------------
 function NewsCard({ title, date, category, image }: { title: string; date: string; category: string; image: string }) {
   return (
     <div className="group cursor-pointer">
       <div className="relative h-48 rounded-xl overflow-hidden mb-3">
-        <Image 
-          src={image} 
+        <Image
+          src={image}
           alt={title}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -257,6 +462,7 @@ export default function PendingPage() {
   }, [user, router]);
 
   return (
+    <ParallaxProvider>
     <div 
       className="min-h-screen"
       style={{
@@ -329,10 +535,15 @@ export default function PendingPage() {
       >
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
         
+        {/* Background Elements */}
+        <FloatingElements />
+        
         <div className="container-custom relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            {/* Logo */}
-            <div className="flex justify-center mb-8 animate-fade-in">
+            
+            {/* 🎯 Logo with Strong Parallax (Close/Fast) */}
+            <div className="flex justify-center mb-8 animate-fade-in relative z-20">
+              <ParallaxElement depth={0.08} speed="fast">
               <Image 
                 src="/images/Logo h no bg.svg" 
                 alt="BPI AeroPath" 
@@ -341,9 +552,12 @@ export default function PendingPage() {
                 className="h-40 md:h-56 w-auto object-contain drop-shadow-lg animate-float"
                 priority
               />
+              </ParallaxElement>
             </div>
             
 
+            {/* 🎯 Main Heading with Medium Parallax */}
+            <ParallaxElement depth={0.05} speed="medium">
             <h1 
               className="text-4xl md:text-6xl mb-10 tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-indigo-800 to-slate-900 animate-fade-in-up animate-pulse" 
               style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 600, fontStyle: 'italic', animationDuration: '1.5s' }}
@@ -351,6 +565,10 @@ export default function PendingPage() {
               Consolidate Your <br />
               <span className="lg:whitespace-nowrap text-3xl md:text-5xl">Operating System Workflow</span>
             </h1>
+            </ParallaxElement>
+
+            {/* 🎯 Subtitle with Subtle Parallax (Far/Slow) */}
+            <ParallaxElement depth={0.02} speed="slow">
             <p className="text-lg md:text-xl leading-relaxed max-w-none mx-auto text-center" style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 400, fontStyle: 'italic' }}>
               <span className="block text-slate-700 animate-fade-in-up delay-150 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
                 Transform your warehouse operations into a streamlined, digital powerhouse.
@@ -359,47 +577,35 @@ export default function PendingPage() {
                 Real-time tracking, seamless syncing, enterprise-grade security — all in one hub.
               </span>
             </p>
+            </ParallaxElement>
           </div>
 
-          {/* Widgets Grid - Single Row Aligned Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Main Grid Layout - 12 Columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto pb-10">
             
-            {/* Weather - Col 1 */}
-            <div className="lg:col-span-1 h-[320px]">
+            {/* Row 1: Exchange Rates (6) | Weather (3) | Oil (3 start) */}
+            
+            {/* Exchange Rates - Col Span 6 */}
+            <div className="lg:col-span-6">
+               <ParallaxElement depth={0.03} speed="medium" className="h-full">
+               <CurrencyWidget />
+               </ParallaxElement>
+            </div>
+
+            {/* Weather - Col Span 3 */}
+            <div className="lg:col-span-3">
+              <ParallaxElement depth={0.04} speed="medium" className="h-full">
               <WeatherWidget />
-            </div>
-            
-            {/* Feature - Col 2-3 */}
-            <div className="lg:col-span-2 h-[320px] bg-slate-900 rounded-3xl shadow-xl overflow-hidden relative group">
-              <Image 
-                  src="/images/sky-paper-plane-bg.jpg" 
-                  alt="Highlight" 
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-700" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-90"></div>
-              <div className="absolute bottom-0 left-0 p-8 text-white w-full">
-                <span className="bg-indigo-500 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-3 inline-block">
-                  LATEST FEATURE
-                </span>
-                <h3 className="text-3xl font-bold mb-2 leading-tight">Logistics AI Module</h3>
-                <p className="text-slate-300 text-sm leading-relaxed max-w-md">
-                  Our new AI-powered route optimization is now live. Reduce delivery times by up to 25%.
-                </p>
-              </div>
+              </ParallaxElement>
             </div>
 
-            {/* Oil Prices - Col 4 - Fixed Height to Match */}
-            <div className="lg:col-span-1 h-[320px]">
+            {/* Oil Prices - Col Span 3 */}
+            <div className="lg:col-span-3">
+              <ParallaxElement depth={0.035} speed="medium" className="h-full">
               <OilPriceWidget />
+              </ParallaxElement>
             </div>
 
-          </div>
-
-          {/* Exchange Rates - Separate Full Width Row */}
-          <div className="w-full max-w-7xl mx-auto mt-6">
-            <CurrencyWidgetHorizontal />
           </div>
         </div>
       </section>
@@ -740,5 +946,6 @@ export default function PendingPage() {
       </footer>
 
     </div>
+    </ParallaxProvider>
   );
 }
