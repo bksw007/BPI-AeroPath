@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { 
-  LogOut, 
   Clock, 
   CloudSun, 
   CloudRain,
@@ -499,11 +498,13 @@ export default function PendingPage() {
             <div className="h-8 w-px bg-slate-200 hidden lg:block"></div>
             
             <button 
-              onClick={() => signOut()}
+              onClick={async () => {
+                await signOut();
+                router.push("/login");
+              }}
               className="px-5 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform active:scale-95"
             >
-              <LogOut className="w-4 h-4" />
-              Sign Out
+              Join Our!
             </button>
           </div>
         </div>

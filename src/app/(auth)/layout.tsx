@@ -3,7 +3,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Image from "next/image";
+import { FloatingElements } from "@/components/effects/FloatingElements";
+import { ParallaxProvider } from "@/contexts/ParallaxContext";
 
 export default function AuthLayout({
   children,
@@ -29,21 +30,18 @@ export default function AuthLayout({
   }
 
   return (
+    <ParallaxProvider>
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
-        <Image
-          src="/images/sky-paper-plane-bg.jpg"
-          alt="Background"
-          fill
-          className="object-cover opacity-10"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <FloatingElements />
       </div>
 
       {/* Auth Content Card */}
-      <div className="relative z-10 w-full max-w-md p-6 animate-slide-up">
+      <div className="relative z-10 w-full max-w-6xl p-6">
         {children}
         
         {/* Footer */}
@@ -52,5 +50,6 @@ export default function AuthLayout({
         </div>
       </div>
     </div>
+    </ParallaxProvider>
   );
 }

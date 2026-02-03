@@ -11,9 +11,10 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   className?: string;
+  hideHeader?: boolean;
 }
 
-export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, className, hideHeader }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -55,15 +56,17 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
           className
         )}
       >
-        <div className="flex items-center justify-between p-6 border-b border-indigo-100">
-          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
-          <button 
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100/50 text-slate-500 hover:text-red-500 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        {!hideHeader && (
+          <div className="flex items-center justify-between p-6 border-b border-indigo-100">
+            <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+            <button 
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-slate-100/50 text-slate-500 hover:text-red-500 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
         
         <div className="p-6 max-h-[80vh] overflow-y-auto">
           {children}

@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils/cn";
  */
 
 interface PrimaryButtonConfig {
-  label: string;
+  label: React.ReactNode;
   icon?: React.ReactNode;
   onClick: () => void;
 }
@@ -35,6 +35,8 @@ interface SearchToolbarProps {
   filterOptions?: string[];
   primaryButton?: PrimaryButtonConfig;
   className?: string;
+  children?: React.ReactNode;
+  actions?: React.ReactNode; // New prop for right-aligned actions
 }
 
 export function SearchToolbar({
@@ -46,6 +48,8 @@ export function SearchToolbar({
   filterOptions,
   primaryButton,
   className,
+  children,
+  actions
 }: SearchToolbarProps) {
   const currentYear = new Date().getFullYear().toString();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -130,18 +134,25 @@ export function SearchToolbar({
             </div>
           )}
         </div>
+        
+        {/* Custom Children (Extra Filters) */}
+        {children}
       </div>
 
-      {/* Right: Primary Button */}
-      {primaryButton && (
-        <button
-          onClick={primaryButton.onClick}
-          className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2"
-        >
-          {primaryButton.icon}
-          {primaryButton.label}
-        </button>
-      )}
+      {/* Right: Actions + Primary Button */}
+      <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+        {actions}
+        
+        {primaryButton && (
+          <button
+            onClick={primaryButton.onClick}
+            className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2"
+          >
+            {primaryButton.icon}
+            {primaryButton.label}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

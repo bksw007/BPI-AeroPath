@@ -11,6 +11,7 @@ import {
   Target,
   Shield,
   ArrowRight,
+  Boxes,
 } from "lucide-react";
 import Image from "next/image";
 import { GlassCard } from "@/components/shared/GlassCard";
@@ -175,12 +176,21 @@ export default function Home() {
             />
 
             <ProjectCard
+              title="Smart Packaging"
+              description="Intelligent packing plans based on customer specs. Manage pallets, box sizes, and automated lists."
+              icon={Boxes}
+              href="/projects/packaging"
+              status="active"
+              iconColor="from-green-500 to-green-600"
+            />
+
+            <ProjectCard
               title="Delivery Tracking"
               description="Monitor shipments, delivery status, and logistics in real-time with automated notifications."
               icon={Truck}
               href="/projects/delivery"
               status="active"
-              iconColor="from-green-500 to-green-600"
+              iconColor="from-indigo-500 to-blue-600"
             />
 
             <ProjectCard

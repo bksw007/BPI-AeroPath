@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { cacheService } from "@/lib/services/cacheService";
 
+interface ExchangeRateItem {
+  currency_id: string;
+  selling: string;
+  period: string;
+}
+
+interface ProcessedExchangeRate {
+  currency_id: string;
+  selling: string;
+  period: string;
+  prev_selling: string | null;
+  change: number;
+  trend: 'up' | 'down' | 'flat';
+}
+
 export async function GET() {
   try {
     const CACHE_KEY = "exchange_rates";
@@ -51,7 +66,7 @@ export async function GET() {
         shouldFetchFresh = true;
     }
 
-    if (!shouldFetchFresh && cached) {
+    if (!shouldFetchFresh && cached && typeof cached.data === 'object' && cached.data !== null) {
       return NextResponse.json({
         ...cached.data,
         source: 'cache',
@@ -88,7 +103,7 @@ export async function GET() {
     if (!response.ok) {
         const errorText = await response.text();
          // Fallback to cache if exists
-        if (cached) {
+        if (cached && typeof cached.data === 'object' && cached.data !== null) {
              return NextResponse.json({
                 ...cached.data,
                 source: 'cache_fallback',
@@ -109,15 +124,15 @@ export async function GET() {
     }
 
     // Process data to find latest and previous for each currency
-    const grouped: Record<string, any[]> = {};
-    details.forEach((item: any) => {
+    const grouped: Record<string, ExchangeRateItem[]> = {};
+    details.forEach((item: ExchangeRateItem) => {
         if (!grouped[item.currency_id]) grouped[item.currency_id] = [];
         if (item.selling && item.selling !== "") {
             grouped[item.currency_id].push(item);
         }
     });
 
-    const processedData: any[] = [];
+    const processedData: ProcessedExchangeRate[] = [];
     let lastUpdatedDate = "";
 
     Object.keys(grouped).forEach(currency => {
@@ -165,7 +180,9 @@ export async function GET() {
     
     // Fallback
     const cached = await cacheService.get("exchange_rates");
-    if (cached) return NextResponse.json({...cached.data, source: 'cache_fallback'});
+    if (cached && typeof cached.data === 'object' && cached.data !== null) {
+      return NextResponse.json({...cached.data, source: 'cache_fallback'});
+    }
 
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(

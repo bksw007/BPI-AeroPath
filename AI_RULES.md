@@ -215,6 +215,23 @@ Default Font: Inter (Google Fonts)
    - Section Padding Top: `160px` (inline style) หรือ `pt-24+` ถ้า Tailwind works
    - ทดสอบใน browser เสมอก่อน commit
 
+## 🧩 MODULE UI PATTERNS (Standard Alignment)
+
+> **Lesson Learned (Feb 03, 2026):** เพื่อให้ทุก Module มีมาตรฐานเดียวกันและดู Professional ที่สุด ให้ใช้ลำดับชั้นและ Pattern ดังนี้:
+
+### 1. Hierarchical Navigation (Hub-and-Spoke+)
+
+- **Level 1 (Dashboard):** หน้ารวม Module (เช่น Dashboard ของ Smart Packaging)
+- **Level 2 (Data Spec):** หน้าเลือกหมวดหมู่ (Category Selection)
+- **Level 3 (Table View):** หน้าตารางข้อมูลล้วน (Table-only) โดยใช้ `DataTable`
+
+### 2. UI Consistency (🚨 Avoid Redundancy)
+
+- **ModuleHeader Integration:** ใช้ `ModuleHeader` ทุกหน้าในลำดับชั้น เพื่อจัดการ Title และปุ่มย้อนกลับให้เป็นมาตรฐานเดียวกัน
+- **SearchToolbar Transparency:** ห้ามวาง `SearchToolbar` ซ้อนใน `GlassCard` หรือกล่องขาวอื่นอีก ให้วางลงบน `ModuleHeader` โดยตรง เพื่อรักษาความโปร่งใส (Transparency) และความคลีน
+- **DataTable over GlassCard:** ตัว `DataTable` มี Wrapper เป็น GlassCard อยู่แล้ว ห้ามนำไปซ้อนใน `GlassCard` อื่นอีก เพื่อเลี่ยงการเกิดขอบซ้อน (Double Border)
+- **Standard Modal Size:** หน้ารายละเอียด (Detail Modal) ให้ใช้ขนาด **`md:max-w-2xl`** เสมอ และจัดวางข้อมูลแบบ **Tabbed Info Grid** (Overview / History)
+
 ---
 
 ## 📁 FILE STRUCTURE (Hybrid Approach)

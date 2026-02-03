@@ -27,7 +27,7 @@
    * Status: ACTIVE
    * Descr: SVG vector background with flying paper airplanes.
    */
-  --background: url('/images/paper-airplanes-flying.svg');
+  --background: url("/images/paper-airplanes-flying.svg");
 
   --foreground: #1a1a2e;
 
@@ -71,7 +71,11 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   color: var(--foreground);
-  font-family: var(--font-noto-sans-thai), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-noto-sans-thai),
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-weight: 300; /* Light weight for Noto Sans Thai looks modern */
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -196,7 +200,8 @@ body {
 }
 
 @keyframes pulse-soft {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -204,47 +209,15 @@ body {
   }
 }
 
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-glow {
-  animation: glow 2s ease-in-out infinite;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.6s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.8s ease-out forwards;
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite;
-}
 
 /* Shimmer animation for text */
 @keyframes shimmer {
-  0% { background-position: 100% 50%; }
-  100% { background-position: -100% 50%; }
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: -100% 50%;
+  }
 }
 
 .animate-shimmer {
@@ -253,21 +226,47 @@ body {
 
 /* Shake animation for buttons */
 @keyframes wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  15% { transform: rotate(-2deg); }
-  30% { transform: rotate(2deg); }
-  45% { transform: rotate(-2deg); }
-  60% { transform: rotate(2deg); }
-  75% { transform: rotate(-1deg); }
-  90% { transform: rotate(1deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-2deg);
+  }
+  30% {
+    transform: rotate(2deg);
+  }
+  45% {
+    transform: rotate(-2deg);
+  }
+  60% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+  90% {
+    transform: rotate(1deg);
+  }
 }
 
 @keyframes wiggle-subtle {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-2px); }
-  40% { transform: translateX(2px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(1px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-2px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
 }
 
 .animate-wiggle {
@@ -279,11 +278,21 @@ body {
 }
 
 /* Staggered animation delays */
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}
+.delay-400 {
+  animation-delay: 0.4s;
+}
+.delay-500 {
+  animation-delay: 0.5s;
+}
 
 /* Smooth scroll with bounce effect */
 html {
