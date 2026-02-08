@@ -406,6 +406,9 @@ export const formatCurrency = (amount: number): string => {
 };
 
 // Example: 1250.50 → "฿1,250.50" or "1,250.50 ฿"
+
+// ✅ Filename Handling (downloads)
+// Format: Prefix_Customer_YYYYMMDDHHmm.ext
 ```
 
 ### Type Definitions (Updated for BOM)

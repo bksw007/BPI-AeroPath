@@ -7,7 +7,8 @@ import {
   History,
   TrendingUp,
   Database,
-  LayoutGrid
+  LayoutGrid,
+  FlaskConical
 } from "lucide-react";
 
 import { GlassCard } from "@/components/shared/GlassCard";
@@ -54,6 +55,13 @@ const sections = [
     href: "/projects/packaging/database",
     icon: Database,
     iconColor: "from-slate-500 to-slate-600",
+  },
+  {
+    title: "Logic Process",
+    description: "Step-by-step visualization and debugging of packing algorithm.",
+    href: "/projects/packaging/logic-process",
+    icon: FlaskConical,
+    iconColor: "from-emerald-500 to-teal-500",
   },
 ] as const;
 

@@ -1,0 +1,620 @@
+/**
+ * Fixed Packing Logic with 3D Bin Packing Support
+ * 
+ * Key Improvements:
+ * 1. Uses INNER dimensions for all calculations
+ * 2. Physical 3D constraint validation
+ * 3. Simplified baseline logic
+ * 4. Better error handling
+ * 5. Clear units (cm throughout)
+ */
+
+import { 
+  PackageDef, 
+  getAvailablePackages, 
+  calculateM3,
+  sortPackagesByVolume,
+  findBestFitPackage,
+  findLargestPackage
+} from './packagingData';
+
+import {
+  Item3D,
+  Dimensions3D,
+  PackingResult,
+  validatePacking,
+  simplePhysicalCheck,
+  volumeCheck
+} from './binPacking3D';
+
+// ============================================================================
+// INTERFACES
+// ============================================================================
+
+export interface ProductSpec {
+  sku: string;
+  name: string;
+  width: number;   // cm
+  length: number;  // cm
+  height: number;  // cm
+  m3: number;      // m³
+  packingRules?: {
+    warp?: boolean;
+    boxes?: Record<string, any>;
+    pallets?: Record<string, any>;
+  };
+}
+
+export interface POItem {
+  sku: string;
+  qty: number;
+}
+
+export interface PackingCase {
+  caseNo: number;
+  type: 'Full Pallet' | 'Mixed Pallet' | 'Mixed Box' | 'Loose Box';
+  items: Array<{
+    sku: string;
+    name: string;
+    qty: number;
+    dims?: string;
+  }>;
+  dims: string;  // Package name (e.g., "47x66x68")
+  totalWeight?: number;
+  utilization?: number;
+  note?: string;
+}
+
+export interface PackingPlanResult {
+  po: string;
+  cases: PackingCase[];
+  summary: {
+    totalPallets: number;
+    totalBoxes: number;
+    totalItems: number;
+  };
+}
+
+// ============================================================================
+// MAIN PACKING FUNCTION
+// ============================================================================
+
+/**
+ * Generate packing plan for a PO
+ * 
+ * @param po - PO number
+ * @param items - List of SKU and quantities
+ * @param specMap - Product specifications lookup
+ * @param customerCode - Customer code for package filtering
+ * @param useFullBinPacking - Use full 3D algorithm (slower but more accurate)
+ */
+export function generatePackingPlan(
+  po: string,
+  items: POItem[],
+  specMap: Record<string, ProductSpec>,
+  customerCode: string,
+  useFullBinPacking: boolean = false
+): PackingPlanResult {
+  
+  const cases: PackingCase[] = [];
+  let globalCaseCounter = 1;
+  
+  // Get available packages for this customer
+  const AVAILABLE_PACKAGES = getAvailablePackages(customerCode);
+  
+  if (AVAILABLE_PACKAGES.length === 0) {
+    throw new Error(`No packages available for customer: ${customerCode}`);
+  }
+  
+  // ========== STEP 1: PREPARE DATA ==========
+  
+  interface ProcessItem {
+    item: POItem;
+    spec?: ProductSpec;
+    dimsKey: string;
+    m3: number;
+  }
+  
+  const processQueue: ProcessItem[] = items.map(item => {
+    const spec = specMap[item.sku];
+    
+    if (!spec) {
+      return {
+        item,
+        dimsKey: `UNKNOWN-${item.sku}`,
+        m3: 0
+      };
+    }
+    
+    const dimsKey = `${spec.width}x${spec.length}x${spec.height}`;
+    const m3 = spec.m3 || calculateM3({ 
+      w: spec.width, 
+      l: spec.length, 
+      h: spec.height 
+    });
+    
+    return { item, spec, dimsKey, m3 };
+  });
+  
+  // ========== PRIORITY 0: WARP ITEMS ==========
+  
+  const warpItems = processQueue.filter(i => i.spec?.packingRules?.warp === true);
+  
+  warpItems.forEach(w => {
+    for (let k = 0; k < w.item.qty; k++) {
+      cases.push({
+        caseNo: globalCaseCounter++,
+        type: 'Full Pallet',
+        items: [{
+          sku: w.item.sku,
+          name: w.spec?.name || "Unknown",
+          qty: 1,
+          dims: w.dimsKey
+        }],
+        dims: w.dimsKey,
+        note: "Warp Item (has built-in pallet)"
+      });
+    }
+  });
+  
+  // Remove warp items from further processing
+  const remainingQueue = processQueue.filter(
+    i => i.spec?.packingRules?.warp !== true
+  );
+  
+  // ========== STEP 2: DETERMINE BRANCHING ==========
+  
+  const uniqueDims = new Set(remainingQueue.map(i => i.dimsKey));
+  const isMixedDims = uniqueDims.size > 1;
+  
+  if (isMixedDims && remainingQueue.length > 0) {
+    // ========== DOMINANT LOGIC (Mixed Dimensions) ==========
+    
+    const result = packMixedItems(
+      remainingQueue,
+      AVAILABLE_PACKAGES,
+      globalCaseCounter,
+      useFullBinPacking
+    );
+    
+    cases.push(...result.cases);
+    globalCaseCounter = result.nextCaseNumber;
+    
+  } else if (remainingQueue.length > 0) {
+    // ========== STANDARD LOGIC (Same Dimensions) ==========
+    
+    const result = packSameItems(
+      remainingQueue,
+      AVAILABLE_PACKAGES,
+      globalCaseCounter
+    );
+    
+    cases.push(...result.cases);
+    globalCaseCounter = result.nextCaseNumber;
+  }
+  
+  // ========== SUMMARY ==========
+  
+  const totalPallets = cases.filter(c => c.type.includes('Pallet')).length;
+  const totalBoxes = cases.filter(c => c.type.includes('Box')).length;
+  const totalItems = cases.reduce((sum, c) => 
+    sum + c.items.reduce((s, i) => s + i.qty, 0), 0
+  );
+  
+  return {
+    po,
+    cases,
+    summary: { totalPallets, totalBoxes, totalItems }
+  };
+}
+
+// ============================================================================
+// MIXED ITEMS PACKING (Dominant Logic)
+// ============================================================================
+
+function packMixedItems(
+  items: Array<{
+    item: POItem;
+    spec?: ProductSpec;
+    dimsKey: string;
+    m3: number;
+  }>,
+  availablePackages: PackageDef[],
+  startingCaseNumber: number,
+  useFullBinPacking: boolean
+): { cases: PackingCase[]; nextCaseNumber: number } {
+  
+  const cases: PackingCase[] = [];
+  let caseCounter = startingCaseNumber;
+  
+  // ========== STEP 1: IDENTIFY DOMINANT ITEM ==========
+  
+  const itemsWithVolume = items.map(i => ({
+    ...i,
+    totalM3: i.m3 * i.item.qty
+  }));
+  
+  itemsWithVolume.sort((a, b) => b.totalM3 - a.totalM3);
+  const dominantItem = itemsWithVolume[0];
+  
+  if (!dominantItem.spec) {
+    // No spec - pack as loose
+    cases.push({
+      caseNo: caseCounter++,
+      type: 'Loose Box',
+      items: items.map(i => ({
+        sku: i.item.sku,
+        name: i.spec?.name || "Unknown",
+        qty: i.item.qty
+      })),
+      dims: "No Spec",
+      note: "Missing product specifications"
+    });
+    
+    return { cases, nextCaseNumber: caseCounter };
+  }
+  
+  // ========== STEP 2: FIND BASELINE PACKAGE ==========
+  
+  // Baseline = Smallest package that can fit dominant item (1 unit)
+  const dominantDims: Dimensions3D = {
+    w: dominantItem.spec.width,
+    l: dominantItem.spec.length,
+    h: dominantItem.spec.height
+  };
+  
+  let baselinePackage: PackageDef | null = null;
+  
+  for (const pkg of sortPackagesByVolume(availablePackages)) {
+    const check = simplePhysicalCheck(
+      [{ sku: dominantItem.item.sku, dims: dominantDims, qty: 1 }],
+      pkg.inner
+    );
+    
+    if (check.canFit) {
+      baselinePackage = pkg;
+      break;  // Found smallest package that fits
+    }
+  }
+  
+  if (!baselinePackage) {
+    // Dominant item doesn't fit in any package!
+    cases.push({
+      caseNo: caseCounter++,
+      type: 'Loose Box',
+      items: items.map(i => ({
+        sku: i.item.sku,
+        name: i.spec?.name || "Unknown",
+        qty: i.item.qty
+      })),
+      dims: "Oversized",
+      note: `Dominant item ${dominantItem.item.sku} too large for all available packages`
+    });
+    
+    return { cases, nextCaseNumber: caseCounter };
+  }
+  
+  // ========== STEP 3: FILTER CANDIDATES ==========
+  
+  // Only packages >= baseline
+  const candidates = availablePackages.filter(
+    pkg => pkg.m3 >= baselinePackage!.m3
+  );
+  
+  if (candidates.length === 0) {
+    throw new Error("No valid candidates after baseline filter");
+  }
+  
+  // ========== STEP 4: PACK ITEMS ITERATIVELY ==========
+  
+  const pool = items.map(i => ({
+    ...i,
+    remaining: i.item.qty
+  }));
+  
+  let iteration = 0;
+  const MAX_ITERATIONS = 1000;  // Safety limit
+  
+  while (pool.some(p => p.remaining > 0)) {
+    
+    if (iteration++ > MAX_ITERATIONS) {
+      throw new Error("Pack Mixed Items: Max iterations exceeded");
+    }
+    
+    // Calculate current total M3
+    const currentM3 = pool.reduce(
+      (sum, p) => sum + (p.m3 * p.remaining), 
+      0
+    );
+    
+    // Find best fit package
+    let selectedPkg = findBestFitPackage(currentM3, candidates);
+    
+    if (!selectedPkg) {
+      // Overflow - use largest
+      selectedPkg = findLargestPackage(candidates);
+    }
+    
+    if (!selectedPkg) {
+      throw new Error("No package available");
+    }
+    
+    // ========== STEP 5: VALIDATE WITH 3D BIN PACKING ==========
+    
+    const itemsToPack: Item3D[] = pool
+      .filter(p => p.remaining > 0 && p.spec)
+      .map(p => ({
+        sku: p.item.sku,
+        dims: {
+          w: p.spec!.width,
+          l: p.spec!.length,
+          h: p.spec!.height
+        },
+        qty: p.remaining
+      }));
+    
+    const packingResult = validatePacking(
+      itemsToPack,
+      selectedPkg.inner,
+      selectedPkg.m3,
+      useFullBinPacking
+    );
+    
+    if (!packingResult.success) {
+      // Cannot fit all - need to split
+      
+      // Strategy: Pack items one by one until package is full
+      const caseItems: PackingCase['items'] = [];
+      let pkgRemM3 = selectedPkg.m3;
+      
+      // Sort by M3 descending (pack large first)
+      pool.sort((a, b) => b.m3 - a.m3);
+      
+      for (const p of pool) {
+        if (p.remaining > 0 && p.spec) {
+          const itemM3 = p.m3;
+          const canFit = Math.floor(pkgRemM3 / itemM3);
+          const take = Math.min(p.remaining, canFit);
+          
+          if (take > 0) {
+            // Verify physical fit
+            const testPack = validatePacking(
+              [{ sku: p.item.sku, dims: {
+                w: p.spec.width,
+                l: p.spec.length,
+                h: p.spec.height
+              }, qty: take }],
+              selectedPkg.inner,
+              selectedPkg.m3,
+              false  // Quick check
+            );
+            
+            if (testPack.success) {
+              caseItems.push({
+                sku: p.item.sku,
+                name: p.spec.name,
+                qty: take,
+                dims: p.dimsKey
+              });
+              
+              p.remaining -= take;
+              pkgRemM3 -= (itemM3 * take);
+            }
+          }
+        }
+      }
+      
+      if (caseItems.length === 0) {
+        // Force at least one item
+        const p = pool.find(x => x.remaining > 0 && x.spec)!;
+        caseItems.push({
+          sku: p.item.sku,
+          name: p.spec!.name,
+          qty: 1,
+          dims: p.dimsKey
+        });
+        p.remaining -= 1;
+      }
+      
+      cases.push({
+        caseNo: caseCounter++,
+        type: 'Mixed Box',
+        items: caseItems,
+        dims: selectedPkg.name,
+        utilization: packingResult.utilizationPercent,
+        note: `Overflow split`
+      });
+      
+    } else {
+      // All items fit!
+      const caseItems = pool
+        .filter(p => p.remaining > 0 && p.spec)
+        .map(p => ({
+          sku: p.item.sku,
+          name: p.spec!.name,
+          qty: p.remaining,
+          dims: p.dimsKey
+        }));
+      
+      pool.forEach(p => p.remaining = 0);
+      
+      cases.push({
+        caseNo: caseCounter++,
+        type: selectedPkg.category === 'Pallet' ? 'Mixed Pallet' : 'Mixed Box',
+        items: caseItems,
+        dims: selectedPkg.name,
+        utilization: packingResult.utilizationPercent,
+        note: `Best fit (${packingResult.utilizationPercent.toFixed(1)}% util)`
+      });
+    }
+  }
+  
+  return { cases, nextCaseNumber: caseCounter };
+}
+
+// ============================================================================
+// SAME ITEMS PACKING (Standard Logic)
+// ============================================================================
+
+function packSameItems(
+  items: Array<{
+    item: POItem;
+    spec?: ProductSpec;
+    dimsKey: string;
+    m3: number;
+  }>,
+  availablePackages: PackageDef[],
+  startingCaseNumber: number
+): { cases: PackingCase[]; nextCaseNumber: number } {
+  
+  const cases: PackingCase[] = [];
+  let caseCounter = startingCaseNumber;
+  
+  const pool = items.map(i => ({
+    ...i,
+    remaining: i.item.qty
+  }));
+  
+  let iteration = 0;
+  const MAX_ITERATIONS = 1000;
+  
+  while (pool.some(p => p.remaining > 0)) {
+    
+    if (iteration++ > MAX_ITERATIONS) {
+      throw new Error("Pack Same Items: Max iterations exceeded");
+    }
+    
+    const currentTotal = pool.reduce((sum, p) => sum + p.remaining, 0);
+    const sampleSpec = pool.find(p => p.spec)?.spec;
+    
+    if (!sampleSpec) {
+      // No spec - pack as loose
+      pool.forEach(p => {
+        if (p.remaining > 0) {
+          cases.push({
+            caseNo: caseCounter++,
+            type: 'Loose Box',
+            items: [{
+              sku: p.item.sku,
+              name: "Unknown",
+              qty: p.remaining
+            }],
+            dims: "Unknown",
+            note: "Missing spec"
+          });
+          p.remaining = 0;
+        }
+      });
+      continue;
+    }
+    
+    // Find best package from packing rules
+    interface PkgInfo {
+      name: string;
+      capacity: number;
+      type: 'Box' | 'Pallet';
+    }
+    
+    let bestPkg: PkgInfo | null = null;
+    let maxCapPkg: PkgInfo | null = null;
+    
+    const allowedPackageNames = new Set(availablePackages.map(p => p.name));
+    
+    const scanRules = (rules: unknown, type: 'Box' | 'Pallet') => {
+      if (!rules || typeof rules !== 'object') return;
+      
+      Object.entries(rules as Record<string, any>).forEach(([key, val]) => {
+        if (!allowedPackageNames.has(key)) return;
+        
+        let cap = 0;
+        if (typeof val === 'number') cap = val;
+        else if (typeof val === 'object' && val && 'totalQty' in val) {
+          cap = Number(val.totalQty);
+        }
+        
+        if (cap > 0) {
+          if (!maxCapPkg || cap > maxCapPkg.capacity) {
+            maxCapPkg = { name: key, capacity: cap, type };
+          }
+          
+          if (cap >= currentTotal) {
+            if (!bestPkg || cap < bestPkg.capacity) {
+              bestPkg = { name: key, capacity: cap, type };
+            }
+          }
+        }
+      });
+    };
+    
+    if (sampleSpec.packingRules?.boxes) {
+      scanRules(sampleSpec.packingRules.boxes, 'Box');
+    }
+    if (sampleSpec.packingRules?.pallets) {
+      scanRules(sampleSpec.packingRules.pallets, 'Pallet');
+    }
+    
+    const selectedPkg = bestPkg || maxCapPkg;
+    
+    if (!selectedPkg) {
+      // No valid package
+      cases.push({
+        caseNo: caseCounter++,
+        type: 'Loose Box',
+        items: pool.filter(p => p.remaining > 0).map(p => ({
+          sku: p.item.sku,
+          name: p.spec?.name || "",
+          qty: p.remaining
+        })),
+        dims: "No Rules",
+        note: "No packing rules defined"
+      });
+      pool.forEach(p => p.remaining = 0);
+      continue;
+    }
+    
+    // Pack into selected package
+    const isOverflow = currentTotal > selectedPkg.capacity;
+    const fillAmt = isOverflow ? selectedPkg.capacity : currentTotal;
+    
+    const caseItems: PackingCase['items'] = [];
+    let pendingFill = fillAmt;
+    
+    pool.sort((a, b) => b.remaining - a.remaining);
+    
+    for (const p of pool) {
+      if (p.remaining > 0 && pendingFill > 0) {
+        const take = Math.min(p.remaining, pendingFill);
+        caseItems.push({
+          sku: p.item.sku,
+          name: p.spec?.name || "",
+          qty: take,
+          dims: p.dimsKey
+        });
+        p.remaining -= take;
+        pendingFill -= take;
+      }
+    }
+    
+    cases.push({
+      caseNo: caseCounter++,
+      type: selectedPkg.type === 'Pallet' ? 
+        (isOverflow ? 'Full Pallet' : 'Mixed Pallet') : 
+        'Mixed Box',
+      items: caseItems,
+      dims: selectedPkg.name,
+      note: isOverflow ? 
+        `Max capacity split (${selectedPkg.capacity})` : 
+        `Best fit (${selectedPkg.capacity})`
+    });
+  }
+  
+  return { cases, nextCaseNumber: caseCounter };
+}
+
+// ============================================================================
+// EXPORT
+// ============================================================================
+
+export default {
+  generatePackingPlan
+};

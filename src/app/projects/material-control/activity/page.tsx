@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { Modal } from "@/components/shared/Modal";
@@ -8,95 +8,33 @@ import { SearchToolbar } from "@/components/shared/SearchToolbar";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { Clock, CalendarDays, TrendingUp, Download, Plus, Edit, Trash2, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatters";
-
-// Types
-interface ActivityChange {
-  field: string;
-  before: string;
-  after: string;
-}
-
-interface ActivityLog {
-  id: string;
-  timestamp: string;
-  action: "Create" | "Update" | "Delete" | "Export";
-  module: "Inventory" | "Requisition" | "Receiving" | "Reports" | "Settings";
-  targetId: string;
-  targetName: string;
-  user: string;
-  changes?: ActivityChange[];
-}
+import { ActivityService, ActivityLog } from "@/lib/firebase/services/activity.service";
 
 export default function ActivityPage() {
-  // Mock Data
-  const [activities] = useState<ActivityLog[]>([
-    { 
-      id: "ACT-2026-001", 
-      timestamp: "2026-01-31T14:30:00", 
-      action: "Create", 
-      module: "Requisition", 
-      targetId: "REQ-2026-005", 
-      targetName: "New Requisition", 
-      user: "System" 
-    },
-    { 
-      id: "ACT-2026-002", 
-      timestamp: "2026-01-31T10:15:00", 
-      action: "Update", 
-      module: "Inventory", 
-      targetId: "MAT-1001", 
-      targetName: "Aluminum Sheet Grade 1000", 
-      user: "System",
-      changes: [
-        { field: "Stock", before: "150", after: "145" },
-        { field: "Location", before: "WH-A-01", after: "WH-A-02" }
-      ]
-    },
-    { 
-      id: "ACT-2026-003", 
-      timestamp: "2026-01-30T16:45:00", 
-      action: "Export", 
-      module: "Reports", 
-      targetId: "RPT-001", 
-      targetName: "Monthly Stock Summary", 
-      user: "System" 
-    },
-    { 
-      id: "ACT-2026-004", 
-      timestamp: "2026-01-30T09:20:00", 
-      action: "Delete", 
-      module: "Settings", 
-      targetId: "CAT-003", 
-      targetName: "Deprecated Category", 
-      user: "System" 
-    },
-    { 
-      id: "ACT-2025-050", 
-      timestamp: "2025-12-28T11:30:00", 
-      action: "Create", 
-      module: "Receiving", 
-      targetId: "RN-2025-050", 
-      targetName: "Receiving Note", 
-      user: "System" 
-    },
-    { 
-      id: "ACT-2025-049", 
-      timestamp: "2025-11-15T14:00:00", 
-      action: "Update", 
-      module: "Inventory", 
-      targetId: "MAT-2001", 
-      targetName: "Hydraulic Seal Kit", 
-      user: "System",
-      changes: [
-        { field: "Stock", before: "30", after: "25" }
-      ]
-    },
-  ]);
-
-  // State
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [searchValue, setSearchValue] = useState("");
-  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [filterYear, setFilterYear] = useState("All");
   const [selectedActivity, setSelectedActivity] = useState<ActivityLog | null>(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      const { data } = await ActivityService.getRecent(200);
+      // Ensure all timestamps are Date objects for easier handling
+      const normalized = data.map(a => {
+        let d: Date;
+        if (a.timestamp instanceof Date) {
+          d = a.timestamp;
+        } else if (a.timestamp && typeof (a.timestamp as any).toDate === 'function') { // eslint-disable-line @typescript-eslint/no-explicit-any
+          d = (a.timestamp as any).toDate(); // eslint-disable-line @typescript-eslint/no-explicit-any
+        } else {
+          d = new Date(a.timestamp as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        }
+        return { ...a, timestamp: d };
+      });
+      setActivities(normalized as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    };
+    fetchActivities();
+  }, []);
 
   // Action icon and color mapping
   const getActionStyle = (action: string) => {
@@ -121,7 +59,7 @@ export default function ActivityPage() {
       header: "Date/Time", 
       type: "date",
       render: (val) => {
-        const date = new Date(val);
+        const date = val as Date;
         return (
           <div>
             <p className="font-medium">{formatDate(date)}</p>
@@ -159,24 +97,27 @@ export default function ActivityPage() {
 
   // Filter data
   const filteredData = activities.filter((activity) => {
+    const activityDate = activity.timestamp as unknown as Date;
     const matchesSearch = 
-      activity.targetName.toLowerCase().includes(searchValue.toLowerCase()) ||
-      activity.module.toLowerCase().includes(searchValue.toLowerCase()) ||
-      activity.action.toLowerCase().includes(searchValue.toLowerCase());
-    const matchesYear = filterYear === "All" || activity.timestamp.startsWith(filterYear);
+      activity.targetName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      activity.module?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      activity.action?.toLowerCase().includes(searchValue.toLowerCase());
+    
+    const matchesYear = filterYear === "All" || activityDate.getFullYear().toString() === filterYear;
     return matchesSearch && matchesYear;
   });
 
   // Stats calculation
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = now.toDateString();
   const thisWeekStart = new Date();
   thisWeekStart.setDate(thisWeekStart.getDate() - 7);
   const thisMonthStart = new Date();
   thisMonthStart.setDate(1);
 
-  const todayCount = activities.filter(a => a.timestamp.startsWith(today)).length;
-  const weekCount = activities.filter(a => new Date(a.timestamp) >= thisWeekStart).length;
-  const monthCount = activities.filter(a => new Date(a.timestamp) >= thisMonthStart).length;
+  const todayCount = activities.filter(a => (a.timestamp as unknown as Date).toDateString() === today).length;
+  const weekCount = activities.filter(a => (a.timestamp as unknown as Date) >= thisWeekStart).length;
+  const monthCount = activities.filter(a => (a.timestamp as unknown as Date) >= thisMonthStart).length;
 
   return (
     <div className="min-h-screen pt-20">
@@ -267,8 +208,8 @@ export default function ActivityPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-slate-500 uppercase mb-1">Date/Time</p>
-                    <p className="font-semibold text-slate-700">{formatDate(selectedActivity.timestamp)}</p>
-                    <p className="text-xs text-slate-400">{new Date(selectedActivity.timestamp).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</p>
+                    <p className="font-semibold text-slate-700">{formatDate(selectedActivity.timestamp as any)}</p> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
+                    <p className="text-xs text-slate-400">{new Date(selectedActivity.timestamp as any).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</p> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
                   </div>
                 </div>
 
@@ -306,7 +247,7 @@ export default function ActivityPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedActivity.changes.map((change, idx) => (
+                          {selectedActivity.changes?.map((change: any, idx: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                             <tr key={idx} className="border-t border-slate-100">
                               <td className="px-3 py-2 font-medium text-slate-700">{change.field}</td>
                               <td className="px-3 py-2 text-rose-600 line-through">{change.before}</td>

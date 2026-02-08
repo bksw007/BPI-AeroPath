@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { PackingPlanResult } from '@/lib/services/packingLogic';
 
 // Re-defining types to match page.tsx for independence/portability
 interface PackingRule {
@@ -215,4 +216,136 @@ export const generatePackagingSpecPDF = (product: PackagingProduct) => {
 
   // Save
   doc.save(`${product.sku}_PackingSpec.pdf`);
+};
+
+export const generatePackingListPDF = (
+  results: PackingPlanResult[], 
+  customerName: string,
+  poList: string[]
+) => {
+  const doc = new jsPDF();
+  const now = new Date();
+  const today = now.toLocaleDateString();
+  const timestamp = now.getFullYear().toString() +
+    (now.getMonth() + 1).toString().padStart(2, '0') +
+    now.getDate().toString().padStart(2, '0') +
+    now.getHours().toString().padStart(2, '0') +
+    now.getMinutes().toString().padStart(2, '0');
+
+  // --- Header ---
+  // Using very light Indigo 50 for better eyes comfort
+  doc.setFillColor(238, 242, 255); 
+  doc.rect(0, 0, 210, 30, 'F');
+
+  doc.setTextColor(67, 56, 202); // Dark Indigo text on light bg
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text("Packing List Plan", 14, 20);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139); // Slate 500
+  doc.text(`Generated: ${today}`, 160, 20);
+
+  let yPos = 40;
+
+  // --- Summary Section ---
+  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(12); // Reduced from 14
+  doc.setFont('helvetica', 'bold');
+  doc.text("Plan Summary", 14, yPos);
+  
+  yPos += 6;
+
+  const totalPallets = results.reduce((acc, r) => acc + r.summary.totalPallets, 0);
+  const totalBoxes = results.reduce((acc, r) => acc + r.summary.totalBoxes, 0);
+  const totalItems = results.reduce((acc, r) => acc + r.summary.totalItems, 0);
+
+  const summaryData = [
+    ["Customer", customerName, "Total POs", results.length.toString()],
+    ["Total Pallets", totalPallets.toString(), "Total Boxes", totalBoxes.toString()],
+    ["Total Items", totalItems.toString(), "PO List", poList.join(", ")]
+  ];
+
+  autoTable(doc, {
+    startY: yPos,
+    body: summaryData,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 2, textColor: [51, 65, 85] },
+    columnStyles: {
+      0: { fontStyle: 'bold', cellWidth: 30 },
+      1: { cellWidth: 60 },
+      2: { fontStyle: 'bold', cellWidth: 30 },
+      3: { cellWidth: 60 },
+    },
+  });
+
+  // @ts-expect-error: jspdf-autotable adds finalY
+  yPos = doc.lastAutoTable.finalY + 12;
+
+  // --- Details per PO ---
+  
+  results.forEach((plan) => {
+    // Check page break
+    if (yPos > 250) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFontSize(10); // Reduced from 12
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(71, 85, 105); // Slate 700
+    doc.setFillColor(248, 250, 252); // Slate 50 (Much lighter)
+    doc.rect(14, yPos - 5, 182, 8, 'F'); // Reduced height
+    doc.text(`PO: ${plan.po}`, 18, yPos);
+    
+    yPos += 5;
+
+    // Prepare table body
+    const rows = plan.cases.map(c => [
+      c.caseNo,
+      c.type,
+      c.items.map(i => `${i.sku} (x${i.qty})`).join("\n"),
+      c.dims || "-",
+      c.note || "-"
+    ]);
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Case #', 'Type', 'Contents', 'Dimensions', 'Note']],
+      body: rows,
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [241, 245, 249], 
+        textColor: 70, 
+        fontStyle: 'bold',
+        fontSize: 8 // Reduced header size
+      }, 
+      styles: { fontSize: 8, cellPadding: 2, valign: 'middle' }, // Reduced from 9
+      columnStyles: {
+        0: { cellWidth: 15, halign: 'center', fontStyle: 'bold' }, // Shrunk
+        1: { cellWidth: 30 },
+        2: { cellWidth: 45 }, // Reduced from 60 to give more space to Note
+        3: { cellWidth: 30 },
+        4: { cellWidth: 'auto' } // Note gets the rest
+      },
+
+      didParseCell: (data) => {
+        // Color coding for types
+        if (data.section === 'body' && data.column.index === 1) {
+            const typeText = data.cell.text.join(' ');
+            if (typeText.includes('Full Pallet')) data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
+            else if (typeText.includes('Mixed Pallet')) data.cell.styles.textColor = [234, 88, 12]; // Orange 600
+            else if (typeText.includes('Full Box')) data.cell.styles.textColor = [2, 132, 199]; // Sky 600
+            else if (typeText.includes('Mixed Box')) data.cell.styles.textColor = [202, 138, 4]; // Yellow 600
+            else if (typeText.includes('Warp')) data.cell.styles.textColor = [147, 51, 234]; // Purple 600
+        }
+      }
+    });
+
+    // @ts-expect-error: jspdf-autotable adds finalY
+    yPos = doc.lastAutoTable.finalY + 12;
+  });
+
+  doc.save(`PackingPlan_${customerName}_${timestamp}.pdf`);
 };

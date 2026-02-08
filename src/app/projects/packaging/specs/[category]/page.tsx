@@ -17,7 +17,7 @@ import { Modal } from "@/components/shared/Modal";
 import { SearchToolbar } from "@/components/shared/SearchToolbar";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
 import { cn } from "@/lib/utils";
-import { PackagingService, PackagingProductDTO } from "@/lib/firebase/services/packaging.service";
+import { PackagingService, PackagingProductDTO, IActivityChange } from "@/lib/firebase/services/packaging.service";
 import { generatePackagingSpecPDF } from "@/lib/utils/pdfGenerator";
 
 // Types
@@ -119,17 +119,24 @@ export default function CategoryDetailPage() {
     sku: '', name: '', width: 0, length: 0, height: 0, nw: 0, gw: 0, productType: 'Carton', stackingLimit: 0, sideBoxWeight: ''
   });
 
+  // Mapping URL categoryId to Firestore category exactly as defined in specs/page.tsx
+  const categoryMap: Record<string, string> = {
+    "inverters": "Inverters",
+    "batteries": "Battery Modules",
+    "mounting": "Mounting Systems",
+    "cables": "Cables & Connectors"
+  };
+
+  const firestoreCategory = categoryMap[categoryId] || categoryId;
+
   // Fetch Data from Firestore
   useEffect(() => {
     const loadData = async () => {
-      const items = await PackagingService.getByCategory("Inverters"); 
+      const items = await PackagingService.getByCategory(firestoreCategory); 
       setProducts(items as PackagingProduct[]);
     };
     loadData();
-  }, [categoryId, importProgress.status, isAddModalOpen]); // Reload on Add complete
-
-  // ... parseCSV ...
-
+  }, [firestoreCategory, importProgress.status, isAddModalOpen]); // Reload on Add complete
   // Filter Logic
   const filteredData = products.filter(item => {
     const matchesSearch = 
@@ -176,6 +183,17 @@ export default function CategoryDetailPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Activity Log
+    PackagingService.logActivity({
+      project: 'Smart Packaging',
+      action: 'Export',
+      category: categoryId ? (categoryId.charAt(0).toUpperCase() + categoryId.slice(1)) : 'Inverters',
+      targetId: 'Filtered Data',
+      targetName: `CSV Export (${filteredData.length} items)`,
+      user: 'System', // Replace with auth user if available later
+      details: `Exported ${filteredData.length} items from ${categoryId || 'Inverters'} specs.`
+    });
   };
 
   // Handle Add Item Submit
@@ -207,7 +225,49 @@ export default function CategoryDetailPage() {
     };
 
     await PackagingService.importItems([product]); 
-    
+
+    // Activity Log logic
+    const categoryName = categoryId ? (categoryId.charAt(0).toUpperCase() + categoryId.slice(1)) : 'Inverters';
+    if (isEditing && selectedItem) {
+      // Calculate changes
+      const changes: IActivityChange[] = [];
+      const fieldsToTrack: (keyof PackagingProductDTO)[] = ['name', 'width', 'length', 'height', 'nw', 'gw', 'productType', 'stackingLimit', 'sideBoxWeight'];
+      
+      fieldsToTrack.forEach(field => {
+        const itemVal = selectedItem[field as keyof PackagingProduct];
+        const productVal = product[field];
+        if (itemVal !== productVal) {
+          changes.push({
+            field: field.charAt(0).toUpperCase() + field.slice(1),
+            before: String(itemVal ?? '-'),
+            after: String(productVal ?? '-')
+          });
+        }
+      });
+
+      if (changes.length > 0) {
+        PackagingService.logActivity({
+          project: 'Smart Packaging',
+          action: 'Update',
+          category: categoryName,
+          targetId: product.sku,
+          targetName: product.name,
+          user: 'System',
+          changes
+        });
+      }
+    } else {
+      PackagingService.logActivity({
+        project: 'Smart Packaging',
+        action: 'Create',
+        category: categoryName,
+        targetId: product.sku,
+        targetName: product.name,
+        user: 'System',
+        details: `Created new item: ${product.sku}`
+      });
+    }
+
     // Refresh selected item if editing
     if (isEditing && selectedItem?.sku === product.sku) {
        setSelectedItem(product as PackagingProduct);
@@ -354,7 +414,18 @@ export default function CategoryDetailPage() {
           updated: 0 
        });
 
-       setImportProgress({status: 'complete', percent: 100});
+        setImportProgress({status: 'complete', percent: 100});
+
+        // Activity Log
+        PackagingService.logActivity({
+          project: 'Smart Packaging',
+          action: 'Import',
+          category: categoryId ? (categoryId.charAt(0).toUpperCase() + categoryId.slice(1)) : 'Inverters',
+          targetId: file.name,
+          targetName: `Bulk Import (${items.length} items)`,
+          user: 'System',
+          details: `Imported ${result.successCount} items successfully from ${file.name}.`
+        });
     };
 
     reader.readAsText(file);

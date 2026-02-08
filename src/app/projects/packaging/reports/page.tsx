@@ -1,7 +1,8 @@
 "use client";
 
-import { TrendingUp, FileText, Download } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
+import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
 
 export default function PackagingReportsPage() {
   return (
@@ -9,15 +10,17 @@ export default function PackagingReportsPage() {
       <section className="py-12">
         <div className="container-custom">
           
-          <div className="mb-10">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Packing Reports</h1>
-            <p className="text-slate-500">Operation reports, packing lists, and analytics export.</p>
-          </div>
-
-          <GlassCard className="p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-400">
-             <TrendingUp className="w-16 h-16 mb-4 opacity-10" />
-             <p className="font-medium">Report data and analytics are being integrated.</p>
-          </GlassCard>
+          <ModuleHeader
+             title="Packing Reports"
+             description="Operation reports, packing lists, and analytics export."
+             backHref="/projects/packaging"
+             backLabel="Smart Packaging"
+          >
+            <GlassCard className="p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-400 mt-8">
+               <TrendingUp className="w-16 h-16 mb-4 opacity-10" />
+               <p className="font-medium">Report data and analytics are being integrated.</p>
+            </GlassCard>
+          </ModuleHeader>
 
         </div>
       </section>

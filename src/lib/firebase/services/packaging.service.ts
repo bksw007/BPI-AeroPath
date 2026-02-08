@@ -2,16 +2,35 @@ import {
   collection, 
   doc, 
   writeBatch, 
-  getDocs,
-  query,
-  where,
-  serverTimestamp 
+  getDocs, 
+  getDoc,
+  query, 
+  where, 
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { PackagingProduct } from '@/app/projects/packaging/specs/[category]/page'; // Need to export this type or move it
 
 // We'll define the type here locally if not exported, or better, move types to a shared location later.
 // For now, I'll redefine a compatible interface to avoid circular dependency issues if the page one isn't exported well.
+export interface IActivityChange {
+  field: string;
+  before: string | number;
+  after: string | number;
+}
+
+export interface IActivityLog {
+  id?: string;
+  timestamp: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  project: string; // e.g. "Smart Packaging"
+  action: 'Create' | 'Update' | 'Delete' | 'Import' | 'Export';
+  category: string;
+  targetId: string;
+  targetName: string;
+  user: string;
+  changes?: IActivityChange[];
+  details?: string;
+}
+
 export interface PackagingProductDTO {
   id?: string;
   sku: string;
@@ -28,7 +47,7 @@ export interface PackagingProductDTO {
   stackingLimit: number;
   sideBoxWeight: string;
   lastUpdated: string;
-  packingRules: any;
+  packingRules: Record<string, unknown>;
 }
 
 export const PackagingService = {
@@ -69,10 +88,10 @@ export const PackagingService = {
 
         await batch.commit();
         successCount += chunk.length;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Batch commit failed:", err);
         errorCount += chunk.length;
-        errors.push(err.message);
+        errors.push(err instanceof Error ? err.message : String(err));
       }
     }
 
@@ -88,6 +107,90 @@ export const PackagingService = {
     } catch (error) {
       console.error("Error fetching specs:", error);
       return [];
+    }
+  },
+
+  // Log Activity
+  logActivity: async (log: Omit<IActivityLog, 'timestamp'>) => {
+    try {
+      const batch = writeBatch(db);
+      const docRef = doc(collection(db, 'packaging_activities'));
+      batch.set(docRef, {
+        ...log,
+        timestamp: serverTimestamp()
+      });
+      await batch.commit();
+    } catch (error) {
+      console.error("Error logging activity:", error);
+    }
+  },
+
+  // Get activities
+  getActivities: async (category?: string) => {
+    try {
+      let q = query(collection(db, 'packaging_activities'));
+      if (category) {
+        q = query(q, where('category', '==', category));
+      }
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as IActivityLog));
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      return [];
+    }
+  },
+
+  // Save Packing Plan
+  savePackingPlan: async (planData: {
+    customer: { id: string; name: string; region: string };
+    summary: { totalPallets: number; totalBoxes: number; totalWarps: number; totalItems: number };
+    poList: string[];
+    data: string; // JSON string
+  }) => {
+    try {
+      const batch = writeBatch(db);
+      
+      // 1. Create Plan Document
+      const planRef = doc(collection(db, 'packing_plans'));
+      batch.set(planRef, {
+        ...planData,
+        createdAt: serverTimestamp()
+      });
+
+      // 2. Log Activity
+      const activityRef = doc(collection(db, 'packaging_activities'));
+      batch.set(activityRef, {
+        timestamp: serverTimestamp(),
+        project: "Smart Packaging",
+        action: 'Create',
+        category: 'Planning',
+        targetId: planRef.id,
+        targetName: `Plan for ${planData.customer.name}`,
+        user: 'System', // Replace with auth user if available later
+        details: `Created packing plan with ${planData.summary.totalPallets} pallets and ${planData.summary.totalBoxes} boxes.`
+      });
+
+      await batch.commit();
+      return { success: true, id: planRef.id };
+    } catch (error) {
+      console.error("Error saving packing plan:", error);
+      return { success: false, error };
+    }
+  },
+
+  // Get single product spec by SKU
+  getProductSpec: async (sku: string): Promise<PackagingProductDTO | null> => {
+    try {
+      const docRef = doc(db, 'packaging_specs', sku);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as PackagingProductDTO;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error fetching spec for ${sku}:`, error);
+      return null;
     }
   }
 };

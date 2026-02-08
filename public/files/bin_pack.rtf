@@ -1,0 +1,312 @@
+{\rtf1\ansi\ansicpg874\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 'use client'; // \uc0\u3592 \u3635 \u3648 \u3611 \u3655 \u3609 \u3626 \u3635 \u3627 \u3619 \u3633 \u3610  Next.js App Router \u3648 \u3614 \u3619 \u3634 \u3632 \u3617 \u3637 \u3585 \u3634 \u3619 \u3651 \u3594 \u3657  useState/useEffect\
+\
+import React, \{ useState, useEffect \} from 'react';\
+\
+// --- Helper Functions ---\
+\
+// 1. \uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3649 \u3610 \u3610  3D Fit (\u3626 \u3635 \u3627 \u3619 \u3633 \u3610 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3649 \u3607 \u3619 \u3585  \u3651 \u3626 \u3656 \u3651 \u3609 \u3594 \u3656 \u3629 \u3591 \u3623 \u3656 \u3634 \u3591 )\
+const calculateBestFit3D = (container, item, allowRotation = true) => \{\
+  if (item.w <= 0 || item.l <= 0 || item.h <= 0) return 0;\
+  \
+  // \uc0\u3649 \u3610 \u3610 \u3605 \u3633 \u3657 \u3591 \u3605 \u3619 \u3591 \
+  const fitStandard = Math.floor(container.w / item.w) * Math.floor(container.l / item.l) * Math.floor(container.h / item.h);\
+  if (!allowRotation) return Math.max(0, fitStandard);\
+  \
+  // \uc0\u3649 \u3610 \u3610 \u3627 \u3617 \u3640 \u3609 \u3600 \u3634 \u3609  (\u3585 \u3623 \u3657 \u3634 \u3591 \u3626 \u3621 \u3633 \u3610 \u3618 \u3634 \u3623 )\
+  const fitRotatedBase = Math.floor(container.w / item.l) * Math.floor(container.l / item.w) * Math.floor(container.h / item.h);\
+  \
+  // \uc0\u3649 \u3610 \u3610 \u3605 \u3632 \u3649 \u3588 \u3591  (\u3648 \u3629 \u3634 \u3604 \u3657 \u3634 \u3609 \u3629 \u3639 \u3656 \u3609 \u3586 \u3638 \u3657 \u3609 \u3648 \u3611 \u3655 \u3609 \u3626 \u3641 \u3591 ) - \u3648 \u3614 \u3636 \u3656 \u3617 \u3588 \u3623 \u3634 \u3617 \u3618 \u3639 \u3604 \u3627 \u3618 \u3640 \u3656 \u3609 \u3651 \u3627 \u3657 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3649 \u3607 \u3619 \u3585 \
+  // Case: \uc0\u3648 \u3629 \u3634  W \u3648 \u3611 \u3655 \u3609 \u3626 \u3641 \u3591 \
+  const fitTipW = Math.floor(container.w / item.l) * Math.floor(container.l / item.h) * Math.floor(container.h / item.w);\
+  // Case: \uc0\u3648 \u3629 \u3634  L \u3648 \u3611 \u3655 \u3609 \u3626 \u3641 \u3591 \
+  const fitTipL = Math.floor(container.w / item.h) * Math.floor(container.l / item.w) * Math.floor(container.h / item.l);\
+\
+  return Math.max(0, fitStandard, fitRotatedBase, fitTipW, fitTipL);\
+\};\
+\
+// Component \uc0\u3619 \u3633 \u3610  Props \u3648 \u3614 \u3639 \u3656 \u3629 \u3651 \u3627 \u3657 \u3626 \u3634 \u3617 \u3634 \u3619 \u3606  Feed \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3592 \u3634 \u3585 \u3616 \u3634 \u3618 \u3609 \u3629 \u3585 \u3652 \u3604 \u3657  (API/Database)\
+const ContainerCalculator = (\{ \
+  initialPackage = \{ w: '108', l: '108', h: '73', label: "Package Inside" \},\
+  initialMainItem = \{ w: '23.5', l: '55', h: '34.5', qtyMax: '16', qtyCurrent: '15', label: "Main Product" \},\
+  initialSmallItem = \{ w: '25.5', l: '30', h: '25.5', label: "Insert Product" \}\
+\}) => \{\
+  \
+  // --- State ---\
+  // \uc0\u3651 \u3594 \u3657 \u3588 \u3656 \u3634 \u3592 \u3634 \u3585  Props \u3648 \u3611 \u3655 \u3609 \u3588 \u3656 \u3634 \u3648 \u3619 \u3636 \u3656 \u3617 \u3605 \u3657 \u3609  (\u3606 \u3657 \u3634 \u3617 \u3637 )\
+  const [packageDim, setPackageDim] = useState(initialPackage);\
+  const [mainItem, setMainItem] = useState(initialMainItem);\
+  const [smallItem, setSmallItem] = useState(initialSmallItem);\
+  \
+  const [includeSideGaps, setIncludeSideGaps] = useState(true);\
+\
+  // --- Results ---\
+  const [geoResult, setGeoResult] = useState(\{ \
+      total: 0, fromMissing: 0, fromTop: 0, fromSide: 0, \
+      debugInfo: "\uc0\u3585 \u3604 \u3611 \u3640 \u3656 \u3617 \u3648 \u3614 \u3639 \u3656 \u3629 \u3588 \u3635 \u3609 \u3623 \u3603 ",\
+      stackInfo: \{ layers: 0, perLayer: 0 \}\
+  \});\
+  const [volumeResult, setVolumeResult] = useState(0);\
+  const [isCalculated, setIsCalculated] = useState(false);\
+  const [isLoading, setIsLoading] = useState(false);\
+\
+  // Helper: Parse Input\
+  const parseVal = (obj) => \{\
+      const res = \{\};\
+      for (let k in obj) \{\
+          if (k === 'label') res[k] = obj[k];\
+          else res[k] = parseFloat(String(obj[k]).replace(/[^0-9.]/g, '')) || 0;\
+      \}\
+      return res;\
+  \};\
+\
+  const handleCalculate = () => \{\
+    setIsLoading(true);\
+    // \uc0\u3651 \u3594 \u3657  setTimeout \u3648 \u3614 \u3639 \u3656 \u3629 \u3651 \u3627 \u3657  UI \u3652 \u3617 \u3656 \u3585 \u3619 \u3632 \u3605 \u3640 \u3585  \u3649 \u3621 \u3632 \u3649 \u3626 \u3604 \u3591 \u3626 \u3606 \u3634 \u3609 \u3632  Loading\
+    setTimeout(() => \{\
+        const pkg = parseVal(packageDim);\
+        const main = parseVal(mainItem);\
+        const small = parseVal(smallItem);\
+\
+        // --- 1. \uc0\u3623 \u3636 \u3648 \u3588 \u3619 \u3634 \u3632 \u3627 \u3660 \u3650 \u3588 \u3619 \u3591 \u3626 \u3619 \u3657 \u3634 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585  (Main Structure) ---\
+        // \uc0\u3618 \u3638 \u3604 \u3605 \u3634 \u3617  Max \u3607 \u3637 \u3656  User \u3610 \u3629 \u3585  \u3623 \u3656 \u3634 \u3588 \u3639 \u3629 \u3648 \u3605 \u3655 \u3617 \u3585 \u3621 \u3656 \u3629 \u3591 \
+        // \uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3592 \u3635 \u3609 \u3623 \u3609 \u3594 \u3633 \u3657 \u3609 \u3607 \u3637 \u3656 \u3648 \u3611 \u3655 \u3609 \u3652 \u3611 \u3652 \u3604 \u3657 \u3605 \u3634 \u3617 \u3588 \u3623 \u3634 \u3617 \u3626 \u3641 \u3591  (Height Limit)\
+        const maxPossibleLayers = main.h > 0 ? Math.floor(pkg.h / main.h) : 0;\
+        \
+        // \uc0\u3629 \u3609 \u3640 \u3617 \u3634 \u3609 \u3592 \u3635 \u3609 \u3623 \u3609 \u3605 \u3656 \u3629 \u3594 \u3633 \u3657 \u3609  (Items Per Layer) \u3592 \u3634 \u3585  Qty Max \u3586 \u3629 \u3591  User\
+        // \uc0\u3648 \u3594 \u3656 \u3609  Max 16, \u3626 \u3641 \u3591 \u3652 \u3604 \u3657  2 \u3594 \u3633 \u3657 \u3609  => \u3649 \u3626 \u3604 \u3591 \u3623 \u3656 \u3634 \u3594 \u3633 \u3657 \u3609 \u3621 \u3632  8 \u3605 \u3633 \u3623 \
+        const impliedItemsPerLayer = maxPossibleLayers > 0 ? Math.ceil(main.qtyMax / maxPossibleLayers) : 0;\
+\
+        // \uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3626 \u3616 \u3634 \u3614 \u3611 \u3633 \u3592 \u3592 \u3640 \u3610 \u3633 \u3609  (Current State)\
+        // \uc0\u3651 \u3594 \u3657 \u3585 \u3637 \u3656 \u3594 \u3633 \u3657 \u3609 ?\
+        const currentLayersUsed = impliedItemsPerLayer > 0 ? Math.ceil(main.qtyCurrent / impliedItemsPerLayer) : 0;\
+        \
+        // \uc0\u3588 \u3623 \u3634 \u3617 \u3626 \u3641 \u3591 \u3607 \u3637 \u3656 \u3606 \u3641 \u3585 \u3651 \u3594 \u3657 \u3652 \u3611 \u3592 \u3619 \u3636 \u3591  (Stack Height)\
+        let currentStackHeight = currentLayersUsed * main.h;\
+        if (currentStackHeight > pkg.h) currentStackHeight = pkg.h; // Safety cap\
+\
+        // --- 2. \uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3623 \u3656 \u3634 \u3591 \u3626 \u3635 \u3627 \u3619 \u3633 \u3610 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3649 \u3607 \u3619 \u3585  (Small Item) ---\
+\
+        // \uc0\u3650 \u3595 \u3609  A: Missing Slot (\u3594 \u3656 \u3629 \u3591 \u3623 \u3656 \u3634 \u3591 \u3651 \u3609 \u3585 \u3629 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585 )\
+        // \uc0\u3588 \u3639 \u3629 \u3592 \u3635 \u3609 \u3623 \u3609 \u3594 \u3656 \u3629 \u3591 \u3607 \u3637 \u3656 \u3623 \u3634 \u3591 \u3652 \u3604 \u3657 \u3649 \u3605 \u3656 \u3618 \u3633 \u3591 \u3652 \u3617 \u3656 \u3623 \u3634 \u3591  (Based on Current vs Stack Structure)\
+        // \uc0\u3592 \u3635 \u3609 \u3623 \u3609 \u3594 \u3656 \u3629 \u3591 \u3607 \u3633 \u3657 \u3591 \u3627 \u3617 \u3604 \u3651 \u3609  Stack \u3611 \u3633 \u3592 \u3592 \u3640 \u3610 \u3633 \u3609  = \u3594 \u3633 \u3657 \u3609 \u3607 \u3637 \u3656 \u3651 \u3594 \u3657  x \u3592 \u3635 \u3609 \u3623 \u3609 \u3605 \u3656 \u3629 \u3594 \u3633 \u3657 \u3609 \
+        const totalSlotsInCurrentStack = currentLayersUsed * impliedItemsPerLayer;\
+        const emptySlots = Math.max(0, totalSlotsInCurrentStack - main.qtyCurrent);\
+        \
+        // \uc0\u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3649 \u3607 \u3619 \u3585 \u3651 \u3626 \u3656 \u3651 \u3609 \u3594 \u3656 \u3629 \u3591 \u3623 \u3656 \u3634 \u3591 \u3586 \u3629 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585 \u3652 \u3604 \u3657 \u3585 \u3637 \u3656 \u3594 \u3636 \u3657 \u3609 ? (\u3649 \u3607 \u3609 \u3607 \u3637 \u3656  1 \u3605 \u3656 \u3629  1 \u3627 \u3619 \u3639 \u3629 \u3617 \u3634 \u3585 \u3585 \u3623 \u3656 \u3634 )\
+        const smallInMainRatio = calculateBestFit3D(\
+            \{ w: main.w, l: main.l, h: main.h \}, // \uc0\u3586 \u3609 \u3634 \u3604 \u3594 \u3656 \u3629 \u3591 \u3648 \u3607 \u3656 \u3634 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585 \
+            small, true\
+        );\
+        const totalFromMissing = emptySlots * smallInMainRatio;\
+\
+        // \uc0\u3650 \u3595 \u3609  B: Top Gap (\u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3623 \u3656 \u3634 \u3591 \u3648 \u3627 \u3609 \u3639 \u3629 \u3627 \u3633 \u3623 )\
+        const remainingHeight = Math.max(0, pkg.h - currentStackHeight);\
+        let totalFromTop = 0;\
+        if (remainingHeight > 0) \{\
+            totalFromTop = calculateBestFit3D(\
+                \{ w: pkg.w, l: pkg.l, h: remainingHeight \},\
+                small, true\
+            );\
+        \}\
+\
+        // \uc0\u3650 \u3595 \u3609  C: Side Gaps (\u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3623 \u3656 \u3634 \u3591 \u3604 \u3657 \u3634 \u3609 \u3586 \u3657 \u3634 \u3591 ) - \u3588 \u3635 \u3609 \u3623 \u3603 \u3592 \u3634 \u3585 \u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3648 \u3627 \u3621 \u3639 \u3629  (Area Based)\
+        let totalFromSide = 0;\
+        if (includeSideGaps && impliedItemsPerLayer > 0) \{\
+            // \uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3627 \u3609 \u3657 \u3634 \u3605 \u3633 \u3604 \u3619 \u3623 \u3617 \
+            const totalArea = pkg.w * pkg.l;\
+            const mainItemsArea = impliedItemsPerLayer * (main.w * main.l);\
+            const remainingAreaPerLayer = Math.max(0, totalArea - mainItemsArea);\
+            \
+            // \uc0\u3611 \u3619 \u3632 \u3626 \u3636 \u3607 \u3608 \u3636 \u3616 \u3634 \u3614 \u3585 \u3634 \u3619 \u3623 \u3634 \u3591  (Efficiency Factor) - \u3648 \u3612 \u3639 \u3656 \u3629 \u3607 \u3637 \u3656 \u3648 \u3626 \u3637 \u3618 \u3648 \u3624 \u3625  5%\
+            const usableSideArea = remainingAreaPerLayer * 0.95;\
+            const smallBaseArea = small.w * small.l; // \uc0\u3626 \u3617 \u3617 \u3605 \u3636 \u3623 \u3634 \u3591 \u3600 \u3634 \u3609 \u3611 \u3585 \u3605 \u3636 \
+            \
+            if (smallBaseArea > 0) \{\
+                const sideItemsPerLayer = Math.floor(usableSideArea / smallBaseArea);\
+                // \uc0\u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3604 \u3657 \u3634 \u3609 \u3586 \u3657 \u3634 \u3591 \u3626 \u3641 \u3591 \u3648 \u3607 \u3656 \u3634 \u3585 \u3633 \u3610 \u3585 \u3629 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585  (Stack Height)\
+                totalFromSide = sideItemsPerLayer * currentLayersUsed;\
+            \}\
+        \}\
+\
+        // --- 3. Volume Method (Reference) ---\
+        const volPkg = pkg.w * pkg.l * pkg.h;\
+        const volMain = main.w * main.l * main.h;\
+        const volSmall = small.w * small.l * small.h;\
+        let volRes = 0;\
+        if (volSmall > 0) \{\
+            // Space = Total Pkg - (Current Main Items)\
+            // \uc0\u3627 \u3633 \u3585  Dead Space 10% \u3592 \u3634 \u3585  Pkg\
+            const effectivePkgVol = volPkg * 0.90;\
+            const usedVol = main.qtyCurrent * volMain;\
+            const freeVol = Math.max(0, effectivePkgVol - usedVol);\
+            volRes = Math.floor(freeVol / volSmall);\
+        \}\
+\
+        setGeoResult(\{\
+            total: totalFromMissing + totalFromTop + totalFromSide,\
+            fromMissing: totalFromMissing,\
+            fromTop: totalFromTop,\
+            fromSide: totalFromSide,\
+            debugInfo: `\uc0\u3650 \u3588 \u3619 \u3591 \u3626 \u3619 \u3657 \u3634 \u3591 \u3627 \u3621 \u3633 \u3585 : $\{impliedItemsPerLayer\} \u3605 \u3633 \u3623 /\u3594 \u3633 \u3657 \u3609  (\u3651 \u3594 \u3657  $\{currentLayersUsed\} \u3594 \u3633 \u3657 \u3609 )`,\
+            stackInfo: \{ layers: currentLayersUsed, perLayer: impliedItemsPerLayer \}\
+        \});\
+        setVolumeResult(volRes);\
+        setIsCalculated(true);\
+        setIsLoading(false);\
+\
+    \}, 100);\
+  \};\
+\
+  return (\
+    <div className="p-4 md:p-8 max-w-5xl mx-auto bg-slate-50 min-h-screen font-sans text-slate-800">\
+      <div className="flex items-center justify-between mb-8 border-b pb-4">\
+        <h1 className="text-3xl font-bold text-slate-800">\
+          \uc0\u55357 \u56550  Package Loading Calculator\
+        </h1>\
+        \{isCalculated && (\
+             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold">\
+                 Updated\
+             </span>\
+        )\}\
+      </div>\
+\
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">\
+        \{/* --- Inputs --- */\}\
+        <div className="lg:col-span-5 space-y-6">\
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">\
+            <h3 className="font-bold text-lg mb-4 text-slate-700">1. \uc0\u3586 \u3609 \u3634 \u3604 \u3649 \u3614 \u3655 \u3588 \u3648 \u3585 \u3592  (Inside)</h3>\
+            <div className="grid grid-cols-3 gap-3">\
+              <InputGroup label="\uc0\u3585 \u3623 \u3657 \u3634 \u3591 " val=\{packageDim.w\} setVal=\{(v) => setPackageDim(\{...packageDim, w: v\})\} />\
+              <InputGroup label="\uc0\u3618 \u3634 \u3623 " val=\{packageDim.l\} setVal=\{(v) => setPackageDim(\{...packageDim, l: v\})\} />\
+              <InputGroup label="\uc0\u3626 \u3641 \u3591 " val=\{packageDim.h\} setVal=\{(v) => setPackageDim(\{...packageDim, h: v\})\} />\
+            </div>\
+          </div>\
+\
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">\
+            <h3 className="font-bold text-lg mb-4 text-slate-700">2. \uc0\u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585  (\{mainItem.label\})</h3>\
+            <div className="grid grid-cols-3 gap-3 mb-4">\
+              <InputGroup label="\uc0\u3585 \u3623 \u3657 \u3634 \u3591 " val=\{mainItem.w\} setVal=\{(v) => setMainItem(\{...mainItem, w: v\})\} />\
+              <InputGroup label="\uc0\u3618 \u3634 \u3623 " val=\{mainItem.l\} setVal=\{(v) => setMainItem(\{...mainItem, l: v\})\} />\
+              <InputGroup label="\uc0\u3626 \u3641 \u3591 " val=\{mainItem.h\} setVal=\{(v) => setMainItem(\{...mainItem, h: v\})\} />\
+            </div>\
+            <div className="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">\
+              <InputGroup label="Max (\uc0\u3605 \u3633 \u3623 )" val=\{mainItem.qtyMax\} setVal=\{(v) => setMainItem(\{...mainItem, qtyMax: v\})\} />\
+              <InputGroup label="Current (\uc0\u3605 \u3633 \u3623 )" val=\{mainItem.qtyCurrent\} setVal=\{(v) => setMainItem(\{...mainItem, qtyCurrent: v\})\} />\
+            </div>\
+            <div className="mt-2 text-xs text-blue-600 text-right">\
+                *\uc0\u3650 \u3611 \u3619 \u3649 \u3585 \u3619 \u3617 \u3592 \u3632 \u3588 \u3635 \u3609 \u3623 \u3603 \u3650 \u3588 \u3619 \u3591 \u3626 \u3619 \u3657 \u3634 \u3591 \u3585 \u3634 \u3619 \u3623 \u3634 \u3591 \u3592 \u3634 \u3585 \u3588 \u3656 \u3634  Max \u3607 \u3637 \u3656 \u3619 \u3632 \u3610 \u3640 \
+            </div>\
+          </div>\
+\
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">\
+            <h3 className="font-bold text-lg mb-4 text-slate-700">3. \uc0\u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3649 \u3607 \u3619 \u3585  (\{smallItem.label\})</h3>\
+            <div className="grid grid-cols-3 gap-3">\
+              <InputGroup label="\uc0\u3585 \u3623 \u3657 \u3634 \u3591 " val=\{smallItem.w\} setVal=\{(v) => setSmallItem(\{...smallItem, w: v\})\} />\
+              <InputGroup label="\uc0\u3618 \u3634 \u3623 " val=\{smallItem.l\} setVal=\{(v) => setSmallItem(\{...smallItem, l: v\})\} />\
+              <InputGroup label="\uc0\u3626 \u3641 \u3591 " val=\{smallItem.h\} setVal=\{(v) => setSmallItem(\{...smallItem, h: v\})\} />\
+            </div>\
+          </div>\
+\
+          <button \
+            onClick=\{handleCalculate\}\
+            disabled=\{isLoading\}\
+            className=\{`w-full py-4 text-white font-bold rounded-xl shadow-lg text-lg transition-all transform active:scale-95 flex justify-center items-center gap-2\
+                $\{isLoading ? 'bg-slate-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700'\}\
+            `\}\
+          >\
+            \{isLoading ? "\uc0\u3585 \u3635 \u3621 \u3633 \u3591 \u3588 \u3635 \u3609 \u3623 \u3603 ..." : "\u55357 \u56960  \u3588 \u3635 \u3609 \u3623 \u3603  (Calculate)"\}\
+          </button>\
+        </div>\
+\
+        \{/* --- Results --- */\}\
+        <div className=\{`lg:col-span-7 space-y-6 transition-all duration-500 $\{isCalculated ? 'opacity-100' : 'opacity-40'\}`\}>\
+          \
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">\
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white">\
+                <div className="flex justify-between items-center mb-2">\
+                    <h2 className="text-xl font-bold">\uc0\u55357 \u56550  \u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3592 \u3619 \u3636 \u3591  (Geometric)</h2>\
+                </div>\
+                <div className="flex items-end gap-2">\
+                    <span className="text-6xl font-extrabold tracking-tight">\{geoResult.total\}</span>\
+                    <span className="text-xl font-medium mb-2 opacity-90">\uc0\u3605 \u3633 \u3623  (\u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3649 \u3607 \u3619 \u3585 )</span>\
+                </div>\
+            </div>\
+\
+            <div className="p-6 space-y-4">\
+                \{/* Visual Guide */\}\
+                <div className="mb-4 bg-slate-100 rounded-lg p-3 text-sm text-slate-600 flex justify-between items-center border border-slate-200">\
+                    <span className="font-semibold text-slate-700">\uc0\u55357 \u56524  \u3626 \u3617 \u3617 \u3605 \u3636 \u3600 \u3634 \u3609 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585 :</span>\
+                    <span>\{geoResult.debugInfo\}</span>\
+                </div>\
+\
+                \{/* 1. Missing Slot */\}\
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">\
+                    <div>\
+                        <span className="text-sm font-semibold text-slate-700 block">1. \uc0\u3649 \u3607 \u3609 \u3607 \u3637 \u3656 \u3594 \u3656 \u3629 \u3591 \u3623 \u3656 \u3634 \u3591  (Missing Slot)</span>\
+                        <span className="text-xs text-slate-400">\uc0\u3594 \u3656 \u3629 \u3591 \u3623 \u3656 \u3634 \u3591 \u3651 \u3609 \u3585 \u3629 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 \u3627 \u3621 \u3633 \u3585 \u3607 \u3637 \u3656 \u3618 \u3633 \u3591 \u3623 \u3634 \u3591 \u3652 \u3617 \u3656 \u3588 \u3619 \u3610 </span>\
+                    </div>\
+                    <span className="text-xl font-bold text-blue-600">\{geoResult.fromMissing\}</span>\
+                </div>\
+\
+                \{/* 2. Top Gap */\}\
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">\
+                    <div>\
+                        <span className="text-sm font-semibold text-slate-700 block">2. \uc0\u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3623 \u3656 \u3634 \u3591 \u3604 \u3657 \u3634 \u3609 \u3610 \u3609  (Top Gap)</span>\
+                        <span className="text-xs text-slate-400">\uc0\u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3648 \u3627 \u3621 \u3639 \u3629 \u3648 \u3627 \u3609 \u3639 \u3629 \u3627 \u3633 \u3623 \u3585 \u3629 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634 </span>\
+                    </div>\
+                    <span className="text-xl font-bold text-indigo-600">\{geoResult.fromTop\}</span>\
+                </div>\
+\
+                \{/* 3. Side Gap */\}\
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">\
+                    <div className="flex items-center gap-2">\
+                        <div>\
+                            <span className="text-sm font-semibold text-slate-700 block">3. \uc0\u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3623 \u3656 \u3634 \u3591 \u3604 \u3657 \u3634 \u3609 \u3586 \u3657 \u3634 \u3591  (Side Gaps)</span>\
+                            <span className="text-xs text-slate-400">\uc0\u3594 \u3656 \u3629 \u3591 \u3623 \u3656 \u3634 \u3591 \u3619 \u3629 \u3610 \u3654  \u3585 \u3629 \u3591 \u3626 \u3636 \u3609 \u3588 \u3657 \u3634  (\u3588 \u3635 \u3609 \u3623 \u3603 \u3592 \u3634 \u3585 \u3614 \u3639 \u3657 \u3609 \u3607 \u3637 \u3656 \u3648 \u3627 \u3621 \u3639 \u3629 )</span>\
+                        </div>\
+                        <input \
+                            type="checkbox" \
+                            checked=\{includeSideGaps\} \
+                            onChange=\{(e) => setIncludeSideGaps(e.target.checked)\}\
+                            className="ml-2 accent-purple-600"\
+                        />\
+                    </div>\
+                    <span className=\{`text-xl font-bold $\{includeSideGaps ? 'text-purple-600' : 'text-slate-300'\}`\}>\
+                        \{includeSideGaps ? geoResult.fromSide : 0\}\
+                    </span>\
+                </div>\
+            </div>\
+          </div>\
+\
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">\
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">\uc0\u3648 \u3607 \u3637 \u3618 \u3610 \u3585 \u3633 \u3610 \u3649 \u3610 \u3610 \u3611 \u3619 \u3636 \u3617 \u3634 \u3605 \u3619  (Volume)</h4>\
+              <div className="text-2xl font-bold text-yellow-600">\{volumeResult\} <span className="text-sm text-slate-400 font-normal">\uc0\u3605 \u3633 \u3623 </span></div>\
+          </div>\
+        </div>\
+      </div>\
+    </div>\
+  );\
+\};\
+\
+const InputGroup = (\{ label, val, setVal \}) => (\
+  <div className="flex flex-col">\
+    <label className="text-xs font-medium text-slate-500 mb-1.5">\{label\}</label>\
+    <input \
+      type="text" \
+      inputMode="decimal"\
+      value=\{val\} \
+      onChange=\{(e) => setVal(e.target.value)\}\
+      className="border border-slate-300 rounded-lg p-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"\
+      placeholder="0"\
+    />\
+  </div>\
+);\
+\
+export default ContainerCalculator;}

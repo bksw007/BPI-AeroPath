@@ -59,45 +59,42 @@ export default function PackagingSpecsPage() {
             backHref="/projects/packaging"
             backLabel="Smart Packaging"
           >
-            <div className="space-y-10 mt-12">
-              <div className="relative group max-w-3xl mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                <input 
-                  type="text" 
-                  placeholder="Search category or product type..." 
-                  className="w-full pl-12 pr-4 py-4 bg-white/40 backdrop-blur-md border border-white/40 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="mt-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {categories.map((cat) => {
                   const Icon = cat.icon;
                   return (
                     <Link key={cat.id} href={`/projects/packaging/specs/${cat.id}`} className="block group">
                       <GlassCard
-                        className="p-8 flex items-center justify-between group-hover:bg-white/30 transition-all duration-300 border-white/40"
-                        hoverEffect
+                        className="h-full flex flex-col gap-5 p-6 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-white/40"
                       >
-                        <div className="flex items-center gap-6">
-                          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
-                            <Icon className="w-8 h-8" />
+                        {/* Hover Gradient Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                        
+                        <div className="relative z-10 flex flex-col gap-4">
+                          {/* Icon Container */}
+                          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                            <Icon className="w-7 h-7" />
                           </div>
-                          <div className="space-y-1 text-left">
-                            <h2 className="text-2xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                          
+                          <div className="space-y-2 text-left">
+                            <h2 className="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
                               {cat.title}
                             </h2>
-                            <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
+                            <p className="text-slate-500 text-xs leading-relaxed">
                               {cat.description}
                             </p>
                             <div className="pt-2 flex items-center gap-2">
-                              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider block w-fit">
                                 {cat.count} Items
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 translate-x-1 group-hover:translate-x-0">
-                          <ChevronRight className="w-5 h-5" />
+                        
+                        {/* Access Indicator */}
+                        <div className="mt-auto pt-2 flex items-center text-indigo-600 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 relative z-10">
+                          View Specs <ChevronRight className="ml-1 w-3 h-3" />
                         </div>
                       </GlassCard>
                     </Link>
