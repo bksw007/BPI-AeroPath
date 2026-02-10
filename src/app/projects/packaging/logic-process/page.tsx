@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
   Play,
   ChevronRight,
@@ -14,7 +15,8 @@ import {
   Ruler,
   GitBranch,
   SplitSquareHorizontal,
-  Eye,
+
+  FileText,
 } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { PackagingService } from "@/lib/firebase/services/packaging.service";
@@ -42,6 +44,11 @@ interface ProcessedItem {
   dimsKey?: string;
 }
 
+interface ProcessedItemWithDensity extends ProcessedItem {
+  density: number;
+  maxCapacity: number;
+}
+
 interface PackedCase {
   caseNo: number;
   type: string;
@@ -63,6 +70,7 @@ interface POData {
 interface POResult {
   po: string;
   warpCases: PackedCase[];
+  unknownCases: PackedCase[]; // Items with no spec & < 0.15 m3
   monoCases: PackedCase[];  // Mono Alone POs
   sameCases: PackedCase[];  // Overflow / Same dimension
   mixedCases: PackedCase[];
@@ -155,25 +163,49 @@ export default function LogicProcessPage() {
     const uniqueSkus = [...new Set(items.map((i) => i.sku))];
     const specsMap = new Map<string, ProcessedItem["spec"]>();
 
+    // 1. Get Allowed Package Names for Selected Region
+    const allowedPackageNames = PACKAGE_MASTER_DATA
+        .filter(pkg => pkg.types.includes(selectedRegion))
+        .map(pkg => pkg.name);
+
+    console.log(`[DEBUG] Fetch Specs for Region: ${selectedRegion}`);
+    console.log(`[DEBUG] Allowed Packages:`, allowedPackageNames);
+
     for (const sku of uniqueSkus) {
       try {
         const spec = await PackagingService.getProductSpec(sku);
         if (spec) {
-          // DEBUG LOG
-          console.log(`[DEBUG] SKU: ${sku}, packingRules:`, spec.packingRules);
-          
-          specsMap.set(sku, {
-            name: spec.name,
-            width: spec.width,
-            length: spec.length,
-            height: spec.height,
-            m3: spec.cbm,
-            packingRules: spec.packingRules as {
+          const rules = spec.packingRules as {
               warp?: boolean;
               boxes?: Record<string, number>;
               pallets?: Record<string, number>;
-            },
+          };
+
+          // 2. Determine Validity (Region Match or Warp)
+          let isValidForRegion = false;
+          if (rules) {
+              const hasBoxRule = rules.boxes && Object.keys(rules.boxes).some(k => allowedPackageNames.includes(k));
+              const hasPalletRule = rules.pallets && Object.keys(rules.pallets).some(k => allowedPackageNames.includes(k));
+              if (hasBoxRule || hasPalletRule) isValidForRegion = true;
+          }
+
+          const isWarp = rules?.warp === true;
+
+          // Always keep basic dimensions for M3 Fallback calculation in Step 4
+          // But only keep packingRules if it's actually valid for this region or is explicit Warp
+          specsMap.set(sku, {
+              name: spec.name,
+              width: spec.width,
+              length: spec.length,
+              height: spec.height,
+              m3: spec.cbm,
+              packingRules: (isValidForRegion || isWarp) ? rules : undefined,
           });
+
+          if (!isValidForRegion && !isWarp) {
+              console.log(`[DEBUG] SKU: ${sku} - No region match & not Warp. Packing rules hidden for fallback.`);
+          }
+
         } else {
           console.log(`[DEBUG] SKU: ${sku}, NOT FOUND in database`);
         }
@@ -187,25 +219,61 @@ export default function LogicProcessPage() {
 
   // Separate warp items
   const separateWarp = (items: ProcessedItem[]) => {
-    const warpItems = items.filter((i) => i.spec?.packingRules?.warp === true);
-    const normalItems = items.filter(
-      (i) => i.spec?.packingRules?.warp !== true,
-    );
+    const warpItems: ProcessedItem[] = [];
+    const unknownItems: ProcessedItem[] = [];
+    const normalItems: ProcessedItem[] = [];
 
-    // Group warp by PO
+    for (const item of items) {
+        const spec = item.spec;
+        const rules = spec?.packingRules;
+
+        // 1. Explicit Warp: If spec has warp flag set to true
+        if (rules?.warp === true) {
+            warpItems.push(item);
+        }
+        // 2. Normal Case: Has packing rules (which means it passed Region check in Step 3)
+        else if (rules) {
+            normalItems.push(item);
+        }
+        // 3. Fallback (No Rules / No Spec): Filtered out in Step 3 or not found in DB
+        else {
+            // Calculate M3 from dimensions (either from spec or fallback to 0)
+            const width = spec?.width || 0;
+            const length = spec?.length || 0;
+            const height = spec?.height || 0;
+            const m3 = spec?.m3 || (width * length * height) / 1000000;
+            
+            if (m3 >= 0.15) {
+                warpItems.push(item);
+            } else {
+                unknownItems.push(item);
+            }
+        }
+    }
+
+    // Group items by PO
     const warpByPO = new Map<string, ProcessedItem[]>();
     for (const item of warpItems) {
       if (!warpByPO.has(item.po)) warpByPO.set(item.po, []);
       warpByPO.get(item.po)!.push(item);
     }
+    
+    const unknownByPO = new Map<string, ProcessedItem[]>();
+    for (const item of unknownItems) {
+      if (!unknownByPO.has(item.po)) unknownByPO.set(item.po, []);
+      unknownByPO.get(item.po)!.push(item);
+    }
 
     // Update results
     const newResults = new Map(poResults);
+    
+    // Process Warp Cases
     for (const [po, items] of warpByPO.entries()) {
       if (!newResults.has(po)) {
         newResults.set(po, {
           po,
           warpCases: [],
+          unknownCases: [],
           monoCases: [],
           sameCases: [],
           mixedCases: [],
@@ -225,16 +293,44 @@ export default function LogicProcessPage() {
           result.warpCases.push({
             caseNo: caseNo++,
             type: "Warp Pallet",
-            items: [
-              {
-                sku: item.sku,
-                name: item.spec?.name || "",
-                qty: 1,
-              },
-            ],
+            items: [{ sku: item.sku, name: item.spec?.name || "", qty: 1 }],
             dims,
           });
         }
+      }
+    }
+    
+    // Process Unknown Cases
+    for (const [po, items] of unknownByPO.entries()) {
+      if (!newResults.has(po)) {
+        newResults.set(po, {
+            po,
+            warpCases: [],
+            unknownCases: [],
+            monoCases: [],
+            sameCases: [],
+            mixedCases: [],
+            status: "processing",
+        });
+      }
+      const result = newResults.get(po)!;
+      let caseNo = (result.unknownCases?.length || 0) + 1;
+
+      // Group by SKU for clearer display (1 Case per SKU type)
+      const skuGroups = new Map<string, ProcessedItem>();
+      items.forEach(i => {
+           if(skuGroups.has(i.sku)) skuGroups.get(i.sku)!.qty += i.qty;
+           else skuGroups.set(i.sku, { ...i });
+      });
+
+      for (const item of skuGroups.values()) {
+          result.unknownCases.push({
+              caseNo: caseNo++,
+              type: "Unknown Spec",
+              items: [{ sku: item.sku, name: item.spec?.name || "Unknown", qty: item.qty }],
+              dims: item.spec ? `${item.spec.width}x${item.spec.length}x${item.spec.height}` : "N/A",
+              note: "Complete manually (No Region Rule)"
+          });
       }
     }
 
@@ -281,6 +377,7 @@ export default function LogicProcessPage() {
         newResults.set(po, {
           po,
           warpCases: [],
+          unknownCases: [],
           monoCases: [],
           sameCases: [],
           mixedCases: [],
@@ -375,57 +472,96 @@ export default function LogicProcessPage() {
       
       // This is Mono Alone PO
       if (!newResults.has(po)) {
-        newResults.set(po, { po, warpCases: [], monoCases: [], sameCases: [], mixedCases: [], status: 'processing' });
+      if (!newResults.has(po)) {
+        newResults.set(po, { po, warpCases: [], unknownCases: [], monoCases: [], sameCases: [], mixedCases: [], status: 'processing' });
+      }
       }
       const result = newResults.get(po)!;
       let caseNo = result.monoCases.length + 1;
       
       const allItems = [...data.items];
+      
+      // Calculate individual SKU quantities for this PO
+      const skuQtys = new Map<string, number>();
+      allItems.forEach(i => skuQtys.set(i.sku, (skuQtys.get(i.sku) || 0) + i.qty));
+      let totalRemaining = allItems.reduce((sum, i) => sum + i.qty, 0);
+
       const packages = getAllPackages(allItems[0]);
       
       if (packages.length === 0) {
-        // No packing rules → สร้าง case แบบ "No Rules"
+        // No packing rules → Create "No Rules" case
         result.monoCases.push({
           caseNo: caseNo++,
           type: 'Mono (No Rules)',
-          items: allItems.map(i => ({ sku: i.sku, name: i.spec?.name || '', qty: i.qty })),
+          items: Array.from(skuQtys.entries()).map(([sku, qty]) => ({ 
+            sku, 
+            name: allItems.find(i => i.sku === sku)?.spec?.name || '', 
+            qty 
+          })),
           dims: data.uniqueDims[0],
           note: 'ต้องกำหนด Packing Rules'
         });
+        totalRemaining = 0;
       } else {
-        let remainingQty = allItems.reduce((sum, i) => sum + i.qty, 0);
-        
-        // Pack using best fit strategy
-        while (remainingQty > 0) {
-          const bestPkg = findBestFitPackage(allItems[0], remainingQty);
+        // Pack using best fit strategy with Efficiency Check
+        while (totalRemaining > 0) {
+          let bestPkg = findBestFitPackage(allItems[0], totalRemaining);
           if (!bestPkg) break;
-          
-          if (remainingQty >= bestPkg.capacity) {
-            // Create full package
-            const type = bestPkg.type === 'pallet' ? 'Full Pallet' : 'Full Box';
-            result.monoCases.push({
-              caseNo: caseNo++,
-              type,
-              items: allItems.map(i => ({ sku: i.sku, name: i.spec?.name || '', qty: bestPkg.capacity })),
-              dims: bestPkg.pkg,
-              note: `Mono (${bestPkg.capacity} ชิ้น)`
-            });
-            remainingQty -= bestPkg.capacity;
-          } else {
-            // Partial - find best fit for remaining
-            const partialPkg = findBestFitPackage(allItems[0], remainingQty);
-            if (partialPkg) {
-              const type = partialPkg.type === 'pallet' ? 'Partial Pallet' : 'Partial Box';
-              result.monoCases.push({
-                caseNo: caseNo++,
-                type,
-                items: allItems.map(i => ({ sku: i.sku, name: i.spec?.name || '', qty: remainingQty })),
-                dims: partialPkg.pkg,
-                note: `เศษ ${remainingQty}/${partialPkg.capacity} ชิ้น`
-              });
+
+          // --- Efficiency Check (75% Rule for Pallets) ---
+          if (bestPkg.type === 'pallet' && totalRemaining < bestPkg.capacity) {
+            const efficiency = totalRemaining / bestPkg.capacity;
+            if (efficiency < 0.75) {
+              // Downgrade to next smaller package
+              const pkgIdx = packages.findIndex(p => p.pkg === bestPkg?.pkg);
+              if (pkgIdx > 0) {
+                const smallerPkg = packages[pkgIdx - 1];
+                console.log(`[DEBUG] Mono Efficiency Low (${(efficiency * 100).toFixed(1)}%). Downgrading ${bestPkg.pkg} -> ${smallerPkg.pkg}`);
+                bestPkg = smallerPkg;
+              }
             }
-            remainingQty = 0;
           }
+
+          // Determine how many items to pack in this case
+          const qtyToPack = Math.min(totalRemaining, bestPkg.capacity);
+          const isFull = qtyToPack === bestPkg.capacity;
+          
+          // Distribute qtyToPack across SKUs
+          const itemsInCase: { sku: string; name: string; qty: number }[] = [];
+          let quota = qtyToPack;
+
+          for (const [sku, available] of skuQtys.entries()) {
+            if (quota <= 0) break;
+            if (available <= 0) continue;
+
+            const take = Math.min(available, quota);
+            itemsInCase.push({ 
+              sku, 
+              name: allItems.find(i => i.sku === sku)?.spec?.name || '', 
+              qty: take 
+            });
+            skuQtys.set(sku, available - take);
+            quota -= take;
+          }
+
+          // Create the case
+          const type = isFull 
+            ? (bestPkg.type === 'pallet' ? 'Full Pallet' : 'Full Box')
+            : (bestPkg.type === 'pallet' ? 'Partial Pallet' : 'Partial Box');
+          
+          const note = isFull 
+            ? `Mono (${bestPkg.capacity} ชิ้น)` 
+            : `เศษ ${qtyToPack}/${bestPkg.capacity} ชิ้น`;
+
+          result.monoCases.push({
+            caseNo: caseNo++,
+            type,
+            items: itemsInCase,
+            dims: bestPkg.pkg,
+            note
+          });
+
+          totalRemaining -= qtyToPack;
         }
       }
       
@@ -452,7 +588,9 @@ export default function LogicProcessPage() {
       if (data.items.length === 0) continue;
       
       if (!newResults.has(po)) {
-        newResults.set(po, { po, warpCases: [], monoCases: [], sameCases: [], mixedCases: [], status: 'processing' });
+      if (!newResults.has(po)) {
+        newResults.set(po, { po, warpCases: [], unknownCases: [], monoCases: [], sameCases: [], mixedCases: [], status: 'processing' });
+      }
       }
       const result = newResults.get(po)!;
       let caseNo = result.sameCases.length + 1;
@@ -513,7 +651,9 @@ export default function LogicProcessPage() {
       if (data.sameItems.length === 0) continue;
       
       if (!newResults.has(po)) {
-        newResults.set(po, { po, warpCases: [], monoCases: [], sameCases: [], mixedCases: [], status: 'processing' });
+      if (!newResults.has(po)) {
+        newResults.set(po, { po, warpCases: [], unknownCases: [], monoCases: [], sameCases: [], mixedCases: [], status: 'processing' });
+      }
       }
       const result = newResults.get(po)!;
       let caseNo = result.sameCases.length + 1;
@@ -616,6 +756,7 @@ export default function LogicProcessPage() {
         newResults.set(po, {
           po,
           warpCases: [],
+          unknownCases: [],
           monoCases: [],
           sameCases: [],
           mixedCases: [],
@@ -623,193 +764,260 @@ export default function LogicProcessPage() {
         });
       }
       const result = newResults.get(po)!;
-      let caseNo = result.mixedCases.length + 1;
 
-      // Group items by their Max Package type
-      const pkgGroups = new Map<string, ProcessedItem[]>();
-      for (const item of data.mixedItems) {
-        const { pkg } = findMaxPackage(item);
-        if (!pkgGroups.has(pkg)) pkgGroups.set(pkg, []);
-        pkgGroups.get(pkg)!.push(item);
-      }
+      // Iterative Packing Loop for Mixed Items
+      // We keep packing cases until the mixedItems pool is empty
+      while (data.mixedItems.some(item => item.qty > 0)) {
+        // 1. Group active items by their Max Package type (Step 9.1)
+        const activeItems = data.mixedItems.filter(i => i.qty > 0);
+        if (activeItems.length === 0) break;
 
-      // Process ONE case for each Max Package group found in this PO
-      for (const [pkgName, groupItems] of pkgGroups.entries()) {
-        if (groupItems.length === 0) continue;
-
-        // 1. Calculate % Density for each item in this group and sort
-        const itemsWithDensity = groupItems.map(item => {
-          const { capacity } = findMaxPackage(item);
-          return {
-            ...item,
-            density: capacity > 0 ? (item.qty / capacity) * 100 : 0,
-            maxCapacity: capacity
-          };
-        }).sort((a, b) => b.density - a.density);
-
-        if (itemsWithDensity.length === 0) continue;
-
-        // 2. Select Primary (Top 1) and Secondary (Top 2) from this group
-        const primary = itemsWithDensity[0];
-        const secondary = itemsWithDensity.length > 1 ? itemsWithDensity[1] : null;
-
-        // 3. Get Package Dims (Max Package of the group)
-        const pkgDef = PACKAGE_MASTER_DATA.find(p => p.name === pkgName);
-        if (!pkgDef) continue;
-        
-        const container = pkgDef.inner;
-        const mainDim = primary.spec || { width: 0, length: 0, height: 0 };
-        const smallDim = secondary?.spec || { width: 0, length: 0, height: 0 };
-
-        // 4. Bin Packing Calculation
-        const maxPossibleLayers = mainDim.height > 0 ? Math.floor(container.h / mainDim.height) : 0;
-        const impliedItemsPerLayer = maxPossibleLayers > 0 ? Math.ceil(primary.maxCapacity / maxPossibleLayers) : 0;
-        const currentLayersUsed = impliedItemsPerLayer > 0 ? Math.ceil(primary.qty / impliedItemsPerLayer) : 0;
-        const currentStackHeight = Math.min(container.h, currentLayersUsed * mainDim.height);
-
-        let totalInsertable = 0;
-        let fromMissing = 0;
-        let fromTop = 0;
-        let fromSide = 0;
-        let volRatio = 1;
-
-        if (secondary && secondary.spec) {
-          const volPrimary = (mainDim.width * mainDim.length * mainDim.height) / 1000000;
-          const volSecondary = (smallDim.width * smallDim.length * smallDim.height) / 1000000;
-          volRatio = volPrimary > 0 && volSecondary > 0 
-            ? Math.max(volPrimary / volSecondary, volSecondary / volPrimary) 
-            : 1;
-
-          // A: Missing Slots
-          const totalSlotsInStack = currentLayersUsed * impliedItemsPerLayer;
-          const emptySlots = Math.max(0, totalSlotsInStack - primary.qty);
-          const smallInMainRatio = calculateBestFit3D(
-            { w: mainDim.width, l: mainDim.length, h: mainDim.height },
-            { w: smallDim.width, l: smallDim.length, h: smallDim.height }
-          );
-          fromMissing = emptySlots * smallInMainRatio;
-
-          // B: Top Gap
-          const remainingHeight = Math.max(0, container.h - currentStackHeight);
-          fromTop = calculateBestFit3D(
-            { w: container.w, l: container.l, h: remainingHeight },
-            { w: smallDim.width, l: smallDim.length, h: smallDim.height }
-          );
-
-          // C: Side Gaps (Only if sizes are close enough)
-          if (volRatio <= 3) {
-            const totalArea = container.w * container.l;
-            const usedArea = impliedItemsPerLayer * (mainDim.width * mainDim.length);
-            const freeArea = Math.max(0, (totalArea - usedArea) * 0.95);
-            const smallArea = smallDim.width * smallDim.length;
-            if (smallArea > 0) {
-              const sideItemsPerLayer = Math.floor(freeArea / smallArea);
-              fromSide = sideItemsPerLayer * currentLayersUsed;
-            }
-          }
-          totalInsertable = Math.min(secondary.qty, fromMissing + fromTop + fromSide);
+        const pkgGroups = new Map<string, ProcessedItem[]>();
+        for (const item of activeItems) {
+          const { pkg } = findMaxPackage(item);
+          if (!pkgGroups.has(pkg)) pkgGroups.set(pkg, []);
+          pkgGroups.get(pkg)!.push(item);
         }
 
-        let note = `Primary: ${primary.sku}`;
-        const itemsInCase: Array<{ sku: string; name: string; qty: number }> = [
-          { sku: primary.sku, name: primary.spec?.name || "", qty: primary.qty }
-        ];
+        // 2. Identify High Density Groups (Path A Candidate)
+        let topGroup: { pkgName: string, items: ProcessedItemWithDensity[], primary: ProcessedItemWithDensity } | null = null;
+        
+        for (const [pkgName, groupItems] of pkgGroups.entries()) {
+          const itemsWithDensity = groupItems.map(item => {
+            const { capacity } = findMaxPackage(item);
+            return {
+              ...item,
+              density: capacity > 0 ? (item.qty / capacity) * 100 : 0,
+              maxCapacity: capacity
+            };
+          }).sort((a, b) => b.density - a.density);
 
-        if (secondary && totalInsertable > 0) {
-          itemsInCase.push({ sku: secondary.sku, name: secondary.spec?.name || "", qty: totalInsertable });
-          note += ` | Insert: ${secondary.sku} (+${totalInsertable})`;
-          if (volRatio > 3) note += ` (Side Gap Skip)`;
+          // Step 9.2: Density Check (> 60%)
+          if (itemsWithDensity.length > 0 && itemsWithDensity[0].density > 60) {
+            // Found a High Density candidate. Select the one with highest density to process.
+            if (!topGroup || itemsWithDensity[0].density > topGroup.primary.density) {
+                topGroup = { pkgName, items: itemsWithDensity, primary: itemsWithDensity[0] };
+            }
+          }
+        }
 
-          // --- Substitution Logic (Item #3) ---
-          const totalCapacityForSecondary = fromMissing + fromTop + fromSide;
-          if (secondary.qty < totalCapacityForSecondary) {
-            const missingCount = totalCapacityForSecondary - secondary.qty;
+        if (topGroup) {
+          // --- PATH A: High Density Logic (Steps 9.3 - 9.5) ---
+          const { pkgName, items: itemsWithDensity, primary } = topGroup;
+          const secondary = itemsWithDensity.length > 1 ? itemsWithDensity[1] : null;
+
+          const pkgDef = PACKAGE_MASTER_DATA.find(p => p.name === pkgName);
+          if (!pkgDef) {
+             // Fallback: Skip if pkg data missing
+             data.mixedItems.find(i => i.sku === primary.sku)!.qty = 0;
+             continue;
+          }
+          
+          const container = pkgDef.inner;
+          const mainDim = primary.spec || { width: 0, length: 0, height: 0 };
+          const smallDim = secondary?.spec || { width: 0, length: 0, height: 0 };
+
+          // Step 9.4: Calculate Gaps & Filling
+          const maxPossibleLayers = mainDim.height > 0 ? Math.floor(container.h / mainDim.height) : 0;
+          const impliedItemsPerLayer = maxPossibleLayers > 0 ? Math.ceil(primary.maxCapacity / maxPossibleLayers) : 0;
+          const currentLayersUsed = impliedItemsPerLayer > 0 ? Math.ceil(primary.qty / impliedItemsPerLayer) : 0;
+          const currentStackHeight = Math.min(container.h, currentLayersUsed * mainDim.height);
+
+          let totalInsertable = 0;
+          let fromMissing = 0, fromTop = 0, fromSide = 0, volRatio = 1;
+
+          if (secondary && secondary.spec) {
+            const volPrimary = (mainDim.width * mainDim.length * mainDim.height) / 1000000;
             const volSecondary = (smallDim.width * smallDim.length * smallDim.height) / 1000000;
+            volRatio = volPrimary > 0 && volSecondary > 0 ? Math.max(volPrimary / volSecondary, volSecondary / volPrimary) : 1;
 
-            // Look for candidate #3 onwards
-            const substituteCandidate = itemsWithDensity.slice(2).find(cand => {
-              const candDim = cand.spec || { width: 0, length: 0, height: 0 };
-              const volCand = (candDim.width * candDim.length * candDim.height) / 1000000;
-              const ratio = volSecondary > 0 ? volCand / volSecondary : 0;
-              return ratio >= 0.5 && ratio <= 1.5;
-            });
+            const totalSlotsInStack = currentLayersUsed * impliedItemsPerLayer;
+            const emptySlots = Math.max(0, totalSlotsInStack - primary.qty);
+            const smallInMainRatio = calculateBestFit3D(
+              { w: mainDim.width, l: mainDim.length, h: mainDim.height },
+              { w: smallDim.width, l: smallDim.length, h: smallDim.height }
+            );
+            fromMissing = emptySlots * smallInMainRatio;
 
-            if (substituteCandidate) {
-              const candDim = substituteCandidate.spec || { width: 0, length: 0, height: 0 };
-              const volCand = (candDim.width * candDim.length * candDim.height) / 1000000;
-              const ratio = volSecondary > 0 ? volCand / volSecondary : 0;
+            const remainingHeight = Math.max(0, container.h - currentStackHeight);
+            fromTop = calculateBestFit3D({ w: container.w, l: container.l, h: remainingHeight }, { w: smallDim.width, l: smallDim.length, h: smallDim.height });
 
-              let take = 0;
-              if (ratio > 1.0) {
-                // Larger (up to 1.5x): 1-to-1 replacement
-                take = Math.min(substituteCandidate.qty, missingCount);
-              } else {
-                // Smaller (down to 0.5x): 1.5x replacement
-                const targetQty = Math.ceil(missingCount * 1.5);
-                take = Math.min(substituteCandidate.qty, targetQty);
+            if (volRatio <= 3) {
+              const totalArea = container.w * container.l;
+              const usedArea = impliedItemsPerLayer * (mainDim.width * mainDim.length);
+              const freeArea = Math.max(0, (totalArea - usedArea) * 0.95);
+              const smallArea = smallDim.width * smallDim.length;
+              if (smallArea > 0) {
+                const sideItemsPerLayer = Math.floor(freeArea / smallArea);
+                fromSide = sideItemsPerLayer * currentLayersUsed;
               }
+            }
+            totalInsertable = Math.min(secondary.qty, fromMissing + fromTop + fromSide);
+          }
 
-              if (take > 0) {
-                itemsInCase.push({
-                  sku: substituteCandidate.sku,
-                  name: substituteCandidate.spec?.name || "",
-                  qty: take
-                });
-                note += ` | Sub: ${substituteCandidate.sku} (+${take})`;
-                
-                // Update pool for substitute
-                const subInPool = data.mixedItems.find(i => i.sku === substituteCandidate.sku);
-                if (subInPool) subInPool.qty -= take;
+          let note = `Primary: ${primary.sku}`;
+          const itemsInCase: Array<{ sku: string; name: string; qty: number }> = [
+            { sku: primary.sku, name: primary.spec?.name || "", qty: primary.qty }
+          ];
+
+          if (secondary && totalInsertable > 0) {
+            itemsInCase.push({ sku: secondary.sku, name: secondary.spec?.name || "", qty: totalInsertable });
+            note += ` | Insert: ${secondary.sku} (+${totalInsertable})`;
+
+            // --- Step 9.5: Substitution (Item #3) ---
+            const totalCapacityForSecondary = fromMissing + fromTop + fromSide;
+            if (secondary.qty < totalCapacityForSecondary) {
+              const missingCount = totalCapacityForSecondary - secondary.qty;
+              const volSecondary = (smallDim.width * smallDim.length * smallDim.height) / 1000000;
+
+              const substituteCandidate = itemsWithDensity.slice(2).find(cand => {
+                const candDim = cand.spec || { width: 0, length: 0, height: 0 };
+                const volCand = (candDim.width * candDim.length * candDim.height) / 1000000;
+                const ratio = volSecondary > 0 ? volCand / volSecondary : 0;
+                return ratio >= 0.5 && ratio <= 1.5;
+              });
+
+              if (substituteCandidate) {
+                const candDim = substituteCandidate.spec || { width: 0, length: 0, height: 0 };
+                const volCand = (candDim.width * candDim.length * candDim.height) / 1000000;
+                const ratio = volSecondary > 0 ? volCand / volSecondary : 0;
+
+                let take = 0;
+                if (ratio > 1.0) take = Math.min(substituteCandidate.qty, missingCount);
+                else {
+                  const targetQty = Math.ceil(missingCount * 1.5);
+                  take = Math.min(substituteCandidate.qty, targetQty);
+                }
+
+                if (take > 0) {
+                  itemsInCase.push({ sku: substituteCandidate.sku, name: substituteCandidate.spec?.name || "", qty: take });
+                  note += ` | Sub: ${substituteCandidate.sku} (+${take})`;
+                  const subInPool = data.mixedItems.find(i => i.sku === substituteCandidate.sku);
+                  if (subInPool) subInPool.qty -= take;
+                }
               }
             }
           }
-        }
 
-        result.mixedCases.push({
-          caseNo: caseNo++,
-          type: pkgName.includes("110") || pkgName.includes("120") ? "Mixed Pallet" : "Mixed Box",
-          items: itemsInCase,
-          dims: pkgName,
-          note: note
-        });
+          result.mixedCases.push({
+            caseNo: result.mixedCases.length + 1,
+            type: pkgName.includes("110") || pkgName.includes("120") ? "Mixed Pallet" : "Mixed Box",
+            items: itemsInCase,
+            dims: pkgName,
+            note: note
+          });
 
-        // 6. Update Pool (Deduct only what was used in THIS case)
-        const primaryInPool = data.mixedItems.find(i => i.sku === primary.sku);
-        if (primaryInPool) primaryInPool.qty = 0; // Primary is finished in this case
-        
-        if (secondary && totalInsertable > 0) {
-          const secondaryInPool = data.mixedItems.find(i => i.sku === secondary.sku);
-          if (secondaryInPool) secondaryInPool.qty -= totalInsertable;
+          // --- Step 9.6: Finalize & Deduct Pool ---
+          const primaryInPool = data.mixedItems.find(i => i.sku === primary.sku);
+          if (primaryInPool) primaryInPool.qty = 0;
+          if (secondary && totalInsertable > 0) {
+            const secondaryInPool = data.mixedItems.find(i => i.sku === secondary.sku);
+            if (secondaryInPool) secondaryInPool.qty -= totalInsertable;
+          }
+          // Loop continues to check remaining items
+        } else {
+          // --- Phase 2: Global Consolidation (Step 9.7 / Path B) ---
+          // No High Density groups remain. Dissolve groups and process PO globally.
+          const flatPool = activeItems.map(item => {
+            const { capacity } = findMaxPackage(item);
+            return {
+              ...item,
+              density: capacity > 0 ? (item.qty / capacity) * 100 : 0
+            };
+          }).sort((a, b) => b.density - a.density);
+
+          if (flatPool.length === 0) break;
+
+          const baseItem = flatPool[0];
+          const allowedPkgs = getAllPackages(baseItem);
+
+          if (allowedPkgs.length === 0) {
+              const itemsInCase = flatPool.map(i => ({ sku: i.sku, name: i.spec?.name || "", qty: i.qty }));
+              result.mixedCases.push({
+                  caseNo: result.mixedCases.length + 1, type: "Mixed (No Rules)", items: itemsInCase, dims: "N/A", note: "No packing rules"
+              });
+              flatPool.forEach(i => { const pool = data.mixedItems.find(p => p.sku === i.sku); if (pool) pool.qty = 0; });
+              break;
+          }
+
+          // Step 9.7.1: Identify Initial Base Pkg (Mono-style best fit)
+          const initialBasePkg = allowedPkgs.find(p => p.capacity >= baseItem.qty) || allowedPkgs[allowedPkgs.length - 1];
+          const totalVol = flatPool.reduce((sum, item) => {
+              if (!item.spec) return sum;
+              return sum + ((item.spec.width * item.spec.length * item.spec.height) / 1000000) * item.qty;
+          }, 0);
+
+          // Step 9.7.2: Smarter Level-up (Volume Triggered)
+          let selectedPkg = initialBasePkg;
+          const initialDef = PACKAGE_MASTER_DATA.find(p => p.name === initialBasePkg.pkg);
+          const initialVol = initialDef?.m3 || 0;
+
+          if (totalVol > initialVol) {
+              const startIdx = allowedPkgs.findIndex(p => p.pkg === initialBasePkg.pkg);
+              if (startIdx !== -1) {
+                  for (let i = startIdx + 1; i < allowedPkgs.length; i++) {
+                      const p = allowedPkgs[i];
+                      const pDef = PACKAGE_MASTER_DATA.find(x => x.name === p.pkg);
+                      if (pDef && pDef.m3 >= totalVol) {
+                          selectedPkg = p;
+                          break;
+                      }
+                      if (i === allowedPkgs.length - 1) selectedPkg = p; // Max size reached
+                  }
+              }
+          }
+
+          // Step 9.7.3: Create Consolidated Case + Max Size Split
+          const finalPkgDef = PACKAGE_MASTER_DATA.find(p => p.name === selectedPkg.pkg);
+          const containerVolLimit = finalPkgDef?.m3 || 0;
+          
+          let currentPackedVol = 0;
+          const itemsToPack: Array<{ sku: string; name: string; qty: number }> = [];
+          
+          for (const item of flatPool) {
+              const itemUnitVol = item.spec 
+                  ? (item.spec.width * item.spec.length * item.spec.height) / 1000000 
+                  : 0;
+              const poolItem = data.mixedItems.find(i => i.sku === item.sku)!;
+              
+              if (containerVolLimit > 0) {
+                  const remainingSpace = containerVolLimit - currentPackedVol;
+                  if (remainingSpace <= 0) break;
+
+                  const canFitQty = Math.floor(remainingSpace / itemUnitVol);
+                  const take = Math.min(poolItem.qty, canFitQty);
+                  
+                  if (take > 0) {
+                      itemsToPack.push({ sku: item.sku, name: item.spec?.name || "", qty: take });
+                      currentPackedVol += itemUnitVol * take;
+                      poolItem.qty -= take;
+                  } else if (itemsToPack.length === 0) {
+                      // Safety: Always pack at least 1 if it's the first item to avoid infinite loop
+                      itemsToPack.push({ sku: item.sku, name: item.spec?.name || "", qty: 1 });
+                      currentPackedVol += itemUnitVol;
+                      poolItem.qty -= 1;
+                  }
+              } else {
+                  itemsToPack.push({ sku: item.sku, name: item.spec?.name || "", qty: poolItem.qty });
+                  poolItem.qty = 0;
+              }
+          }
+
+          result.mixedCases.push({
+              caseNo: result.mixedCases.length + 1,
+              type: selectedPkg.type === "pallet" ? "Mixed Pallet" : "Mixed Box",
+              items: itemsToPack,
+              dims: selectedPkg.pkg,
+              note: `Mixed (Total Vol: ${currentPackedVol.toFixed(3)} m3, Base: ${initialBasePkg.pkg})`
+          });
+          
+          // Loop continues if items remain (Split Case)
         }
       }
 
-      // Final cleanup of the pool for this PO
-      const remainingAfterComplex = data.mixedItems.filter(i => i.qty > 0);
-      
-      // FALLBACK: If complex logic didn't pack all items, create a simple Mixed Case for remaining
-      if (remainingAfterComplex.length > 0) {
-        const fallbackItems = remainingAfterComplex.map(item => ({
-          sku: item.sku,
-          name: item.spec?.name || "",
-          qty: item.qty
-        }));
-        
-        const firstItem = remainingAfterComplex.find(i => i.spec);
-        const { pkg: fallbackPkg } = firstItem ? findMaxPackage(firstItem) : { pkg: "42x46x68" };
-        
-        result.mixedCases.push({
-          caseNo: result.mixedCases.length + 1,
-          type: fallbackPkg.includes("110") || fallbackPkg.includes("120") ? "Mixed Pallet" : "Mixed Box",
-          items: fallbackItems,
-          dims: fallbackPkg || "42x46x68",
-          note: `Remainder: ${fallbackItems.length} SKUs`
-        });
-        
-        console.log(`FALLBACK: Created Mixed Case for PO ${po} with ${fallbackItems.length} remaining items`);
-      }
-      
       data.mixedItems = [];
-    }
+      result.status = "complete";
+    } // End of for..of updatedPOData
 
     console.log("=== packMixedItems END ===");
     console.log("Results:", Array.from(newResults.values()).map(r => ({ po: r.po, mixed: r.mixedCases.length })));
@@ -947,6 +1155,13 @@ export default function LogicProcessPage() {
               🧪 Logic Process Visualizer
             </span>
           </h1>
+          <Link 
+            href="/projects/packaging/logic-docs" 
+            className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 hover:text-emerald-500 transition-colors mt-2"
+          >
+            <FileText size={14} />
+             <span>View Algorithm Flow Report (PDF)</span>
+          </Link>
         </div>
 
         {/* Progress Steps */}
@@ -1068,7 +1283,7 @@ export default function LogicProcessPage() {
                 <h3 className="text-sm font-bold text-slate-700 mb-2">
                   📋 PO Status (Remaining)
                 </h3>
-                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                <div className="space-y-3">
                   {Array.from(poDataMap.values())
                     .filter((data) => 
                       data.items.length > 0 || 
@@ -1196,7 +1411,7 @@ export default function LogicProcessPage() {
                   <h3 className="text-sm font-bold text-slate-700 mb-2">
                     Working ({workingItems.length})
                   </h3>
-                  <div className="max-h-[200px] overflow-auto">
+                  <div className="overflow-auto">
                     <table className="w-full text-xs">
                       <thead className="bg-slate-100 sticky top-0">
                         <tr>
@@ -1237,7 +1452,7 @@ export default function LogicProcessPage() {
             </h2>
 
             {poResults.size > 0 ? (
-              <div className="space-y-3 max-h-[700px] overflow-y-auto">
+              <div className="space-y-3">
                 {Array.from(poResults.entries()).map(([po, result]) => (
                   <div
                     key={po}
@@ -1331,6 +1546,34 @@ export default function LogicProcessPage() {
                               <div className="text-xs text-slate-600">
                                 {c.items.map((i, iIdx) => (
                                   <div key={iIdx}>• {i.sku} x{i.qty}</div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Unknown Cases - ⚠️ แสดงหลัง Warp และก่อน Mono */}
+                    {result.unknownCases && result.unknownCases.length > 0 && (
+                      <div className="p-2 bg-amber-50 border-b">
+                        <p className="text-xs font-semibold text-amber-700 mb-2">
+                          ⚠️ Unknown Cases ({result.unknownCases.length})
+                        </p>
+                        <div className="space-y-1">
+                          {result.unknownCases.map((c, idx) => (
+                            <div key={idx} className="bg-white rounded p-2 border border-amber-300">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                  Case #{c.caseNo}
+                                </span>
+                                <span className="text-xs text-amber-600">{c.type}</span>
+                                <span className="text-xs text-slate-500">({c.dims})</span>
+                              </div>
+                              {c.note && <div className="text-xs text-amber-600 font-medium mb-1">⚠️ {c.note}</div>}
+                              <div className="text-xs text-slate-600">
+                                {c.items.map((i, iIdx) => (
+                                  <div key={iIdx}>• {i.sku} ({i.name}) x{i.qty}</div>
                                 ))}
                               </div>
                             </div>
