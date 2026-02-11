@@ -375,21 +375,22 @@ export default function ProfilePage() {
                             type="text"
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
-                            className="w-full pl-11 pr-4 py-4 bg-[#f6edde]/50 border border-indigo-100/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-[#f6edde] transition-all text-sm font-bold text-slate-800 placeholder:text-slate-400"
+                            className="w-full pl-11 pr-4 py-4 bg-[#f6edde]/50 border border-indigo-100/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-[#f6edde] transition-all text-sm font-bold text-slate-800 placeholder:text-slate-500"
                             placeholder="Your Name"
+                            required
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] ml-1">Department</label>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Department</label>
                         <div className="relative group">
-                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-all duration-300" />
                           <input
                             type="text"
                             value={department}
                             onChange={(e) => setDepartment(e.target.value)}
-                            className="w-full pl-11 pr-4 py-4 bg-[#f6edde]/50 border border-indigo-100/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-[#f6edde] transition-all text-sm font-bold text-slate-800 placeholder:text-slate-400"
+                            className="w-full pl-11 pr-4 py-4 bg-[#f6edde]/50 border border-indigo-100/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-[#f6edde] transition-all text-sm font-bold text-slate-800 placeholder:text-slate-500"
                             placeholder="Your Department"
                           />
                         </div>
@@ -858,7 +859,7 @@ export default function ProfilePage() {
                     step={0.1}
                     aria-labelledby="Zoom"
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
                   />
                 </div>
 
