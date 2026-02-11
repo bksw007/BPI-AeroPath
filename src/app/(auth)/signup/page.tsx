@@ -103,7 +103,7 @@ export default function SignupPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-slate-50 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                 placeholder="JOHN DOE"
                 required
               />
@@ -118,7 +118,7 @@ export default function SignupPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-slate-50 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                 placeholder="USER@AEROPATH.SYS"
                 required
               />
@@ -134,7 +134,7 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-white/50 border-2 border-slate-50 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -157,7 +157,7 @@ export default function SignupPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-white/50 border-2 border-slate-50 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                   placeholder="••••••••"
                   required
                   minLength={6}
