@@ -1,746 +1,515 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Modal } from "@/components/shared/Modal";
+import { useState } from "react";
 import { 
-  Boxes, 
-  ChevronRight, 
-  Search, 
-  Save, 
-  FileText, 
-  Table, 
-  CheckCircle2, 
-  Download, 
-  AlertCircle,
-  XCircle
-} from 'lucide-react';
+  FileSpreadsheet, 
+  RotateCcw, 
+  Play, 
+  Box, 
+  Layers, 
+  AlertTriangle,
+  Download,
+  CheckCircle2,
+  Package,
+  FileText,
+  Search,
+  Users,
+  Save
+} from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
-import { CUSTOMER_PACK_TYPE_MAPPING, getRegionByType } from "@/lib/config/packagingData";
-import { cn } from "@/lib/utils";
+import { CUSTOMER_PACK_TYPE_MAPPING, PACKAGE_MASTER_DATA } from "@/lib/config/packagingData";
+import { PackagingService } from "@/lib/firebase/services/packaging.service";
+import { PackingLogicService } from "@/lib/services/packing-logic/PackingLogicService";
+import type { PackingInput, PackingOutput, PackedCase, PackingPlanResult } from "@/lib/services/packing-logic/packing.types";
+import { generatePackingListPDFMake } from "@/lib/utils/pdfMakeGenerator";
 
-// ------------------------------------------------------------------
-// 🧠 Logic & Services
-// ------------------------------------------------------------------
-import { PackagingService, PackagingProductDTO } from "@/lib/firebase/services/packaging.service";
-import { generatePackingPlan, PackingPlanResult, ProductSpec } from "@/lib/services/packingLogic";
-import { generatePackingListPDF } from "@/lib/utils/pdfGenerator";
-
-const steps = ["Select Customer", "Input Products", "Review Plan", "Generate"];
-
-interface PlanningItem {
-  id: string;
+// UI Types
+interface POCase {
   po: string;
-  sku: string;
-  qty: number;
+  cases: PackedCase[];
 }
 
-interface Customer {
-  id: string;
-  name: string;
-  region: 'US/EU' | 'Asia';
-  productPlan?: 'Inverter' | 'Material';
+interface PlanSummary {
+  totalPallets: number;
+  totalBoxes: number;
+  totalWarps: number;
+  totalM3: number;
+  totalItems: number;
 }
 
-export default function PackagingPlanningPage() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [rawInput, setRawInput] = useState("");
-  const [parsedItems, setParsedItems] = useState<PlanningItem[]>([]);
-  const [planningResults, setPlanningResults] = useState<PackingPlanResult[]>([]);
-  const [isComputing, setIsComputing] = useState(false);
+export default function PackagingBookingPage() {
+  const [activeStep, setActiveStep] = useState(1);
+  const [selectedCustomer, setSelectedCustomer] = useState<{code: string; region: string} | null>(null);
+  const [rawData, setRawData] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [planResult, setPlanResult] = useState<POCase[]>([]);
+  const [planSummary, setPlanSummary] = useState<PlanSummary | null>(null);
 
-  // Modal States
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [successConfig, setSuccessConfig] = useState({ title: "", description: "", type: "success" as "success" | "error" | "download" });
-  
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [confirmConfig, setConfirmConfig] = useState({ title: "", message: "", onConfirm: () => {} });
-
-  // Auto-close Success Modal
-  useEffect(() => {
-    if (isSuccessModalOpen) {
-      const timer = setTimeout(() => setIsSuccessModalOpen(false), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccessModalOpen]);
-
-  // Parser Logic
-  const handleRawInputChange = (input: string) => {
-    setRawInput(input);
-    const lines = input.split('\n');
-    const items: PlanningItem[] = [];
-
-    lines.forEach(line => {
-      const parts = line.trim().split(/[\t,]+/); // Split by Tab or Comma
-      if (parts.length >= 3) {
-        // Try to handle spaces if tab/comma parsing failed
-        const po = parts[0].trim();
-        const sku = parts[1].trim();
-        const qtyStr = parts[2].replace(/,/g, '').trim();
-        const qty = parseInt(qtyStr);
-
-        if (po && sku && !isNaN(qty)) {
-          items.push({
-            id: Math.random().toString(36).substr(2, 9),
-            po,
-            sku,
-            qty
-          });
-        }
-      } else {
-        // Fallback for space separation
-        const spaceParts = line.trim().split(/\s+/);
-        if (spaceParts.length >= 3) {
-             const po = spaceParts[0].trim();
-             const qtyStr = spaceParts[spaceParts.length - 1].replace(/,/g, '').trim();
-             const qty = parseInt(qtyStr);
-             const sku = spaceParts.slice(1, spaceParts.length - 1).join(" ");
-             
-             if (po && sku && !isNaN(qty)) {
-                items.push({
-                    id: Math.random().toString(36).substr(2, 9),
-                    po,
-                    sku,
-                    qty
-                });
-             }
-        }
-      }
-    });
-
-    // ========== AGGREGATE & SORT ==========
-    // 1. Merge items with same PO + SKU (sum quantities)
-    const aggregated = new Map<string, PlanningItem>();
-    
-    for (const item of items) {
-      const key = `${item.po}|${item.sku}`;
-      if (aggregated.has(key)) {
-        const existing = aggregated.get(key)!;
-        existing.qty += item.qty;
-      } else {
-        aggregated.set(key, { ...item });
-      }
-    }
-    
-    // 2. Convert back to array and sort
-    const sortedItems = Array.from(aggregated.values())
-      .sort((a, b) => {
-        // First sort by PO
-        if (a.po !== b.po) return a.po.localeCompare(b.po);
-        // Then by qty (descending)
-        return b.qty - a.qty;
-      });
-
-    setParsedItems(sortedItems);
+  // --- 1. Customer Selection ---
+  const handleCustomerSelect = (code: string) => {
+    const type = CUSTOMER_PACK_TYPE_MAPPING[code] || "E";
+    const region = type === "A" ? "Asia" : "US/EU";
+    setSelectedCustomer({ code, region });
+    setActiveStep(2);
   };
 
-  // 1. Fetch Specs & Compute
+  // --- 2. Data Input ---
+  const handleRawInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setRawData(e.target.value);
+  };
+
+  const handleSampleData = () => {
+    const sample = `PO1001\tSKU-INV-001\t500\nPO1001\tSKU-BAT-X1\t20\nPO1002\tSKU-INV-002\t1200`;
+    setRawData(sample);
+  };
+
+  // --- 3. Generate Plan (Using PackingLogicService) ---
   const handleGeneratePlan = async () => {
-    setIsComputing(true);
+    if (!rawData || !selectedCustomer) return;
+    setIsProcessing(true);
+    setPlanResult([]);
+    setPlanSummary(null);
+
     try {
-      // 0. Validation
-      if (!selectedCustomer) throw new Error("No Customer Selected");
-      if (parsedItems.length === 0) throw new Error("No Items to pack");
-
-      // 1. Fetch Specs
-      const allSpecs = await PackagingService.getByCategory("Inverters"); 
-      const specMap: Record<string, ProductSpec> = {};
+      // 1. Initialize Service
+      const regionCode = selectedCustomer.region === 'US/EU' ? 'E' : 'A';
       
-      allSpecs.forEach((s: PackagingProductDTO) => {
-          // Map DTO to Logic Spec
-          specMap[s.sku] = {
-              sku: s.sku,
-              name: s.name,
-              width: s.width,
-              length: s.length,
-              height: s.height,
-              m3: (s.width * s.length * s.height) / 1000000, // naive m3 calculation if not provided
-              packingRules: s.packingRules
-          };
+      const service = new PackingLogicService(
+        { region: regionCode as 'E' | 'A' | 'R' },
+        PACKAGE_MASTER_DATA,
+        async (sku: string) => {
+           // Fetch from Firebase
+           const spec = await PackagingService.getProductSpec(sku);
+           if (!spec) return null;
+           // Map DTO to internal format if needed 
+           // (PackingLogicService handles DTO structure internally now if names match, otherwise mapping needed)
+           return spec;
+        }
+      );
+      
+      // 2. Prepare Input
+      const input: PackingInput = {
+        rawData,
+        config: { region: regionCode as 'E' | 'A' | 'R' }
+      };
+
+      // 3. Execute
+      const output: PackingOutput = await service.execute(input);
+
+      // 4. Map Output to UI State
+      const mappedResults: POCase[] = [];
+      let totalPallets = 0;
+      let totalBoxes = 0;
+      let totalWarps = 0;
+      let totalItems = 0;
+
+      output.results.forEach((res) => {
+         const allCases = [
+             ...res.warpCases,
+             ...res.unknownCases,
+             ...res.monoCases,
+             ...res.sameCases,
+             ...res.mixedCases
+         ].sort((a, b) => a.caseNo - b.caseNo);
+
+         if (allCases.length > 0) {
+             mappedResults.push({
+                 po: res.po,
+                 cases: allCases
+             });
+         }
+
+         // Calc counts
+         allCases.forEach(c => {
+             if (c.type.includes("Warp")) totalWarps++;
+             else if (c.type.includes("Pallet")) totalPallets++;
+             else if (c.type.includes("Box")) totalBoxes++;
+             
+             totalItems += c.items.reduce((sum, i) => sum + i.qty, 0);
+         });
       });
 
-      // 2. Group by PO
-      const poGroups: Record<string, PlanningItem[]> = {};
-      parsedItems.forEach(item => {
-        if (!poGroups[item.po]) poGroups[item.po] = [];
-        poGroups[item.po].push(item);
+      setPlanResult(mappedResults);
+      setPlanSummary({
+          totalPallets,
+          totalBoxes,
+          totalWarps,
+          totalItems,
+          totalM3: 0 // Service doesn't calc total M3 yet
       });
-
-      // 3. Process each PO
-      const results: PackingPlanResult[] = [];
       
-      for (const po of Object.keys(poGroups)) {
-          const items = poGroups[po].map(i => ({ sku: i.sku, qty: i.qty }));
-          
-          try {
-              const plan = generatePackingPlan(
-                  po,
-                  items,
-                  specMap,
-                  selectedCustomer.name, // Customer Code
-                  false // Quick Mode (true for full 3D check)
-              );
-              results.push(plan);
-          } catch (poError) {
-              console.error(`Error packing PO ${po}:`, poError);
-              // Push error result or handle gracefully
-          }
-      }
+      setActiveStep(3);
 
-      setPlanningResults(results);
-      setCurrentStep(2); // Go to Review
     } catch (error) {
-       console.error("Planning Error", error);
-       alert("Error generating plan. Check console for details.");
+      console.error("Planning Error:", error);
+      alert("Failed to generate plan. Please check input data.");
     } finally {
-       setIsComputing(false);
+      setIsProcessing(false);
     }
   };
 
-  // 2. Actions
-  // A. Save to DB
-  const handleSavePlan = async () => {
-    if (!selectedCustomer || planningResults.length === 0) return;
-
-    // Calculate Summary
-    const totalPallets = planningResults.reduce((acc, r) => acc + r.summary.totalPallets, 0);
-    const totalBoxes = planningResults.reduce((acc, r) => acc + r.summary.totalBoxes, 0);
-    const totalWarps = planningResults.reduce((acc, r) => acc + r.summary.totalWarps, 0);
-    const totalItems = planningResults.reduce((acc, r) => acc + r.summary.totalItems, 0);
-    const poList = [...new Set(planningResults.map(r => r.po))];
-
-    setConfirmConfig({
-      title: "Save Packing Plan",
-      message: `Do you want to save this plan to the database?\nTotal Pallets: ${totalPallets} | Boxes: ${totalBoxes} | Warps: ${totalWarps}`,
-      onConfirm: async () => {
-        setIsConfirmModalOpen(false);
-        try {
-            const saveResult = await PackagingService.savePackingPlan({
-                customer: { id: selectedCustomer.id, name: selectedCustomer.name, region: selectedCustomer.region },
-                summary: { totalPallets, totalBoxes, totalWarps, totalItems },
-                poList: poList,
-                data: JSON.stringify(planningResults)
-            });
-
-            if (saveResult.success) {
-                setSuccessConfig({
-                    title: "Saved!",
-                    description: "Planning data synced to Firestore.",
-                    type: "success"
-                });
-                setIsSuccessModalOpen(true);
-            } else {
-                setSuccessConfig({
-                    title: "Error",
-                    description: "Failed to save plan.",
-                    type: "error"
-                });
-                setIsSuccessModalOpen(true);
-            }
-        } catch (error) {
-            console.error("Save Error:", error);
-            setSuccessConfig({
-                title: "Error",
-                description: "An unexpected error occurred.",
-                type: "error"
-            });
-            setIsSuccessModalOpen(true);
-        }
-      }
-    });
-    setIsConfirmModalOpen(true);
-  };
-
-  // B. Export PDF
   const handleExportPDF = () => {
-     if (!selectedCustomer || planningResults.length === 0) return;
-     try {
-         const poList = [...new Set(planningResults.map(r => r.po))];
-         generatePackingListPDF(planningResults, selectedCustomer.name, poList);
-         
-         setSuccessConfig({
-             title: "PDF Exported!",
-             description: "Your packing list is downloading.",
-             type: "download"
-         });
-         setIsSuccessModalOpen(true);
-     } catch (error) {
-         console.error("PDF Error:", error);
-     }
+      if (!planResult.length || !selectedCustomer) return;
+      
+      // Convert POCase back to structure needed by PDF generator if necessary
+      // But wait, the generator calls for PackingPlanResult[] which is roughly POCase[] with summary
+      // Let's quickly remap or adjust the generator type. 
+      // Actually, planResult is POCase[], but generatePackingListPDFMake expects PackingPlanResult[]
+      // We need to construct the right object.
+      
+      const pdfData: PackingPlanResult[] = planResult.map(po => ({
+          po: po.po,
+          cases: po.cases,
+          summary: {
+              totalPallets: po.cases.filter(c => c.type.includes("Pallet")).length,
+              totalBoxes: po.cases.filter(c => c.type.includes("Box")).length,
+              totalItems: po.cases.reduce((sum, c) => sum + c.items.reduce((s, i) => s + i.qty, 0), 0)
+          }
+      }));
+
+      const poList = planResult.map(p => p.po);
+      generatePackingListPDFMake(pdfData, selectedCustomer.code, poList);
   };
 
-  // C. Export CSV
-  const handleExportCSV = () => {
-     if (!selectedCustomer || planningResults.length === 0) return;
-     
-     try {
-         // Headers
-         let csvContent = "data:text/csv;charset=utf-8,";
-         csvContent += "PO,Case No,Type,SKU,Item Name,QTY,Dimensions,Note\n";
-
-         // Rows
-         planningResults.forEach(plan => {
-            plan.cases.forEach(c => {
-                c.items.forEach(item => {
-                    const row = [
-                        plan.po,
-                        c.caseNo,
-                        c.type,
-                        item.sku,
-                        `"${item.name}"`, 
-                        item.qty,
-                        c.dims || "",
-                        c.note || ""
-                    ];
-                    csvContent += row.join(",") + "\n";
-                });
-            });
-         });
-
-         // Download
-         const now = new Date();
-         const timestamp = now.getFullYear().toString() +
-           (now.getMonth() + 1).toString().padStart(2, '0') +
-           now.getDate().toString().padStart(2, '0') +
-           now.getHours().toString().padStart(2, '0') +
-           now.getMinutes().toString().padStart(2, '0');
-
-         const encodedUri = encodeURI(csvContent);
-         const link = document.createElement("a");
-         link.setAttribute("href", encodedUri);
-         link.setAttribute("download", `PackingPlan_${selectedCustomer.name}_${timestamp}.csv`);
-         document.body.appendChild(link);
-         link.click();
-         document.body.removeChild(link);
-
-         setSuccessConfig({
-             title: "CSV Exported!",
-             description: "Excel compatible file downloaded.",
-             type: "download"
-         });
-         setIsSuccessModalOpen(true);
-     } catch (error) {
-         console.error("CSV Error:", error);
-     }
-  };
+  // --- 4. Steps Navigation ---
+  const steps = [
+    { id: 1, label: "Select Customer", icon: UsersIcon },
+    { id: 2, label: "Input Data", icon: FileText },
+    { id: 3, label: "Review Plan", icon: CheckCircle2 },
+    { id: 4, label: "Save Plan", icon: Save },
+  ];
 
   return (
-    <div className="min-h-screen pt-20">
-      <section className="py-12">
+    <div className="min-h-screen pt-20 pb-20">
+      <section className="py-8">
         <div className="container-custom">
           
           <ModuleHeader
-             title="Packing Planning"
-             description="Select Customer & Product to create intelligent packing plans and draft lists."
+             title="Pack Planning"
+             description="Generate packing plans from raw PO data."
              backHref="/projects/packaging"
              backLabel="Smart Packaging"
+             action={
+                 activeStep === 3 && (
+                      <button 
+                          onClick={() => setActiveStep(4)}
+                          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"
+                      >
+                          Proceed to Save <Play className="w-4 h-4"/>
+                      </button>
+                 )
+             }
           >
-          
-          <div className="mb-8 mt-8">
-            <div className="flex justify-between items-center max-w-3xl mx-auto">
-              {steps.map((step, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all",
-                      currentStep === idx ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-4 ring-indigo-50" :
-                      currentStep > idx ? "bg-emerald-500 text-white" :
-                      "bg-slate-100 text-slate-400"
-                    )}>
-                      {currentStep > idx ? "✓" : idx + 1}
-                    </div>
-                    <span className={cn(
-                      "text-sm font-bold whitespace-nowrap",
-                      currentStep >= idx ? "text-indigo-600" : "text-slate-400"
-                    )}>
-                      {step}
-                    </span>
-                  </div>
-                  {idx < steps.length - 1 && (
-                    <ChevronRight className="w-4 h-4 text-slate-300" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Main Workspace */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8">
-              <GlassCard className="p-8 min-h-[400px]">
-                {currentStep === 0 && (
-                  <div className="animate-fade-in">
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-bold text-slate-800">Select Customer</h3>
-
-                    </div>
-                    
-                    <div className="relative mb-6">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input 
-                        type="text" 
-                        placeholder="Search customer name or ID..."
-                        className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none transition-all placeholder:text-slate-400"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {/* Config-driven Customers */}
-                      {Object.entries(CUSTOMER_PACK_TYPE_MAPPING).map(([code, type]) => (
-                        <div 
-                           key={code} 
-                           onClick={() => {
-                             const region = getRegionByType(type);
-                             setSelectedCustomer({ id: code, name: code, region: region, productPlan: 'Inverter' });
-                             setCurrentStep(1);
-                           }}
-                           className={`p-4 bg-white/40 border rounded-2xl cursor-pointer transition-all hover:shadow-md group ${selectedCustomer?.name === code ? 'border-indigo-500 bg-indigo-50/50' : 'border-white hover:border-indigo-200'}`}
-                         >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <span className="font-black text-xs">{type}</span>
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-slate-800">{code}</h4>
-                                <p className="text-xs text-slate-500">{getRegionByType(type)}</p>
-                              </div>
+             {/* Stepper */}
+             <div className="mt-8 flex items-center justify-center mb-12">
+                <div className="flex items-center gap-4">
+                    {steps.map((step, idx) => (
+                        <div key={step.id} className="flex items-center">
+                            <div className={`
+                                flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all
+                                ${activeStep === step.id 
+                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
+                                    : activeStep > step.id 
+                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700' 
+                                        : 'border-slate-200 text-slate-400'
+                                }
+                            `}>
+                                <div className={`
+                                    w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                                    ${activeStep === step.id ? 'bg-indigo-600 text-white' : activeStep > step.id ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}
+                                `}>
+                                    {step.id}
+                                </div>
+                                <span className="font-bold text-sm">{step.label}</span>
                             </div>
-                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-
-
-                {currentStep === 1 && (
-                  <div className="animate-fade-in">
-                    <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-800">Input Products</h3>
-                        <p className="text-sm text-slate-500">Copy & Paste from Excel: <strong>PO | Item Code | QTY</strong></p>
-                      </div>
-                      <div className="flex gap-4">
-                        <button 
-                          onClick={() => setCurrentStep(0)}
-                          className="px-4 py-1.5 text-slate-600 font-bold text-sm rounded-lg hover:bg-slate-50 transition-colors"
-                        >
-                          Back
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setRawInput("");
-                            setParsedItems([]);
-                          }}
-                          className="text-indigo-600 font-bold text-sm hover:underline"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {/* Input Area */}
-                      <div className="space-y-4">
-                        <textarea
-                          value={rawInput}
-                          onChange={(e) => handleRawInputChange(e.target.value)}
-                          placeholder={`PO123  Item-A  100\nPO123  Item-B  50\nPO456  Item-A  200`}
-                          className="w-full h-[400px] p-4 bg-slate-50 border border-slate-200 rounded-2xl font-mono text-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none transition-all resize-none"
-                        />
-                        <div className="flex justify-between items-center text-xs text-slate-400">
-                          <span>Supported separators: Tab, Component, Space</span>
-                          <span>{parsedItems.length} items detected</span>
+                            {idx < steps.length - 1 && (
+                                <div className="w-8 h-0.5 bg-slate-200 mx-2" />
+                            )}
                         </div>
-                      </div>
+                    ))}
+                </div>
+             </div>
 
-                      {/* Preview Table */}
-                      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm flex flex-col h-[400px]">
-                         <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 grid grid-cols-12 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                           <div className="col-span-4">PO Number</div>
-                           <div className="col-span-5">Item Code (SKU)</div>
-                           <div className="col-span-3 text-right">QTY</div>
+             {/* Content Area */}
+             <div className="max-w-5xl mx-auto">
+                 
+                 {/* STEP 1: Customer Selection */}
+                 {activeStep === 1 && (
+                     <GlassCard className="p-8 animate-in fade-in slide-in-from-bottom-4">
+                         <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                             <Search className="w-5 h-5 text-indigo-500"/>
+                             Select Customer
+                         </h3>
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                             {Object.keys(CUSTOMER_PACK_TYPE_MAPPING).map(code => (
+                                 <button
+                                     key={code}
+                                     onClick={() => handleCustomerSelect(code)}
+                                     className="p-6 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group text-left"
+                                 >
+                                     <div className="font-bold text-lg text-slate-700 group-hover:text-indigo-700 mb-1">{code}</div>
+                                     <div className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded w-fit group-hover:bg-white">
+                                         {CUSTOMER_PACK_TYPE_MAPPING[code] === 'A' ? 'Asia Region' : 'US/EU Region'}
+                                     </div>
+                                 </button>
+                             ))}
                          </div>
-                         <div className="overflow-y-auto flex-1 p-2 space-y-1">
-                           {parsedItems.length === 0 ? (
-                             <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                               <p>No data parsed</p>
-                             </div>
-                           ) : (
-                             parsedItems.map((item, idx) => (
-                               <div key={idx} className="bg-white hover:bg-indigo-50 px-4 py-2 rounded-lg grid grid-cols-12 text-sm border border-transparent hover:border-indigo-100 transition-colors">
-                                 <div className="col-span-4 font-medium text-slate-700 truncate">{item.po}</div>
-                                 <div className="col-span-5 text-slate-600 truncate">{item.sku}</div>
-                                 <div className="col-span-3 text-right font-bold text-indigo-600">{item.qty}</div>
-                               </div>
-                             ))
-                           )}
-                         </div>
-                      </div>
-                    </div>
-                    
-
-
-                  </div>
-                )}
-
-                {currentStep > 2 && (
-                  <div className="flex flex-col items-center justify-center h-[300px] text-slate-400">
-                    <Boxes className="w-16 h-16 mb-4 opacity-20" />
-                    <p>Workspace for Step {currentStep + 1} is under construction.</p>
-                  </div>
-
-                )}
-
-                 {currentStep === 2 && (
-                    <div className="animate-fade-in space-y-4">
-                      <div className="flex justify-between items-center">
-                         <h3 className="text-xl font-bold text-slate-800">Review Packing Plan</h3>
-                         <div className="flex gap-2">
-                           <button onClick={() => setCurrentStep(1)} className="px-4 py-2 text-slate-500 font-bold hover:text-indigo-600">Back</button>
-                           
-                           {/* Action Buttons */}
-                           <div className="flex gap-2">
-                               <button 
-                                 onClick={handleExportCSV}
-                                 className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-colors"
-                                 title="Export CSV"
-                               >
-                                   <Table className="w-4 h-4" />
-                                   <span className="hidden sm:inline">CSV</span>
-                               </button>
-
-                               <button 
-                                 onClick={handleExportPDF}
-                                 className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg font-bold hover:bg-rose-100 transition-colors"
-                                 title="Download PDF"
-                               >
-                                   <FileText className="w-4 h-4" />
-                                   <span className="hidden sm:inline">PDF</span>
-                               </button>
-
-                               <button 
-                                 onClick={handleSavePlan}
-                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-colors"
-                                 title="Save to Database"
-                               >
-                                   <Save className="w-4 h-4" />
-                                   <span>Save</span>
-                               </button>
-                           </div>
-                         </div>
-                      </div>
- 
-                      <div className="grid grid-cols-1 gap-6">
-                         {planningResults.map((poResult) => (
-                           <div key={poResult.po} className="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">
-                              {/* PO Header */}
-                              <div className="bg-slate-100 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                                 <div className="flex items-center gap-3">
-                                   <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">PO</div>
-                                   <span className="font-bold text-lg text-slate-800">{poResult.po}</span>
-                                 </div>
-                                 <div className="flex gap-4 text-sm">
-                                    <div><span className="text-slate-500">Total Cases:</span> <span className="font-bold text-indigo-600">{poResult.cases.length}</span></div>
-                                    <div><span className="text-slate-500">Pallets:</span> <span className="font-bold text-slate-800">{poResult.summary.totalPallets}</span></div>
-                                    <div><span className="text-slate-500">Boxes:</span> <span className="font-bold text-slate-800">{poResult.summary.totalBoxes}</span></div>
-                                    <div><span className="text-slate-500">Warps:</span> <span className="font-bold text-rose-600">{poResult.summary.totalWarps}</span></div>
-                                 </div>
-                              </div>
- 
-                              {/* Case List Table */}
-                              <table className="w-full text-sm text-left">
-                                <thead className="text-xs font-bold text-slate-400 uppercase bg-white border-b border-slate-100">
-                                  <tr>
-                                    <th className="py-3 px-6 w-24">Case No.</th>
-                                    <th className="py-3 px-4">Type</th>
-                                    <th className="py-3 px-4">Items (SKU)</th>
-                                    <th className="py-3 px-4 text-center">Qty.</th>
-                                    <th className="py-3 px-4 text-right">Dimensions</th>
-                                  </tr>
-                               </thead>
-                                <tbody className="divide-y divide-slate-100 bg-white">
-                                   {poResult.cases.map((packagingCase) => (
-                                     <tr key={packagingCase.caseNo} className="hover:bg-slate-50 transition-colors group">
-                                       <td className="py-4 px-6 font-bold text-indigo-900">
-                                         #{packagingCase.caseNo}
-                                       </td>
-                                       <td className="py-4 px-4">
-                                                                                       <span className={`px-2 py-1 rounded text-xs font-bold border ${packagingCase.type === 'Full Pallet' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : packagingCase.type === 'Mixed Pallet' ? 'bg-sky-100 text-sky-700 border-sky-200' : packagingCase.type === 'Full Box' ? 'bg-violet-100 text-violet-700 border-violet-200' : packagingCase.type === 'Mixed Box' ? 'bg-amber-100 text-amber-700 border-amber-200' : packagingCase.type === 'Warp Pallet' ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                                               {packagingCase.type}
-                                           </span>
-                                       </td>
-                                       <td className="py-4 px-4">
-                                         <div className="space-y-1">
-                                            {packagingCase.items.map((item, idx) => (
-                                                <div key={idx} className="text-slate-700 font-medium">{item.sku}</div>
-                                            ))}
-                                         </div>
-                                       </td>
-                                       <td className="py-4 px-4 text-center">
-                                            <div className="space-y-1">
-                                                {packagingCase.items.map((item, idx) => (
-                                                    <div key={idx} className="font-bold text-slate-800">{item.qty}</div>
-                                                ))}
-                                            </div>
-                                       </td>
-                                       <td className="py-4 px-4 text-right font-mono text-xs text-slate-500">
-                                            {packagingCase.dims}
-                                       </td>
-                                     </tr>
-                                   ))}
-                                </tbody>
-                              </table>
-                           </div>
-                         ))}
-                      </div>
-                    </div>
+                     </GlassCard>
                  )}
 
-              </GlassCard>
-            </div>
-            <div className="lg:col-span-4">
-              <GlassCard className="p-6">
-                 <h3 className="text-lg font-bold text-slate-800 mb-4">Plan Summary</h3>
-                 <div className="space-y-4 mb-8">
-                   <div className="flex justify-between text-sm">
-                     <span className="text-slate-500">Customer:</span>
-                     <span className="font-bold text-slate-800">{selectedCustomer?.name || "—"}</span>
-                   </div>
-                   <div className="flex justify-between text-sm">
-                     <span className="text-slate-500">Region:</span>
-                     <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded text-xs">{selectedCustomer?.region || "—"}</span>
-                   </div>
-                   <div className="flex justify-between text-sm">
-                     <span className="text-slate-500">Total Lines:</span>
-                     <span className="font-bold text-slate-800">{parsedItems.length} lines</span>
-                   </div>
-                   <div className="flex justify-between text-sm">
-                     <span className="text-slate-500">Total QTY:</span>
-                     <span className="font-bold text-slate-800">{parsedItems.reduce((acc, i) => acc + i.qty, 0).toLocaleString()}</span>
-                   </div>
-                 </div>
+                 {/* STEP 2: Input Data */}
+                 {activeStep === 2 && (
+                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4">
+                         <div className="lg:col-span-2">
+                             <GlassCard className="p-6 h-full flex flex-col">
+                                 <div className="flex justify-between items-center mb-4">
+                                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                         <FileSpreadsheet className="w-5 h-5 text-emerald-500"/>
+                                         Paste Raw Data
+                                     </h3>
+                                     <button onClick={handleSampleData} className="text-xs text-indigo-600 font-bold hover:underline">
+                                         Load Sample
+                                     </button>
+                                 </div>
+                                 <textarea
+                                     value={rawData}
+                                     onChange={handleRawInputChange}
+                                     placeholder={`Paste form Excel (PO, SKU, QTY)\nExample:\nPO123  SKU001  100\nPO123  SKU002  50`}
+                                     className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none min-h-[300px]"
+                                 />
+                                 <div className="mt-4 flex justify-between items-center">
+                                     <button onClick={() => setActiveStep(1)} className="text-slate-500 hover:text-slate-700 font-bold text-sm">
+                                         Back
+                                     </button>
+                                     <button 
+                                         onClick={handleGeneratePlan}
+                                         disabled={!rawData || isProcessing}
+                                         className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                     >
+                                         {isProcessing ? (
+                                             <>Processing...</>
+                                         ) : (
+                                             <>Generate Plan <Play className="w-4 h-4 fill-current"/></>
+                                         )}
+                                     </button>
+                                 </div>
+                             </GlassCard>
+                         </div>
+                         
+                         <div className="space-y-6">
+                             <GlassCard className="p-6 bg-indigo-900/5 border-indigo-100">
+                                 <h4 className="font-bold text-indigo-900 mb-2">Selected Context</h4>
+                                 <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-indigo-100 mb-3">
+                                     <span className="text-sm text-slate-500">Customer</span>
+                                     <span className="font-bold text-indigo-700 text-lg">{selectedCustomer?.code}</span>
+                                 </div>
+                                 <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-indigo-100">
+                                     <span className="text-sm text-slate-500">Region</span>
+                                     <span className="font-bold text-indigo-700">{selectedCustomer?.region}</span>
+                                 </div>
+                             </GlassCard>
 
-                  <button
-                    onClick={() => {
-                      if (currentStep === 0 && selectedCustomer) setCurrentStep(1);
-                      if (currentStep === 1) handleGeneratePlan();
-                      if (currentStep === 2) handleSavePlan();
-                    }}
-                    disabled={
-                      (currentStep === 0 && !selectedCustomer) ||
-                      (currentStep === 1 && (parsedItems.length === 0 || isComputing))
-                    }
-                    className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg flex items-center justify-center gap-2 ${
-                      currentStep === 2 
-                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' 
-                        : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {currentStep === 0 && (
-                      <>
-                        <span>Next Step</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </>
-                    )}
-                    {currentStep === 1 && (
-                      isComputing ? (
-                        <>
-                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Boxes className="w-4 h-4" />
-                          <span>Generate Plan</span>
-                        </>
-                      )
-                    )}
-                    {currentStep === 2 && (
-                      <>
-                        <Save className="w-4 h-4" />
-                        <span>Save Plan</span>
-                      </>
-                    )}
-                  </button>
-                 
-              </GlassCard>
-            </div>
-            
-          </div>
+                             <GlassCard className="p-6">
+                                 <h4 className="font-bold text-slate-800 mb-4">Tips</h4>
+                                 <ul className="space-y-2 text-sm text-slate-600">
+                                     <li className="flex gap-2">
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                         <span>Copy directly from Excel/Sheets</span>
+                                     </li>
+                                     <li className="flex gap-2">
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                         <span>Ensure columns are PO, SKU, Qty</span>
+                                     </li>
+                                     <li className="flex gap-2">
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                         <span>System auto-fetches specs</span>
+                                     </li>
+                                 </ul>
+                             </GlassCard>
+                         </div>
+                     </div>
+                 )}
 
+                 {/* STEP 3: Results */}
+                 {activeStep === 3 && planSummary && (
+                     <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6">
+                         {/* Summary Cards */}
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                             <SummaryCard label="Total Pallets" value={planSummary.totalPallets} icon={Layers} color="amber" />
+                             <SummaryCard label="Total Boxes" value={planSummary.totalBoxes} icon={Box} color="blue" />
+                             <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={AlertTriangle} color="red" />
+                             <SummaryCard label="Total Items" value={planSummary.totalItems} icon={Package} color="emerald" />
+                         </div>
+
+                         {/* Results Table */}
+                         <div className="space-y-8">
+                             {planResult.map((poGroup) => (
+                                 <GlassCard key={poGroup.po} className="overflow-hidden">
+                                     <div className="bg-slate-50/50 p-4 border-b border-white/10 flex justify-between items-center backdrop-blur-sm">
+                                         <div className="flex items-center gap-3">
+                                             <div className="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shadow-sm">
+                                                 PO
+                                             </div>
+                                             <div>
+                                                 <h3 className="font-bold text-lg text-slate-800">{poGroup.po}</h3>
+                                                 <p className="text-xs text-slate-500 font-medium">{poGroup.cases.length} Cases Generated</p>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <div className="overflow-x-auto">
+                                         <table className="w-full text-sm text-left">
+                                             <thead className="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
+                                                 <tr>
+                                                     <th className="px-6 py-3">Case #</th>
+                                                     <th className="px-6 py-3">Type</th>
+                                                     <th className="px-6 py-3">Contents (SKU / Qty)</th>
+                                                     <th className="px-6 py-3">Dimensions</th>
+                                                     <th className="px-6 py-3">Note</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody className="divide-y divide-slate-100">
+                                                 {poGroup.cases.map((c, idx) => (
+                                                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                                         <td className="px-6 py-4 font-mono text-slate-500">#{c.caseNo}</td>
+                                                         <td className="px-6 py-4">
+                                                             <Badge type={c.type} />
+                                                         </td>
+                                                         <td className="px-6 py-4">
+                                                             <div className="space-y-1">
+                                                                 {c.items.map((item, i) => (
+                                                                     <div key={i} className="flex items-center justify-between text-xs max-w-[200px]">
+                                                                         <span className="font-medium text-slate-700 truncate mr-2" title={item.name || item.sku}>{item.sku}</span>
+                                                                         <span className="font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">x{item.qty}</span>
+                                                                     </div>
+                                                                 ))}
+                                                             </div>
+                                                         </td>
+                                                         <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                                                             {c.dims}
+                                                         </td>
+                                                         <td className="px-6 py-4 text-xs text-slate-500 italic">
+                                                             {c.note || "-"}
+                                                         </td>
+                                                     </tr>
+                                                 ))}
+                                             </tbody>
+                                         </table>
+                                     </div>
+                                 </GlassCard>
+                             ))}
+                         </div>
+
+                         <div className="flex justify-center pt-8 gap-4">
+                             <button 
+                                 onClick={() => { setActiveStep(2); setPlanResult([]); }}
+                                 className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold transition-colors"
+                             >
+                                 <RotateCcw className="w-4 h-4"/> Back to Input
+                             </button>
+                              <button 
+                                 onClick={() => setActiveStep(4)}
+                                 className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center gap-2"
+                             >
+                                 Proceed to Save <Play className="w-4 h-4"/>
+                             </button>
+                         </div>
+                     </div>
+                 )}
+
+                 {/* STEP 4: Save & Export */}
+                 {activeStep === 4 && planSummary && (
+                     <div className="animate-in fade-in slide-in-from-bottom-4 max-w-2xl mx-auto text-center space-y-8">
+                          <GlassCard className="p-12 flex flex-col items-center justify-center gap-6 border-emerald-100 bg-emerald-50/30">
+                              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-2">
+                                  <CheckCircle2 className="w-10 h-10" />
+                              </div>
+                              <h2 className="text-3xl font-black text-slate-800">Plan Ready!</h2>
+                              <p className="text-slate-500 max-w-md">
+                                  Your packing plan has been generated successfully. You can now download the PDF report or save this plan to the database.
+                              </p>
+                              
+                              <div className="grid grid-cols-2 gap-4 w-full max-w-md mt-4">
+                                  <button 
+                                      onClick={() => alert("Save function coming soon!")} // Placeholder
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
+                                  >
+                                      <Save className="w-8 h-8 text-slate-400 group-hover:text-emerald-600 transition-colors"/>
+                                      <span className="font-bold text-slate-600 group-hover:text-emerald-800">Save to DB</span>
+                                  </button>
+                                  
+                                  <button 
+                                      onClick={handleExportPDF}
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+                                  >
+                                      <Download className="w-8 h-8 text-slate-400 group-hover:text-indigo-600 transition-colors"/>
+                                      <span className="font-bold text-slate-600 group-hover:text-indigo-800">Download PDF</span>
+                                  </button>
+                              </div>
+                          </GlassCard>
+
+                          <button 
+                              onClick={() => { setActiveStep(1); setPlanResult([]); }}
+                              className="text-slate-400 hover:text-slate-600 font-bold transition-colors flex items-center justify-center gap-2 mx-auto"
+                          >
+                              <RotateCcw className="w-4 h-4"/> Start New Plan
+                          </button>
+                     </div>
+                 )}
+             </div>
           </ModuleHeader>
-
-          {/* --- MODALS --- */}
-
-          {/* Success Notification Modal (Minimal & Auto-closing) */}
-          <Modal
-            isOpen={isSuccessModalOpen}
-            onClose={() => setIsSuccessModalOpen(false)}
-            title=""
-            className="max-w-[300px] text-center !bg-transparent !border-none !shadow-none"
-            hideHeader
-          >
-            <div className="bg-white/90 backdrop-blur-xl border border-white/20 p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in duration-300">
-              <div className={cn(
-                "w-20 h-20 rounded-full flex items-center justify-center shadow-lg animate-bounce",
-                successConfig.type === 'success' ? "bg-emerald-500 text-white shadow-emerald-500/40" :
-                successConfig.type === 'download' ? "bg-indigo-600 text-white shadow-indigo-600/40" :
-                "bg-rose-500 text-white shadow-rose-500/40"
-              )}>
-                {successConfig.type === 'success' && <CheckCircle2 className="w-10 h-10" />}
-                {successConfig.type === 'download' && <Download className="w-10 h-10" />}
-                {successConfig.type === 'error' && <XCircle className="w-10 h-10" />}
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-black text-slate-800 leading-tight tracking-tight">
-                  {successConfig.title}
-                </h3>
-                <p className="text-slate-500 text-sm font-bold opacity-70">
-                  {successConfig.description}
-                </p>
-              </div>
-            </div>
-          </Modal>
-
-          {/* Confirmation Modal */}
-          <Modal
-            isOpen={isConfirmModalOpen}
-            onClose={() => setIsConfirmModalOpen(false)}
-            title={confirmConfig.title}
-          >
-            <div className="p-6 space-y-6">
-               <div className="flex gap-4 items-start">
-                  <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center shrink-0">
-                     <AlertCircle className="w-6 h-6" />
-                  </div>
-                  <div>
-                     <p className="text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">
-                        {confirmConfig.message}
-                     </p>
-                  </div>
-               </div>
-               
-               <div className="flex gap-3 pt-4">
-                  <button 
-                    onClick={() => setIsConfirmModalOpen(false)}
-                    className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={confirmConfig.onConfirm}
-                    className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-colors"
-                  >
-                    Confirm
-                  </button>
-               </div>
-            </div>
-          </Modal>
 
         </div>
       </section>
     </div>
   );
+}
+
+// --- Subcomponents ---
+
+interface SummaryCardProps {
+    label: string;
+    value: number;
+    icon: React.ElementType;
+    color: 'amber' | 'blue' | 'red' | 'emerald';
+}
+
+function SummaryCard({ label, value, icon: Icon, color }: SummaryCardProps) {
+    const colors = {
+        amber: "bg-amber-100 text-amber-600",
+        blue: "bg-blue-100 text-blue-600",
+        red: "bg-red-100 text-red-600",
+        emerald: "bg-emerald-100 text-emerald-600",
+    };
+
+    return (
+        <GlassCard className="p-4 flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color]} shadow-sm`}>
+                <Icon className="w-6 h-6" />
+            </div>
+            <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+                <p className="text-2xl font-black text-slate-800">{value}</p>
+            </div>
+        </GlassCard>
+    );
+}
+
+function Badge({ type }: { type: string }) {
+    let style = "bg-slate-100 text-slate-600";
+    if (type.includes("Full Pallet")) style = "bg-emerald-100 text-emerald-700 border border-emerald-200";
+    else if (type.includes("Partial")) style = "bg-blue-50 text-blue-600 border border-blue-100";
+    else if (type.includes("Mixed")) style = "bg-indigo-50 text-indigo-600 border border-indigo-100";
+    else if (type.includes("Warp")) style = "bg-red-50 text-red-600 border border-red-100";
+    else if (type.includes("Unknown")) style = "bg-amber-50 text-amber-600 border border-amber-100";
+
+    return (
+        <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${style}`}>
+            {type}
+        </span>
+    );
+}
+
+function UsersIcon({ className }: { className?: string }) {
+    return <Users className={className} />;
 }

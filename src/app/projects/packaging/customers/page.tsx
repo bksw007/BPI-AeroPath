@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Package, Plus, X, Save, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { 
+  Users, 
+  Package, 
+  Plus, 
+  X, 
+  Save, 
+  Trash2, 
+  ArrowLeft, 
+  Settings 
+} from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { CUSTOMER_PACK_TYPE_MAPPING, PACKAGE_MASTER_DATA, PackageDef } from "@/lib/config/packagingData";
 
@@ -22,11 +31,12 @@ export default function PackagingCustomersPage() {
   const [packages, setPackages] = useState<PackageDef[]>(PACKAGE_MASTER_DATA);
 
   // Modal States
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<CustomerMapping | null>(null); // null = add new
+  const [isCustomerManageOpen, setIsCustomerManageOpen] = useState(false); // New Manager Modal
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false); // Add/Edit specific customer
+  const [editingCustomer, setEditingCustomer] = useState<CustomerMapping | null>(null);
 
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
-  const [editingPackage, setEditingPackage] = useState<PackageDef | null>(null); // null = add new
+  const [editingPackage, setEditingPackage] = useState<PackageDef | null>(null);
 
   // Forms
   const [custForm, setCustForm] = useState({ code: "", type: "E" });
@@ -39,6 +49,12 @@ export default function PackagingCustomersPage() {
       types: ["E"],
       category: 'Box'
   });
+
+  // --- Helpers ---
+  const getMappedCustomers = (pkgTypes: string[]) => {
+      // Find customers whose type is included in this package's allowed types
+      return customers.filter(c => pkgTypes.includes(c.type));
+  };
 
   // --- Handlers: Customer ---
   const openCustomerModal = (customer?: CustomerMapping) => {
@@ -56,10 +72,8 @@ export default function PackagingCustomersPage() {
       if (!custForm.code) return;
       
       if (editingCustomer) {
-          // Update
           setCustomers(prev => prev.map(c => c.code === editingCustomer.code ? { ...custForm } : c));
       } else {
-          // Add
           setCustomers(prev => [...prev, { ...custForm }]);
       }
       setIsCustomerModalOpen(false);
@@ -109,7 +123,6 @@ export default function PackagingCustomersPage() {
       }
   }
 
-  // Checkbox handler for allowed types
   const togglePkgType = (t: string) => {
       setPkgForm(prev => {
           const exists = prev.types.includes(t);
@@ -126,7 +139,6 @@ export default function PackagingCustomersPage() {
         <div className="container-custom">
           
           <div className="relative flex items-center justify-center pt-2 mb-12">
-            {/* Back Link - Positioned Absolute Left */}
             <button 
               onClick={() => router.back()} 
               className="absolute left-0 inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm md:text-base group"
@@ -135,153 +147,202 @@ export default function PackagingCustomersPage() {
               <span className="hidden sm:inline font-medium">Smart Packaging</span>
             </button>
             
-            {/* Centered Title */}
             <div className="text-center space-y-4">
                 <h1 className="text-3xl md:text-5xl font-bold flex flex-col items-center leading-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer">
-                    Configuration
-                </span>
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer">
-                    Management
+                    Package Configuration
                 </span>
                 </h1>
                 <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-                View and manage static packaging rules and customer mappings.
+                Manage package dimensions and their allowed customer mappings.
                 </p>
             </div>
+
+            {/* Manage Customers Button */}
+            <button
+                onClick={() => setIsCustomerManageOpen(true)}
+                className="absolute right-0 flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-indigo-200 transition-all shadow-sm group"
+            >
+                <div className="p-1 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <Users className="w-4 h-4" />
+                </div>
+                <span className="font-bold text-sm">Manage Customers</span>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* Customer Mapping Table */}
-            <div>
-                 <GlassCard className="p-6 h-full flex flex-col"> 
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                                <Users className="w-5 h-5"/>
-                            </div>
-                            <h3 className="font-bold text-slate-800 text-lg">Customer Mapping</h3>
-                        </div>
-                        <button 
-                            onClick={() => openCustomerModal()}
-                            className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
+          {/* Unified Package Table */}
+          <GlassCard className="p-6">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                        <Package className="w-5 h-5"/>
                     </div>
-
-                    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm flex-1">
-                        <div className="overflow-y-auto max-h-[600px]">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase sticky top-0">
-                                    <tr>
-                                        <th className="px-6 py-3">Customer Code</th>
-                                        <th className="px-6 py-3 text-center">Pack Type</th>
-                                        <th className="px-6 py-3 text-right">Region</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {customers.map((c) => (
-                                        <tr 
-                                            key={c.code} 
-                                            onClick={() => openCustomerModal(c)}
-                                            className="hover:bg-indigo-50/50 transition-colors cursor-pointer"
-                                        >
-                                            <td className="px-6 py-3 font-bold text-slate-700">{c.code}</td>
-                                            <td className="px-6 py-3 text-center">
-                                                <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold ${
-                                                    c.type === 'A' ? 'bg-blue-50 text-blue-600' :
-                                                    c.type === 'E' ? 'bg-purple-50 text-purple-600' :
-                                                    'bg-amber-50 text-amber-600'
-                                                }`}>
-                                                    {c.type}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-3 text-right text-slate-500">
-                                                {c.type === 'A' ? 'Asia' : 'US/EU'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                 </GlassCard>
+                    <h3 className="font-bold text-slate-800 text-lg">Defined Packages</h3>
+                </div>
+                <button 
+                    onClick={() => openPackageModal()}
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>New Package</span>
+                </button>
             </div>
 
-            {/* Package Definition Table */}
-            <div>
-                 <GlassCard className="p-6 h-full flex flex-col">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                                <Package className="w-5 h-5"/>
-                            </div>
-                            <h3 className="font-bold text-slate-800 text-lg">Package Definitions</h3>
-                        </div>
-                        <button 
-                            onClick={() => openPackageModal()}
-                            className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm flex-1">
-                        <div className="overflow-y-auto max-h-[600px]">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase sticky top-0">
-                                    <tr>
-                                        <th className="px-4 py-3">Name / Outer</th>
-                                        <th className="px-4 py-3">Category</th>
-                                        <th className="px-4 py-3 text-right">Inner / M3</th>
+            <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase">
+                            <tr>
+                                <th className="px-6 py-4">Package Name / Outer</th>
+                                <th className="px-6 py-4">Category</th>
+                                <th className="px-6 py-4">Dimensions (Inner)</th>
+                                <th className="px-6 py-4 text-right">M3 Capacity</th>
+                                <th className="px-6 py-4">Allowed Types</th>
+                                <th className="px-6 py-4">Assigned Customers</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {packages.map((pkg, idx) => {
+                                const mappedCustomers = getMappedCustomers(pkg.types);
+                                return (
+                                    <tr 
+                                        key={idx} 
+                                        onClick={() => openPackageModal(pkg)}
+                                        className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-slate-800">{pkg.name}</div>
+                                            <div className="text-xs text-slate-500 font-mono">
+                                                Outer: {pkg.outer.w}x{pkg.outer.l}x{pkg.outer.h} cm
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wide ${
+                                                pkg.category === 'Pallet' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                                {pkg.category}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-xs text-emerald-600 font-bold">
+                                            {pkg.inner.w}x{pkg.inner.l}x{pkg.inner.h} <span className="text-emerald-400">cm</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right font-mono text-emerald-600 font-bold">
+                                            {pkg.m3}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-1">
+                                                {pkg.types.map(t => (
+                                                    <span key={t} className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold ${
+                                                        t === 'A' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                                        t === 'E' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
+                                                        'bg-amber-50 text-amber-600 border border-amber-100'
+                                                    }`}>
+                                                        {t}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-wrap gap-2 max-w-[200px]">
+                                                {mappedCustomers.length > 0 ? (
+                                                    mappedCustomers.map(c => (
+                                                        <span key={c.code} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] rounded border border-slate-200">
+                                                            {c.code}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-slate-300 italic text-xs">None</span>
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {packages.map((pkg, idx) => (
-                                        <tr 
-                                            key={idx} 
-                                            onClick={() => openPackageModal(pkg)}
-                                            className="hover:bg-emerald-50/50 transition-colors cursor-pointer"
-                                        >
-                                            <td className="px-4 py-3">
-                                                <div className="font-bold text-slate-700">{pkg.name}</div>
-                                                <div className="text-[10px] text-slate-400">
-                                                    {pkg.outer.w}x{pkg.outer.l}x{pkg.outer.h}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                                    pkg.category === 'Pallet' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
-                                                }`}>
-                                                    {pkg.category}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-right">
-                                                <div className="text-[10px] text-slate-500">
-                                                    {pkg.inner.w}x{pkg.inner.l}x{pkg.inner.h}
-                                                </div>
-                                                <div className="font-mono text-xs text-emerald-600 font-bold">{pkg.m3} m³</div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                 </GlassCard>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            
-          </div>
+          </GlassCard>
 
         </div>
       </section>
 
-      {/* Customer Modal */}
+      {/* --- MODALS --- */}
+
+      {/* Customer Management Hub Modal */}
+      {isCustomerManageOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+             <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
+                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                              <Users className="w-5 h-5"/>
+                          </div>
+                          <div>
+                              <h3 className="text-xl font-bold text-slate-900">Manage Customers</h3>
+                              <p className="text-sm text-slate-500">Add or edit customer codes and their region types.</p>
+                          </div>
+                      </div>
+                      <button 
+                          onClick={() => setIsCustomerManageOpen(false)}
+                          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                      >
+                          <X className="w-5 h-5" />
+                      </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-0">
+                      <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 text-xs font-bold text-slate-500 uppercase sticky top-0">
+                              <tr>
+                                  <th className="px-6 py-3">Code</th>
+                                  <th className="px-6 py-3 text-center">Region Type</th>
+                                  <th className="px-6 py-3 text-right">Action</th>
+                              </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                               {customers.map((c) => (
+                                   <tr key={c.code} className="hover:bg-indigo-50/30">
+                                       <td className="px-6 py-3 font-bold text-slate-700">{c.code}</td>
+                                       <td className="px-6 py-3 text-center">
+                                            <span className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold ${
+                                                c.type === 'A' ? 'bg-blue-50 text-blue-600' :
+                                                c.type === 'E' ? 'bg-purple-50 text-purple-600' :
+                                                'bg-amber-50 text-amber-600'
+                                            }`}>
+                                                {c.type}
+                                            </span>
+                                       </td>
+                                       <td className="px-6 py-3 text-right">
+                                           <button 
+                                              onClick={() => openCustomerModal(c)}
+                                              className="text-indigo-600 font-bold hover:underline text-xs"
+                                           >
+                                               Edit
+                                           </button>
+                                       </td>
+                                   </tr>
+                               ))}
+                          </tbody>
+                      </table>
+                  </div>
+
+                  <div className="p-4 border-t border-slate-100 text-center">
+                      <button 
+                          onClick={() => openCustomerModal()}
+                          className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                      >
+                          <Plus className="w-4 h-4" /> Add New Customer
+                      </button>
+                  </div>
+             </div>
+          </div>
+      )}
+
+      {/* Add/Edit Specific Customer Modal (Nested or independent) */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in zoom-in duration-200">
+           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl relative border border-white/20">
               <button 
                   onClick={() => setIsCustomerModalOpen(false)}
                   className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
@@ -303,10 +364,11 @@ export default function PackagingCustomersPage() {
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                           placeholder="e.g. FAP"
                           autoFocus
+                          disabled={!!editingCustomer} // Disable code edit if updating
                       />
                   </div>
                   <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Pack Type</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Region Type</label>
                       <div className="flex gap-2">
                           {['A', 'E', 'R'].map(type => (
                               <button
@@ -328,7 +390,7 @@ export default function PackagingCustomersPage() {
                       {editingCustomer && (
                           <button 
                              onClick={() => deleteCustomer(editingCustomer.code)}
-                             className="p-3 text-red-500 hover:bg-red-50 rounded-xl"
+                             className="p-3 text-red-500 hover:bg-red-50 rounded-xl border border-red-100"
                           >
                               <Trash2 className="w-5 h-5" />
                           </button>
@@ -337,7 +399,7 @@ export default function PackagingCustomersPage() {
                           onClick={saveCustomer}
                           className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
                       >
-                          <Save className="w-4 h-4" /> Save
+                          <Save className="w-4 h-4" /> Save Customer
                       </button>
                   </div>
               </div>
@@ -345,7 +407,7 @@ export default function PackagingCustomersPage() {
         </div>
       )}
 
-      {/* Package Modal */}
+      {/* Package Modal (Detail / Edit / New) */}
       {isPackageModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
@@ -356,9 +418,22 @@ export default function PackagingCustomersPage() {
                   <X className="w-5 h-5" />
               </button>
               
-              <h3 className="text-xl font-bold text-slate-900 mb-6">
-                  {editingPackage ? 'Edit Package' : 'New Package'}
-              </h3>
+              <div className="flex items-center justify-between mb-6 pr-8">
+                  <h3 className="text-xl font-bold text-slate-900">
+                      {editingPackage ? 'Package Details' : 'New Package'}
+                  </h3>
+                  {editingPackage && (
+                      <div className="flex gap-2">
+                           <button 
+                              onClick={() => deletePackage(editingPackage.name)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Package"
+                           >
+                              <Trash2 className="w-4 h-4" />
+                           </button>
+                      </div>
+                  )}
+              </div>
 
               <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
                   <div>
@@ -369,6 +444,12 @@ export default function PackagingCustomersPage() {
                           onChange={e => setPkgForm({...pkgForm, name: e.target.value})}
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
                           placeholder="e.g. 110x110x110"
+                          disabled={!!editingPackage} // Name is ID, usually immutable or requires special handling. Let's keep it editable only for New for now, or use a separate ID. 
+                                                     // Actually user asked to "Edit" form to be usable. If they edit name, it's like a new package or rename.
+                                                     // For simplicity in this array-based mock, let's allow editing name but we must handle "rename" logic in save.
+                                                     // Wait, savePackage uses `editingPackage.name` to find index. If we change form name, we still have reference.
+                                                     // So we can allow editing.
+                          // Correction: If we allow editing Name, we need to ensure we don't duplicate keys. For now let's allow it.
                       />
                   </div>
                   
@@ -447,14 +528,6 @@ export default function PackagingCustomersPage() {
                   </div>
 
                   <div className="pt-4 flex gap-3">
-                      {editingPackage && (
-                          <button 
-                             onClick={() => deletePackage(editingPackage.name)}
-                             className="p-3 text-red-500 hover:bg-red-50 rounded-xl"
-                          >
-                              <Trash2 className="w-5 h-5" />
-                          </button>
-                      )}
                       <button 
                           onClick={savePackage}
                           className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"

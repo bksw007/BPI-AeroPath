@@ -20,6 +20,7 @@
     "mermaid": "^11.12.2",
     "motion": "^12.34.0",
     "next": "16.1.6",
+    "pdfmake": "^0.3.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0"
@@ -28,6 +29,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/mermaid": "^9.1.0",
     "@types/node": "^20",
+    "@types/pdfmake": "^0.3.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

@@ -8,6 +8,7 @@ interface ModuleHeaderProps {
   description?: string;
   backHref?: string;
   backLabel?: string;
+  action?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -16,6 +17,7 @@ export function ModuleHeader({
   description,
   backHref = "/projects/material-control",
   backLabel = "Material Control",
+  action,
   children,
 }: ModuleHeaderProps) {
   return (
@@ -36,6 +38,13 @@ export function ModuleHeader({
             {title}
           </span>
         </h1>
+
+        {/* Action Button - Positioned Absolute Right */}
+        {action && (
+          <div className="absolute right-0">
+            {action}
+          </div>
+        )}
       </div>
 
       {description ? (

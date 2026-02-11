@@ -17,7 +17,9 @@ import {
   SplitSquareHorizontal,
 
   FileText,
+  ArrowLeft,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { PackagingService } from "@/lib/firebase/services/packaging.service";
 import { PACKAGE_MASTER_DATA } from "@/lib/config/packagingData";
@@ -1149,19 +1151,53 @@ export default function LogicProcessPage() {
     <div className="min-h-screen pt-20 pb-12">
       <div className="container-custom">
         {/* Header */}
-        <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
+        <div className="relative text-center mb-8 pt-2">
+          {/* Back Link - Positioned Absolute Left */}
+          <Link
+            href="/projects/packaging"
+            className="absolute left-0 top-1.5 inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors text-sm md:text-base group"
+          >
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden sm:inline">Smart Packaging</span>
+          </Link>
+
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-3xl font-bold mb-4"
+          >
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 drop-shadow-sm">
               🧪 Logic Process Visualizer
             </span>
-          </h1>
-          <Link 
-            href="/projects/packaging/logic-docs" 
-            className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 hover:text-emerald-500 transition-colors mt-2"
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex justify-center"
           >
-            <FileText size={14} />
-             <span>View Algorithm Flow Report (PDF)</span>
-          </Link>
+            <Link href="/projects/packaging/logic-docs">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative flex items-center gap-3 px-8 py-3 bg-white/40 backdrop-blur-xl border border-white/60 rounded-full shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-all cursor-pointer overflow-hidden"
+              >
+                {/* Glossy background effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-indigo-500/5 group-hover:from-emerald-500/10 group-hover:to-indigo-500/10 transition-colors" />
+                
+                <div className="relative flex items-center gap-3">
+                  <div className="p-2 bg-emerald-500/10 rounded-full text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all ring-1 ring-emerald-500/20">
+                    <FileText size={18} className="transition-transform group-hover:rotate-12" />
+                  </div>
+                  <div className="flex flex-col items-start leading-none">
+                    <span className="text-sm font-bold text-slate-800 tracking-tight">View Algorithm Flow</span>
+                    <span className="text-[10px] text-emerald-600/70 font-semibold uppercase tracking-widest mt-1">Full Documentation (PDF)</span>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </motion.div>
+            </Link>
+          </motion.div>
         </div>
 
         {/* Progress Steps */}
