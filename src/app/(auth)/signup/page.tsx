@@ -93,7 +93,7 @@ export default function SignupPage() {
 
         <form 
           onSubmit={handleSubmit} 
-          className="space-y-4 p-4 md:p-8 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.12)]"
+          className="space-y-4"
         >
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Identity Name</label>
