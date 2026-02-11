@@ -82,47 +82,38 @@ export function Navbar() {
 
             <div className="h-6 w-px bg-slate-200 ml-2"></div>
 
-            {!loading && (
-              user ? (
-                <div className="flex items-center gap-4">
-                  <Link 
-                    href="/profile"
-                    className="flex items-center gap-2 group/profile hover:bg-slate-50/50 p-1.5 pr-2 rounded-2xl transition-all duration-300 active:scale-95"
-                  >
-                    <motion.div 
-                      whileHover={{ scale: 2, zIndex: 60, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
-                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                      className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative group-hover/profile:border-indigo-300 transition-colors cursor-pointer"
-                    >
-                      {user.photoURL ? (
-                        <Image 
-                          src={user.photoURL} 
-                          alt={user.displayName || "User"} 
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <User className="w-4 h-4" />
-                      )}
-                    </motion.div>
-                    <span className="text-sm font-bold text-slate-700 group-hover/profile:text-indigo-600 transition-colors uppercase tracking-tight">{user.displayName}</span>
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                    title="Sign Out"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95"
+            {user && !loading && (
+              <div className="flex items-center gap-4">
+                <Link 
+                  href="/profile"
+                  className="flex items-center gap-2 group/profile hover:bg-slate-50/50 p-1.5 pr-2 rounded-2xl transition-all duration-300 active:scale-95"
                 >
-                  Sign In
+                  <motion.div 
+                    whileHover={{ scale: 2, zIndex: 60, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
+                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative group-hover/profile:border-indigo-300 transition-colors cursor-pointer"
+                  >
+                    {user.photoURL ? (
+                      <Image 
+                        src={user.photoURL} 
+                        alt={user.displayName || "User"} 
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
+                  </motion.div>
+                  <span className="text-sm font-bold text-slate-700 group-hover/profile:text-indigo-600 transition-colors uppercase tracking-tight">{user.displayName}</span>
                 </Link>
-              )
+                <button
+                  onClick={handleSignOut}
+                  className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
             )}
           </div>
 
@@ -160,51 +151,41 @@ export function Navbar() {
             ))}
 
             <div className="border-t border-slate-100 pt-3 px-4">
-              {!loading && (
-                user ? (
-                  <div className="flex items-center justify-between">
-                    <Link 
-                      href="/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors"
-                    >
-                      <motion.div 
-                        whileHover={{ scale: 2, zIndex: 100, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
-                        transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                        className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative cursor-pointer"
-                      >
-                        {user.photoURL ? (
-                          <Image 
-                            src={user.photoURL} 
-                            alt={user.displayName || "User"} 
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <User className="w-5 h-5" />
-                        )}
-                      </motion.div>
-                      <div>
-                        <div className="text-sm font-bold text-slate-900">{user.displayName}</div>
-                        <div className="text-xs text-slate-500 uppercase">{user.role}</div>
-                      </div>
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <LogOut className="w-6 h-6" />
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
+              {user && !loading && (
+                <div className="flex items-center justify-between">
+                  <Link 
+                    href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full text-center py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/20"
+                    className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors"
                   >
-                    Sign In
+                    <motion.div 
+                      whileHover={{ scale: 2, zIndex: 100, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
+                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                      className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative cursor-pointer"
+                    >
+                      {user.photoURL ? (
+                        <Image 
+                          src={user.photoURL} 
+                          alt={user.displayName || "User"} 
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <User className="w-5 h-5" />
+                      )}
+                    </motion.div>
+                    <div>
+                      <div className="text-sm font-bold text-slate-900">{user.displayName}</div>
+                      <div className="text-xs text-slate-500 uppercase">{user.role}</div>
+                    </div>
                   </Link>
-                )
+                  <button
+                    onClick={handleSignOut}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <LogOut className="w-6 h-6" />
+                  </button>
+                </div>
               )}
             </div>
           </div>
