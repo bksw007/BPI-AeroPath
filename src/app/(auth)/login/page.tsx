@@ -80,16 +80,16 @@ export default function LoginPage() {
         )}
 
         <div className="mb-8 md:hidden text-center">
-           <h1 className="text-3xl font-black text-slate-900">Sign In</h1>
+           <h1 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">Sign In</h1>
         </div>
 
         {/* Google Login */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full py-3 bg-white/60 hover:bg-white/90 border border-white/50 hover:border-indigo-200 text-slate-700 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 mb-6 shadow-sm hover:shadow-md active:scale-[0.98]"
+          className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all flex items-center justify-center gap-3 mb-6 shadow-2xl active:scale-[0.98] text-[10px] uppercase tracking-[0.2em] italic border border-white/10"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 brightness-110" viewBox="0 0 24 24">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
               fill="#4285F4"
@@ -112,24 +112,24 @@ export default function LoginPage() {
 
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200/50"></div>
+            <div className="w-full border-t border-slate-200"></div>
           </div>
-          <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
-            <span className="bg-transparent px-2 text-slate-400 font-bold backdrop-blur-md">Or email login</span>
+          <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em]">
+            <span className="bg-[#f6edde] px-3 text-slate-400 font-bold">Secure Access</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Terminal</label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-all duration-300" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/50 border border-white/50 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-300 font-medium"
-                placeholder="name@company.com"
+                className="w-full pl-12 pr-4 py-3.5 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-200 font-bold text-slate-800 text-sm"
+                placeholder="USER@AEROPATH.SYS"
                 required
               />
             </div>
@@ -138,29 +138,29 @@ export default function LoginPage() {
           {!isForgotPassword && (
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Password</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Access Key</label>
                 <button
                   type="button"
                   onClick={() => setIsForgotPassword(true)}
-                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                  className="text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors"
                 >
-                  Forgot password?
+                  Retrieve Key
                 </button>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-all duration-300" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-white/50 border border-white/50 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400/50 outline-none transition-all placeholder:text-slate-300 font-medium"
+                  className="w-full pl-12 pr-12 py-3.5 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-200 font-bold text-slate-800 text-sm"
                   placeholder="••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-500 transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-900 transition-colors p-1"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -171,13 +171,13 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 bg-indigo-600 hover:bg-slate-800 text-white rounded-2xl font-bold transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-2 text-sm"
+            className="w-full py-4.5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-2 text-[11px] uppercase tracking-[0.3em] italic"
           >
             {loading ? (
-              <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-3 border-white/30 border-t-green-400 rounded-full animate-spin" />
             ) : (
               <>
-                {isForgotPassword ? "Reset Password" : "Sign In"} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                {isForgotPassword ? "Send Reset Key" : "Execute Login"} <ArrowRight className="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>

@@ -28,7 +28,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
           layout
           layoutId="auth-overlay"
           className={cn(
-            "absolute top-0 bottom-0 w-full md:w-1/2 bg-gradient-to-br from-indigo-600/90 to-purple-700/90 z-20 hidden md:block shadow-[20px_0_50px_rgba(0,0,0,0.15)]",
+            "absolute top-0 bottom-0 w-full md:w-1/2 bg-gradient-to-br from-slate-900 via-slate-950 to-black z-20 hidden md:block shadow-[20px_0_50px_rgba(0,0,0,0.3)]",
             isLogin ? "right-0 rounded-l-[3rem]" : "left-0 rounded-r-[3rem]"
           )}
           transition={{
@@ -49,7 +49,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
                 alt="Logo"
                 width={180}
                 height={50}
-                className="w-auto h-12 brightness-0 invert filter drop-shadow-xl"
+                className="w-auto h-12 brightness-0 invert filter drop-shadow-[0_0_15px_rgba(74,222,128,0.3)]"
               />
             </ParallaxElement>
 
@@ -63,13 +63,13 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
                   transition={{ duration: 0.3 }}
                   className="transition-all duration-700 transform"
                 >
-                  <h2 className="text-3xl font-black mb-3 tracking-tight drop-shadow-sm">
+                  <h2 className="text-3xl font-black mb-3 tracking-tighter drop-shadow-sm italic uppercase">
                     {isLogin ? "Welcome Back!" : "Join the Path"}
                   </h2>
-                  <p className="text-indigo-50/90 text-sm md:text-base font-medium leading-relaxed mb-8 max-w-[280px] mx-auto drop-shadow-sm">
+                  <p className="text-slate-400 text-sm md:text-base font-bold leading-relaxed mb-8 max-w-[280px] mx-auto drop-shadow-sm uppercase tracking-tight">
                     {isLogin 
-                      ? "Sign in to keep tracking your warehouse movements and stay synchronized with your team." 
-                      : "Start your journey with BPI AeroPath. Real-time visibility and seamless logistics management."}
+                      ? "Sign in to keep tracking your warehouse movements and stay synchronized." 
+                      : "Start your journey with BPI AeroPath. Real-time visibility and logistics."}
                   </p>
                 </motion.div>
               </AnimatePresence>
@@ -77,7 +77,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
 
             <button
               onClick={onToggleMode}
-              className="px-10 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 text-sm ring-1 ring-white/20 shadow-lg"
+              className="px-10 py-3.5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 text-[10px] uppercase tracking-[0.3em] shadow-2xl text-green-400 italic"
             >
               {isLogin ? "Create an Account" : "Sign In instead"}
             </button>
