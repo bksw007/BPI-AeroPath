@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 /**
  * Navbar Component
@@ -27,7 +28,8 @@ const navLinks = [
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -52,42 +54,75 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-2" onMouseLeave={() => setHoveredPath(null)}>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-slate-700 hover:text-indigo-600 transition-colors duration-200 font-bold"
+                onMouseEnter={() => setHoveredPath(link.href)}
+                className="relative px-4 py-2 text-slate-700 hover:text-indigo-600 transition-colors duration-300 font-bold block"
               >
-                {link.label}
+                <span className="relative z-10">{link.label}</span>
+                {hoveredPath === link.href && (
+                  <motion.div
+                    layoutId="navbar-hover-pill"
+                    className="absolute inset-0 bg-slate-900/[0.08] rounded-xl -z-10 border border-slate-900/[0.05]"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{
+                      type: "spring",
+                      bounce: 0.2,
+                      duration: 0.4
+                    }}
+                  />
+                )}
               </Link>
             ))}
 
             <div className="h-6 w-px bg-slate-200 ml-2"></div>
 
-            {user ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold text-slate-700">{user.displayName}</span>
+            {!loading && (
+              user ? (
+                <div className="flex items-center gap-4">
+                  <Link 
+                    href="/profile"
+                    className="flex items-center gap-2 group/profile hover:bg-slate-50/50 p-1.5 pr-2 rounded-2xl transition-all duration-300 active:scale-95"
+                  >
+                    <motion.div 
+                      whileHover={{ scale: 2, zIndex: 60, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
+                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                      className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative group-hover/profile:border-indigo-300 transition-colors cursor-pointer"
+                    >
+                      {user.photoURL ? (
+                        <Image 
+                          src={user.photoURL} 
+                          alt={user.displayName || "User"} 
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <User className="w-4 h-4" />
+                      )}
+                    </motion.div>
+                    <span className="text-sm font-bold text-slate-700 group-hover/profile:text-indigo-600 transition-colors uppercase tracking-tight">{user.displayName}</span>
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={handleSignOut}
-                  className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                  title="Sign Out"
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95"
                 >
-                  <LogOut className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95"
-              >
-                Sign In
-              </Link>
+                  Sign In
+                </Link>
+              )
             )}
           </div>
 
@@ -125,32 +160,51 @@ export function Navbar() {
             ))}
 
             <div className="border-t border-slate-100 pt-3 px-4">
-              {user ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                      <User className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-slate-900">{user.displayName}</div>
-                      <div className="text-xs text-slate-500 uppercase">{user.role}</div>
-                    </div>
+              {!loading && (
+                user ? (
+                  <div className="flex items-center justify-between">
+                    <Link 
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors"
+                    >
+                      <motion.div 
+                        whileHover={{ scale: 2, zIndex: 100, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
+                        transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                        className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative cursor-pointer"
+                      >
+                        {user.photoURL ? (
+                          <Image 
+                            src={user.photoURL} 
+                            alt={user.displayName || "User"} 
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <User className="w-5 h-5" />
+                        )}
+                      </motion.div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-900">{user.displayName}</div>
+                        <div className="text-xs text-slate-500 uppercase">{user.role}</div>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <LogOut className="w-6 h-6" />
+                    </button>
                   </div>
-                  <button
-                    onClick={handleSignOut}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-center py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/20"
                   >
-                    <LogOut className="w-6 h-6" />
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full text-center py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/20"
-                >
-                  Sign In
-                </Link>
+                    Sign In
+                  </Link>
+                )
               )}
             </div>
           </div>

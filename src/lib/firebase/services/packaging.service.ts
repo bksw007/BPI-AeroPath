@@ -8,7 +8,8 @@ import {
   where, 
   serverTimestamp,
   orderBy,
-  limit
+  limit,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
@@ -98,6 +99,21 @@ export const PackagingService = {
     }
 
     return { successCount, errorCount, errors };
+  },
+
+  // Update Item (Partial Update - Replaces nested objects if passed)
+  updateItem: async (sku: string, data: Partial<PackagingProductDTO>) => {
+    try {
+      const docRef = doc(db, 'packaging_specs', sku);
+      // updateDoc will replace the fields provided in data.
+      // If data.packingRules is provided, it will REPLACE the existing packingRules map,
+      // which is exactly what we want for deleting keys.
+      await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+      return { success: true };
+    } catch (error) {
+       console.error(`Error updating item ${sku}:`, error);
+       throw error;
+    }
   },
 
   // Get items by category

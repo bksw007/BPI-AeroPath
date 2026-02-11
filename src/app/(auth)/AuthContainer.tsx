@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { ParallaxElement } from "@/components/effects/ParallaxElement";
 import { cn } from "@/lib/utils/cn";
 
@@ -17,18 +18,26 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-4 md:py-8" style={{ perspective: "2000px" }}>
-      <div className="relative bg-white/40 backdrop-blur-2xl border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden min-h-[500px] md:min-h-[580px] flex flex-col md:flex-row transform-gpu transition-all duration-700">
+      <motion.div 
+        layout
+        className="relative bg-white/40 backdrop-blur-2xl border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden min-h-[500px] md:min-h-[580px] flex flex-col md:flex-row transform-gpu transition-all duration-700"
+      >
         
-        {/* Animated Background Overlay for the "Swapping" feeling */}
-        <div 
+        {/* Animated Background Overlay */}
+        <motion.div 
+          layout
+          layoutId="auth-overlay"
           className={cn(
-            "absolute top-0 bottom-0 w-full md:w-1/2 bg-gradient-to-br from-indigo-600/90 to-purple-700/90 z-20 hidden md:block transition-all duration-[800ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
-            isLogin 
-              ? "translate-x-full rounded-l-[3rem]" 
-              : "translate-x-0 rounded-r-[3rem]"
+            "absolute top-0 bottom-0 w-full md:w-1/2 bg-gradient-to-br from-indigo-600/90 to-purple-700/90 z-20 hidden md:block shadow-[20px_0_50px_rgba(0,0,0,0.15)]",
+            isLogin ? "right-0 rounded-l-[3rem]" : "left-0 rounded-r-[3rem]"
           )}
+          transition={{
+            type: "spring",
+            stiffness: 200,
+            damping: 25,
+            bounce: 0.2,
+          }}
           style={{ 
-            boxShadow: isLogin ? "-20px 0 50px rgba(0,0,0,0.15)" : "20px 0 50px rgba(0,0,0,0.15)",
             transformStyle: "preserve-3d",
           }}
         >
@@ -45,16 +54,25 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
             </ParallaxElement>
 
             <ParallaxElement depth={0.04} speed="medium">
-              <div className="transition-all duration-700 transform">
-                <h2 className="text-3xl font-black mb-3 tracking-tight drop-shadow-sm">
-                  {isLogin ? "Welcome Back!" : "Join the Path"}
-                </h2>
-                <p className="text-indigo-50/90 text-sm md:text-base font-medium leading-relaxed mb-8 max-w-[280px] mx-auto drop-shadow-sm">
-                  {isLogin 
-                    ? "Sign in to keep tracking your warehouse movements and stay synchronized with your team." 
-                    : "Start your journey with BPI AeroPath. Real-time visibility and seamless logistics management."}
-                </p>
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={mode}
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 1.05, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="transition-all duration-700 transform"
+                >
+                  <h2 className="text-3xl font-black mb-3 tracking-tight drop-shadow-sm">
+                    {isLogin ? "Welcome Back!" : "Join the Path"}
+                  </h2>
+                  <p className="text-indigo-50/90 text-sm md:text-base font-medium leading-relaxed mb-8 max-w-[280px] mx-auto drop-shadow-sm">
+                    {isLogin 
+                      ? "Sign in to keep tracking your warehouse movements and stay synchronized with your team." 
+                      : "Start your journey with BPI AeroPath. Real-time visibility and seamless logistics management."}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </ParallaxElement>
 
             <button
@@ -64,13 +82,14 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
               {isLogin ? "Create an Account" : "Sign In instead"}
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* 1. Login Form Side */}
-        <div 
+        <motion.div 
+          layout
           className={cn(
-            "flex-1 flex flex-col justify-center p-6 md:p-12 transition-all duration-[800ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] order-2 md:order-1 relative",
-            isLogin ? "opacity-100 translate-x-0" : "md:opacity-0 md:-translate-x-8 md:pointer-events-none"
+            "flex-1 flex flex-col justify-center p-6 md:p-12 order-2 md:order-1 relative transition-opacity duration-300",
+            isLogin ? "opacity-100" : "md:opacity-0 md:pointer-events-none"
           )}
         >
           <div className="flex-1 flex flex-col justify-center">
@@ -86,13 +105,14 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
               Learn more about BPI AeroPath <span className="group-hover:translate-x-0.5 transition-transform">→</span>
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {/* 2. Signup Form Side */}
-        <div 
+        <motion.div 
+          layout
           className={cn(
-            "flex-1 flex flex-col justify-center p-6 md:p-12 transition-all duration-[800ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] order-1 md:order-2 relative",
-            !isLogin ? "opacity-100 translate-x-0" : "md:opacity-0 md:translate-x-8 md:pointer-events-none"
+            "flex-1 flex flex-col justify-center p-6 md:p-12 order-1 md:order-2 relative transition-opacity duration-300",
+            !isLogin ? "opacity-100" : "md:opacity-0 md:pointer-events-none"
           )}
         >
           <div className="flex-1 flex flex-col justify-center">
@@ -108,23 +128,20 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
               Learn more about BPI AeroPath <span className="group-hover:translate-x-0.5 transition-transform">→</span>
             </Link>
           </div>
+        </motion.div>
+
+        {/* Mobile Toggle */}
+        <div className="md:hidden p-8 text-center bg-slate-50/50">
+           <p className="text-slate-500 text-sm mb-4">
+             {isLogin ? "Don't have an account?" : "Already have an account?"}
+           </p>
+           <button onClick={onToggleMode} className="text-indigo-600 font-bold">
+             {isLogin ? "Create Account" : "Sign In"}
+           </button>
         </div>
 
-        {/* Mobile Toggle (Only visible on small screens since the big overlay is hidden) */}
-        {!isLogin && (
-          <div className="md:hidden p-8 text-center bg-slate-50/50">
-             <p className="text-slate-500 text-sm mb-4">Already have an account?</p>
-             <button onClick={onToggleMode} className="text-indigo-600 font-bold">Sign In</button>
-          </div>
-        )}
-        {isLogin && (
-          <div className="md:hidden p-8 text-center bg-slate-50/50">
-             <p className="text-slate-500 text-sm mb-4">Don&apos;t have an account?</p>
-             <button onClick={onToggleMode} className="text-indigo-600 font-bold">Create Account</button>
-          </div>
-        )}
-
-      </div>
+      </motion.div>
     </div>
   );
 }
+

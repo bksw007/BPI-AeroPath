@@ -502,7 +502,7 @@ export default function PendingPage() {
                 await signOut();
                 router.push("/login");
               }}
-              className="px-5 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform active:scale-95"
+              className="px-5 py-2.5 text-xs font-bold text-slate-500 bg-white/20 hover:bg-white/40 backdrop-blur-sm border border-white/30 rounded-xl transition-all flex items-center gap-2 transform active:scale-95"
             >
               Join Our!
             </button>

@@ -10,7 +10,9 @@ import {
   Upload,
   Download,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { Modal } from "@/components/shared/Modal";
@@ -104,9 +106,14 @@ export default function CategoryDetailPage() {
   });
   
   // Add/Edit/Success Modal State
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBasicInfoModalOpen, setIsBasicInfoModalOpen] = useState(false);
+  const [isPackingStandardsModalOpen, setIsPackingStandardsModalOpen] = useState(false);
+  const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  // Track hidden fields for Packing Standards form
+  const [hiddenFields, setHiddenFields] = useState<Record<string, boolean>>({});
+
   // Auto-close Success Modal
   useEffect(() => {
     if (isSuccessModalOpen) {
@@ -136,7 +143,7 @@ export default function CategoryDetailPage() {
       setProducts(items as PackagingProduct[]);
     };
     loadData();
-  }, [firestoreCategory, importProgress.status, isAddModalOpen]); // Reload on Add complete
+  }, [firestoreCategory, importProgress.status, isBasicInfoModalOpen, isPackingStandardsModalOpen]); // Reload on Add/Edit complete
   // Filter Logic
   const filteredData = products.filter(item => {
     const matchesSearch = 
@@ -213,8 +220,8 @@ export default function CategoryDetailPage() {
       gw: Number(newItem.gw) || 0,
       cbm: Number(((Number(newItem.width) * Number(newItem.length) * Number(newItem.height)) / 1000000).toFixed(3)),
       productType: (newItem.productType || 'Carton') as 'Carton' | 'Carton Case' | 'Wooden Case',
-      stackingLimit: isEditing && selectedItem ? selectedItem.stackingLimit : 0,
-      sideBoxWeight: isEditing && selectedItem ? selectedItem.sideBoxWeight : '',
+      stackingLimit: Number(newItem.stackingLimit) || 0, // Ensure number
+      sideBoxWeight: newItem.sideBoxWeight || '',
       lastUpdated: new Date().toISOString().split('T')[0],
       packingRules: isEditing && selectedItem ? selectedItem.packingRules : {
           boxes: {},
@@ -245,6 +252,18 @@ export default function CategoryDetailPage() {
         }
       });
 
+      // Track Special Packaging Changes
+      const productRules = product.packingRules as unknown as PackagingProduct['packingRules'];
+      if (selectedItem.packingRules.warp !== productRules.warp) {
+          changes.push({ field: 'Warp Required', before: String(selectedItem.packingRules.warp), after: String(productRules.warp) });
+      }
+      // Simple check for RTN total change
+      const oldRtn = selectedItem.packingRules.rtn?.totalQty || 0;
+      const newRtn = productRules.rtn?.totalQty || 0;
+      if (oldRtn !== newRtn) {
+           changes.push({ field: 'RTN Total', before: String(oldRtn), after: String(newRtn) });
+      }
+
       if (changes.length > 0) {
         PackagingService.logActivity({
           project: 'Smart Packaging',
@@ -274,7 +293,7 @@ export default function CategoryDetailPage() {
     }
 
     // Close form and show success modal immediately
-    setIsAddModalOpen(false);
+    setIsBasicInfoModalOpen(false);
     setIsSuccessModalOpen(true);
     
     // Reset form state after a brief delay
@@ -283,6 +302,132 @@ export default function CategoryDetailPage() {
       setNewItem({ sku: '', name: '', width: 0, length: 0, height: 0, nw: 0, gw: 0, productType: 'Carton', stackingLimit: 0, sideBoxWeight: '' });
     }, 100);
   };
+
+  // Handle Add New Item (Unified Form)
+  const handleAddNewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItem.sku) return;
+
+    const categoryName = categoryId ? (categoryId.charAt(0).toUpperCase() + categoryId.slice(1)) : 'Inverters';
+    
+    // Construct full DTO with all data from unified form
+    const product: PackagingProductDTO = {
+      sku: newItem.sku!,
+      name: newItem.name || `${categoryName}-${newItem.sku}`,
+      category: categoryName,
+      width: Number(newItem.width) || 0,
+      length: Number(newItem.length) || 0,
+      height: Number(newItem.height) || 0,
+      nw: Number(newItem.nw) || 0,
+      gw: Number(newItem.gw) || 0,
+      cbm: Number(((Number(newItem.width) * Number(newItem.length) * Number(newItem.height)) / 1000000).toFixed(3)),
+      productType: (newItem.productType || 'Carton') as 'Carton' | 'Carton Case' | 'Wooden Case',
+      stackingLimit: Number(newItem.stackingLimit) || 0,
+      sideBoxWeight: newItem.sideBoxWeight || '',
+      lastUpdated: new Date().toISOString().split('T')[0],
+      packingRules: newItem.packingRules || {
+          boxes: {},
+          pallets: {},
+          rtn: { layers: 0, perLayer: 0, totalQty: 0 },
+          warp: false
+      }
+    };
+
+    // Save as new item
+    await PackagingService.importItems([product]);
+
+    // Log Activity (Create)
+    PackagingService.logActivity({
+      project: 'Smart Packaging',
+      action: 'Create',
+      category: categoryName,
+      targetId: product.sku,
+      targetName: product.name,
+      user: 'System',
+      details: `Created new item via Unified Form: ${product.sku}`
+    });
+
+    setIsAddNewModalOpen(false);
+    setIsSuccessModalOpen(true);
+    
+    // Reset form
+    setTimeout(() => {
+      setNewItem({ sku: '', name: '', width: 0, length: 0, height: 0, nw: 0, gw: 0, productType: 'Carton', stackingLimit: 0, sideBoxWeight: '' });
+    }, 100);
+  };
+
+  // NEW: Handle Packing Standards Submit
+  const handlePackingStandardsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItem) return;
+
+    // Merge changes into existing item
+    const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+    
+    // Ensure all standard keys exist in the merged object to avoid undefined errors if they were missing
+    const mergedBoxes = { ...selectedItem.packingRules.boxes, ...currentRules.boxes };
+    const mergedPallets = { ...selectedItem.packingRules.pallets, ...currentRules.pallets };
+    
+    // Apply hidden fields logic: if hidden, delete the key
+    Object.keys(hiddenFields).forEach(uiKey => {
+        if (hiddenFields[uiKey]) {
+            if (uiKey.startsWith('Box_')) {
+                const size = uiKey.replace('Box_', '');
+                delete (mergedBoxes as Partial<Record<string, PackingRule>>)[size];
+            } else if (uiKey.startsWith('Pallet_')) {
+                const size = uiKey.replace('Pallet_', '');
+                delete (mergedPallets as Partial<Record<string, PackingRule>>)[size];
+            } else if (uiKey === 'RTN_Standard') {
+                   delete (currentRules as Partial<PackagingProduct['packingRules']>).rtn;
+            }
+        }
+    });
+
+    const updatedProductDTO: PackagingProductDTO = {
+        sku: selectedItem.sku,
+        name: selectedItem.name,
+        category: selectedItem.category,
+        width: selectedItem.width,
+        length: selectedItem.length,
+        height: selectedItem.height,
+        nw: selectedItem.nw,
+        gw: selectedItem.gw,
+        cbm: selectedItem.cbm,
+        productType: selectedItem.productType,
+        stackingLimit: selectedItem.stackingLimit,
+        sideBoxWeight: selectedItem.sideBoxWeight,
+        lastUpdated: new Date().toISOString().split('T')[0],
+        packingRules: {
+           boxes: mergedBoxes,
+           pallets: mergedPallets,
+           rtn: currentRules.rtn || selectedItem.packingRules.rtn,
+           warp: currentRules.warp ?? selectedItem.packingRules.warp
+        }
+    };
+
+    // Use updateItem to Replace the packingRules logic entirely (so deletions work)
+  await PackagingService.updateItem(selectedItem.sku, updatedProductDTO);
+
+    // Activity Log (Simplified for now, focusing on the action)
+    PackagingService.logActivity({
+        project: 'Smart Packaging',
+        action: 'Update',
+        category: categoryTitle,
+        targetId: selectedItem.sku,
+        targetName: selectedItem.name,
+        user: 'System',
+        details: `Updated Packing Standards for ${selectedItem.sku}`
+    });
+
+    // Update local state
+    setSelectedItem(updatedProductDTO as PackagingProduct);
+    
+    setIsPackingStandardsModalOpen(false);
+    setIsSuccessModalOpen(true);
+  };
+
+
+
 
   // ... handleFileUpload ...
   // Helper: Parse CSV
@@ -303,6 +448,8 @@ export default function CategoryDetailPage() {
     for (let i = 1; i < lines.length; i++) {
        if (!lines[i].trim()) continue;
        
+       // Handle CSV split respecting quotes might be needed for complex names, 
+       // but for now assuming simple CSV structure as per previous implementation
        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, '')); 
        const row: Record<string, string | number> = {};
        
@@ -355,15 +502,19 @@ export default function CategoryDetailPage() {
            }
        });
 
-       if (row['RTN_Total']) {
+       // Fix: More robust checking for RTN
+       const rtnTotal = Number(row['RTN_Total']);
+       if (!isNaN(rtnTotal) && rtnTotal > 0) {
           packingRules.rtn = {
              layers: Number(row['RTN_Layers']) || 0,
              perLayer: Number(row['RTN_PerLayer']) || 0,
-             totalQty: Number(row['RTN_Total']) || 0
+             totalQty: rtnTotal
           };
        }
 
-       packingRules.warp = row['Warp_Required'] === 'TRUE';
+       // Fix: Case insensitive check for Warp + handle 1/0/Yes/No
+       const warpVal = String(row['Warp_Required'] || '').toUpperCase();
+       packingRules.warp = ['TRUE', 'YES', '1', 'REQUIRED'].includes(warpVal);
 
        results.push({
           sku: String(row.sku),
@@ -525,8 +676,11 @@ export default function CategoryDetailPage() {
                       <button
                         onClick={() => {
                            setIsEditing(false);
-                           setNewItem({ sku: '', name: '', width: 0, length: 0, height: 0, nw: 0, gw: 0, productType: 'Carton' });
-                           setIsAddModalOpen(true);
+                           setNewItem({ 
+                             sku: '', name: '', width: 0, length: 0, height: 0, nw: 0, gw: 0, productType: 'Carton', stackingLimit: 0, sideBoxWeight: '',
+                             packingRules: { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }
+                           });
+                           setIsAddNewModalOpen(true);
                         }}
                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center gap-2"
                         title="Add New Item"
@@ -582,11 +736,11 @@ export default function CategoryDetailPage() {
         </div>
       </section>
 
-      {/* Add Item Modal */}
+      {/* Add/Edit Basic Info Modal */}
       <Modal
-         isOpen={isAddModalOpen}
-         onClose={() => setIsAddModalOpen(false)}
-         title={isEditing ? "Edit Item Specifications" : "Add New Item"}
+         isOpen={isBasicInfoModalOpen}
+         onClose={() => setIsBasicInfoModalOpen(false)}
+         title={isEditing ? "Edit Item (Basic Info)" : "Add New Item"}
          className="max-w-lg"
       >
         <form onSubmit={handleAddItemSubmit} className="space-y-6">
@@ -688,7 +842,7 @@ export default function CategoryDetailPage() {
                   <div>
                      <label className="block text-sm font-bold text-slate-700 mb-1">Side Box Weight</label>
                      <input 
-                        value={newItem.sideBoxWeight}
+                        value={newItem.sideBoxWeight || ''}
                         onChange={e => setNewItem({...newItem, sideBoxWeight: e.target.value})}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         placeholder="e.g. Max 15kg"
@@ -696,6 +850,9 @@ export default function CategoryDetailPage() {
                   </div>
                </div>
             </div>
+
+
+                {/* Row 4.5: Special Packaging (Removed from Basic Info, moved to Packing Standards Modal) */}
 
             <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/30">
               {isEditing ? "Update Item" : "Create Item"}
@@ -725,6 +882,279 @@ export default function CategoryDetailPage() {
           </div>
 
         </div>
+      </Modal>
+
+      {/* Unified Add New Item Modal (Two Columns) */}
+      <Modal
+        isOpen={isAddNewModalOpen}
+        onClose={() => setIsAddNewModalOpen(false)}
+        title="Add New Packaging Specification"
+        className="max-w-6xl"
+      >
+        <form onSubmit={handleAddNewSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-h-[75vh] overflow-y-auto pr-2">
+            
+            {/* Left Column: Basic Info */}
+            <div className="space-y-6 border-r border-slate-100 pr-4">
+              <h4 className="text-sm font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg inline-block">
+                1. Basic Info & Dimensions
+              </h4>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">SKU / Item Code <span className="text-red-500">*</span></label>
+                    <input 
+                      required
+                      value={newItem.sku}
+                      onChange={e => setNewItem({...newItem, sku: e.target.value})}
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      placeholder="e.g. INV-001"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Product Name</label>
+                    <input 
+                      value={newItem.name}
+                      onChange={e => setNewItem({...newItem, name: e.target.value})}
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      placeholder="e.g. Inverter Model X"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Width (cm)</label>
+                    <input type="number" step="0.01"
+                      value={newItem.width}
+                      onChange={e => setNewItem({...newItem, width: parseFloat(e.target.value)})}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Length (cm)</label>
+                    <input type="number" step="0.01"
+                      value={newItem.length}
+                      onChange={e => setNewItem({...newItem, length: parseFloat(e.target.value)})}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Height (cm)</label>
+                    <input type="number" step="0.01"
+                      value={newItem.height}
+                      onChange={e => setNewItem({...newItem, height: parseFloat(e.target.value)})}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Net Weight (kg)</label>
+                    <input type="number" step="0.001"
+                      value={newItem.nw}
+                      onChange={e => setNewItem({...newItem, nw: parseFloat(e.target.value)})}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Gross Weight (kg)</label>
+                    <input type="number" step="0.001"
+                      value={newItem.gw}
+                      onChange={e => setNewItem({...newItem, gw: parseFloat(e.target.value)})}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Product Type</label>
+                    <select 
+                      value={newItem.productType}
+                      onChange={e => setNewItem({...newItem, productType: e.target.value})}
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    >
+                      <option value="Carton">Carton</option>
+                      <option value="Carton Case">Carton Case</option>
+                      <option value="Wooden Case">Wooden Case</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Stack Limit</label>
+                    <input type="number"
+                      value={newItem.stackingLimit}
+                      onChange={e => setNewItem({...newItem, stackingLimit: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Side Box Weight</label>
+                  <input 
+                    value={newItem.sideBoxWeight || ''}
+                    onChange={e => setNewItem({...newItem, sideBoxWeight: e.target.value})}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    placeholder="e.g. Max 15kg"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Packing Standards */}
+            <div className="space-y-6">
+              <h4 className="text-sm font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1.5 rounded-lg inline-block">
+                2. Packing Standards
+              </h4>
+
+              <div className="space-y-6">
+                {/* Standard Boxes */}
+                <div className="space-y-3">
+                  <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Standard Boxes</h5>
+                  {[
+                    "42x46x68", "47x66x68", "57x64x84", "68x74x86", "70x100x90"
+                  ].map((size) => {
+                    const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.boxes?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
+                    return (
+                      <div key={size} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                        <span className="w-24 text-xs font-bold text-slate-600">{size.replace(/x/g, ' x ')}</span>
+                        <div className="flex-1 grid grid-cols-3 gap-2">
+                          <input 
+                            type="number" placeholder="Lyr"
+                            value={rule.layers || ''}
+                            onChange={e => {
+                              const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                              rules.boxes = { ...rules.boxes, [size]: { ...rule, layers: Number(e.target.value) } };
+                              setNewItem({ ...newItem, packingRules: rules });
+                            }}
+                            className="px-2 py-1 rounded border border-slate-300 text-[10px]"
+                          />
+                          <input 
+                            type="number" placeholder="P/L"
+                            value={rule.perLayer || ''}
+                            onChange={e => {
+                              const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                              rules.boxes = { ...rules.boxes, [size]: { ...rule, perLayer: Number(e.target.value) } };
+                              setNewItem({ ...newItem, packingRules: rules });
+                            }}
+                            className="px-2 py-1 rounded border border-slate-300 text-[10px]"
+                          />
+                          <input 
+                            type="number" placeholder="Tot"
+                            value={rule.totalQty || ''}
+                            onChange={e => {
+                              const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                              rules.boxes = { ...rules.boxes, [size]: { ...rule, totalQty: Number(e.target.value) } };
+                              setNewItem({ ...newItem, packingRules: rules });
+                            }}
+                            className="px-2 py-1 rounded border border-slate-300 text-[10px] font-bold text-indigo-600 bg-white"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Standard Pallets */}
+                <div className="space-y-3">
+                  <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Standard Pallets</h5>
+                  {[
+                    "80x120x65", "80x120x90", "80x120x115", "110x110x65", "110x110x90", "110x110x115"
+                  ].map((size) => {
+                    const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.pallets?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
+                    return (
+                      <div key={size} className="flex items-center gap-3 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
+                        <span className="w-24 text-[10px] font-bold text-emerald-700">{size.replace(/x/g, ' x ')}</span>
+                        <div className="flex-1 grid grid-cols-3 gap-2">
+                          <input 
+                            type="number" placeholder="Lyr"
+                            value={rule.layers || ''}
+                            onChange={e => {
+                              const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                              rules.pallets = { ...rules.pallets, [size]: { ...rule, layers: Number(e.target.value) } };
+                              setNewItem({ ...newItem, packingRules: rules });
+                            }}
+                            className="px-2 py-1 rounded border border-emerald-200 text-[10px]"
+                          />
+                          <input 
+                            type="number" placeholder="P/L"
+                            value={rule.perLayer || ''}
+                            onChange={e => {
+                              const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                              rules.pallets = { ...rules.pallets, [size]: { ...rule, perLayer: Number(e.target.value) } };
+                              setNewItem({ ...newItem, packingRules: rules });
+                            }}
+                            className="px-2 py-1 rounded border border-emerald-200 text-[10px]"
+                          />
+                          <input 
+                            type="number" placeholder="Tot"
+                            value={rule.totalQty || ''}
+                            onChange={e => {
+                              const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                              rules.pallets = { ...rules.pallets, [size]: { ...rule, totalQty: Number(e.target.value) } };
+                              setNewItem({ ...newItem, packingRules: rules });
+                            }}
+                            className="px-2 py-1 rounded border border-emerald-200 text-[10px] font-bold text-emerald-600 bg-white"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* RTN & Warp */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 space-y-2">
+                    <h5 className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                      <HistoryIcon className="w-3 h-3" /> RTN (Returnable)
+                    </h5>
+                    <div className="grid grid-cols-1 gap-2">
+                       <input 
+                          type="number" placeholder="Total RTN Qty"
+                          value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.totalQty || ''}
+                          onChange={e => {
+                            const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                            rules.rtn = { ...rules.rtn, totalQty: Number(e.target.value) };
+                            setNewItem({ ...newItem, packingRules: rules });
+                          }}
+                          className="w-full px-3 py-1.5 rounded border border-amber-200 text-xs font-bold text-amber-600 bg-white"
+                       />
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 space-y-2 flex flex-col justify-center">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Warp Required</h5>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
+                          rules.warp = !rules.warp;
+                          setNewItem({ ...newItem, packingRules: rules });
+                        }}
+                        className={cn("w-10 h-5 rounded-full transition-colors relative", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-blue-500" : "bg-slate-300")}
+                      >
+                        <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "left-6" : "left-1")} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="pt-6 border-t border-slate-100 flex gap-4">
+             <button type="button" onClick={() => setIsAddNewModalOpen(false)} className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold transition-all">
+                Cancel
+             </button>
+             <button type="submit" className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl transition-all shadow-lg shadow-indigo-500/30 uppercase tracking-widest">
+                Create Specification
+             </button>
+          </div>
+        </form>
       </Modal>
 
       {/* Item Details Modal */}
@@ -843,6 +1273,7 @@ export default function CategoryDetailPage() {
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {Object.entries(selectedItem.packingRules.boxes)
+                        .filter(([, rule]) => rule && Number(rule.totalQty) > 0) // Filter out 0 qty
                         .sort((a, b) => getVolume(a[0]) - getVolume(b[0]))
                         .map(([size, rule]) => (
                         <PackingCard 
@@ -867,7 +1298,7 @@ export default function CategoryDetailPage() {
                     {/* 80x120 Series */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       {Object.entries(selectedItem.packingRules.pallets)
-                        .filter(([type]) => type.includes('80x120'))
+                        .filter(([type, rule]) => type.includes('80x120') && rule && Number(rule.totalQty) > 0) // Filter out 0 qty
                         .sort((a, b) => {
                            const getH = (s: string) => parseInt(s.split('x')[2] || '0');
                            return getH(a[0]) - getH(b[0]);
@@ -887,7 +1318,7 @@ export default function CategoryDetailPage() {
                     {/* 110x110 Series */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {Object.entries(selectedItem.packingRules.pallets)
-                        .filter(([type]) => type.includes('110x110'))
+                        .filter(([type, rule]) => type.includes('110x110') && rule && Number(rule.totalQty) > 0) // Filter out 0 qty
                         .sort((a, b) => {
                            const getH = (s: string) => parseInt(s.split('x')[2] || '0');
                            return getH(a[0]) - getH(b[0]);
@@ -955,31 +1386,333 @@ export default function CategoryDetailPage() {
               >
                 <Download className="w-4 h-4" /> Download PDF Spec
               </button>
-              <button 
-                onClick={() => {
-                  if (selectedItem) {
-                    setNewItem({
-                      sku: selectedItem.sku,
-                      name: selectedItem.name,
-                      category: selectedItem.category,
-                      width: selectedItem.width,
-                      length: selectedItem.length,
-                      height: selectedItem.height,
-                      nw: selectedItem.nw,
-                      gw: selectedItem.gw,
-                      productType: selectedItem.productType
-                    });
-                    setIsEditing(true);
-                    setIsAddModalOpen(true);
-                  }
-                }}
-                className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
-              >
-                Edit Item Specifications
-              </button>
+              
+              {/* Actions Based on Tab */}
+              {activeTab === 'overview' ? (
+                <button 
+                  onClick={() => {
+                    if (selectedItem) {
+                      setNewItem({
+                        sku: selectedItem.sku,
+                        name: selectedItem.name,
+                        category: selectedItem.category,
+                        width: selectedItem.width,
+                        length: selectedItem.length,
+                        height: selectedItem.height,
+                        nw: selectedItem.nw,
+                        gw: selectedItem.gw,
+                        sideBoxWeight: selectedItem.sideBoxWeight,
+                        productType: selectedItem.productType,
+                        packingRules: JSON.parse(JSON.stringify(selectedItem.packingRules))
+                      });
+                      setIsEditing(true);
+                      setIsBasicInfoModalOpen(true);
+                    }
+                  }}
+                  className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Edit Basic Info
+                </button>
+              ) : (
+                <button 
+                   onClick={() => {
+                      if (selectedItem) {
+                         setNewItem({
+                            sku: selectedItem.sku,
+                            name: selectedItem.name,
+                            width: 0, length: 0, height: 0, nw: 0, gw: 0,
+                            packingRules: JSON.parse(JSON.stringify(selectedItem.packingRules))
+                         });
+                         setIsPackingStandardsModalOpen(true);
+                      }
+                   }}
+                   className="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
+                >
+                   <Boxes className="w-4 h-4" /> Edit Packing Standards
+                </button>
+              )}
             </div>
+
+
           </div>
         )}
+      </Modal>
+
+      {/* Edit Packing Standards Modal */}
+      {/* Edit Packing Standards Modal */}
+      <Modal
+         isOpen={isPackingStandardsModalOpen}
+         onClose={() => setIsPackingStandardsModalOpen(false)}
+         title="Edit Packing Standards"
+         className="max-w-2xl"
+      >
+         <form onSubmit={handlePackingStandardsSubmit} className="space-y-6">
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+
+               {/* Standard Boxes (ALL Sizes) */}
+               <div className="space-y-4">
+                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                     <Boxes className="w-4 h-4" /> Standard Boxes
+                  </h4>
+                   {[
+                     "42x46x68",
+                     "47x66x68", 
+                     "57x64x84",
+                     "68x74x86",
+                     "70x100x90"
+                   ].map((size) => {
+                     const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.boxes?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
+                     const uiKey = `Box_${size}`;
+                     const isHidden = hiddenFields[uiKey];
+
+                     return (
+                     <div key={size} className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
+                        isHidden ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"
+                     )}>
+                        <div className="flex items-center gap-3 w-32">
+                           <button
+                              type="button"
+                              onClick={() => setHiddenFields(prev => ({ ...prev, [uiKey]: !prev[uiKey] }))}
+                              className="text-slate-400 hover:text-indigo-600 transition-colors"
+                              title={isHidden ? "Unhide" : "Hide"}
+                           >
+                              {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                           </button>
+                           <span className="font-bold text-slate-700 text-sm whitespace-normal leading-tight">
+                              {size.replace(/x/g, ' x ')}
+                           </span>
+                        </div>
+                        
+                        <div className="flex-1 grid grid-cols-3 gap-2">
+                           <input 
+                              type="number" 
+                              placeholder="Layers"
+                              disabled={isHidden}
+                              value={rule.layers || ''}
+                              onChange={e => {
+                                 const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                 const newBoxes = { ...currentRules.boxes };
+                                 newBoxes[size] = { ...rule, layers: Number(e.target.value) };
+                                 setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
+                              }}
+                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                           />
+                           <input 
+                              type="number" 
+                              placeholder="Per Layer"
+                              disabled={isHidden}
+                              value={rule.perLayer || ''}
+                              onChange={e => {
+                                 const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                 const newBoxes = { ...currentRules.boxes };
+                                 newBoxes[size] = { ...rule, perLayer: Number(e.target.value) };
+                                 setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
+                              }}
+                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                           />
+                           <input 
+                              type="number" 
+                              placeholder="Total"
+                              disabled={isHidden}
+                              value={rule.totalQty || ''}
+                              onChange={e => {
+                                 const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                 const newBoxes = { ...currentRules.boxes };
+                                 newBoxes[size] = { ...rule, totalQty: Number(e.target.value) };
+                                 setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
+                              }}
+                              className="px-2 py-1 rounded border border-slate-300 text-xs font-bold text-indigo-600 bg-indigo-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                           />
+                        </div>
+                     </div>
+                   );
+                   })}
+               </div>
+
+               {/* Standard Pallets (ALL Sizes) */}
+               <div className="space-y-4">
+                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                     <div className="w-4 h-4 bg-emerald-500 rounded-sm" /> Standard Pallets
+                  </h4>
+                   {[
+                     "80x120x65",
+                     "80x120x90",
+                     "80x120x115",
+                     "110x110x65",
+                     "110x110x90",
+                     "110x110x115"
+                   ].map((size) => {
+                     const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.pallets?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
+                     const uiKey = `Pallet_${size}`;
+                     const isHidden = hiddenFields[uiKey];
+
+                     return (
+                     <div key={size} className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
+                        isHidden ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"
+                     )}>
+                        <div className="flex items-center gap-3 w-40">
+                           <button
+                              type="button"
+                              onClick={() => setHiddenFields(prev => ({ ...prev, [uiKey]: !prev[uiKey] }))}
+                              className="text-slate-400 hover:text-indigo-600 transition-colors"
+                              title={isHidden ? "Unhide" : "Hide"}
+                           >
+                              {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                           </button>
+                           <span className="font-bold text-slate-700 text-xs whitespace-normal leading-tight">
+                              {size.replace(/x/g, ' x ')}
+                           </span>
+                        </div>
+
+                        <div className="flex-1 grid grid-cols-3 gap-2">
+                           <input 
+                              type="number" 
+                              placeholder="Layers"
+                              disabled={isHidden}
+                              value={rule.layers || ''}
+                              onChange={e => {
+                                 const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                 const newPallets = { ...currentRules.pallets };
+                                 newPallets[size] = { ...rule, layers: Number(e.target.value) };
+                                 setNewItem({ ...newItem, packingRules: { ...currentRules, pallets: newPallets } });
+                              }}
+                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                           />
+                           <input 
+                              type="number" 
+                              placeholder="Per Layer"
+                              disabled={isHidden}
+                              value={rule.perLayer || ''}
+                              onChange={e => {
+                                 const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                 const newPallets = { ...currentRules.pallets };
+                                 newPallets[size] = { ...rule, perLayer: Number(e.target.value) };
+                                 setNewItem({ ...newItem, packingRules: { ...currentRules, pallets: newPallets } });
+                              }}
+                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                           />
+                           <input 
+                              type="number" 
+                              placeholder="Total"
+                              disabled={isHidden}
+                              value={rule.totalQty || ''}
+                              onChange={e => {
+                                 const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                 const newPallets = { ...currentRules.pallets };
+                                 newPallets[size] = { ...rule, totalQty: Number(e.target.value) };
+                                 setNewItem({ ...newItem, packingRules: { ...currentRules, pallets: newPallets } });
+                              }}
+                              className="px-2 py-1 rounded border border-slate-300 text-xs font-bold text-indigo-600 bg-indigo-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                           />
+                        </div>
+                     </div>
+                   );
+                   })}
+               </div>
+
+                {/* RTN Section - Reconfigured to match Box/Pallet style */}
+               <div className="space-y-4">
+                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                     <HistoryIcon className="w-4 h-4 text-amber-500" /> RTN (Returnable)
+                  </h4>
+                  {(() => {
+                     const isHidden = hiddenFields['RTN_Standard'];
+                     return (
+                        <div className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
+                           isHidden ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"
+                        )}>
+                           <div className="flex items-center gap-3 w-32">
+                              <button
+                                 type="button"
+                                 onClick={() => setHiddenFields(prev => ({ ...prev, 'RTN_Standard': !prev['RTN_Standard'] }))}
+                                 className="text-slate-400 hover:text-indigo-600 transition-colors"
+                                 title={isHidden ? "Unhide" : "Hide"}
+                              >
+                                 {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                               <span className="font-bold text-slate-700 text-sm whitespace-normal leading-tight">
+                                 Standard RTN
+                               </span>
+                           </div>
+
+                           <div className="flex-1 grid grid-cols-3 gap-2">
+                              <input 
+                                 type="number" 
+                                 placeholder="Layers"
+                                 disabled={isHidden}
+                                 value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.layers || ''}
+                                 onChange={e => {
+                                    const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                    setNewItem({ ...newItem, packingRules: { ...currentRules, rtn: { ...(currentRules.rtn || { layers: 0, perLayer: 0, totalQty: 0 }), layers: Number(e.target.value) } } });
+                                 }}
+                                 className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                              />
+                              <input 
+                                 type="number" 
+                                 placeholder="Per Layer"
+                                 disabled={isHidden}
+                                 value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.perLayer || ''}
+                                 onChange={e => {
+                                    const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                    setNewItem({ ...newItem, packingRules: { ...currentRules, rtn: { ...(currentRules.rtn || { layers: 0, perLayer: 0, totalQty: 0 }), perLayer: Number(e.target.value) } } });
+                                 }}
+                                 className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                              />
+                              <input 
+                                 type="number" 
+                                 placeholder="Total"
+                                 disabled={isHidden}
+                                 value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.totalQty || ''}
+                                 onChange={e => {
+                                    const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
+                                    setNewItem({ ...newItem, packingRules: { ...currentRules, rtn: { ...(currentRules.rtn || { layers: 0, perLayer: 0, totalQty: 0 }), totalQty: Number(e.target.value) } } });
+                                 }}
+                                 className="px-2 py-1 rounded border border-slate-300 text-xs font-bold text-indigo-600 bg-indigo-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                              />
+                           </div>
+                        </div>
+                     );
+                  })()}
+               </div>
+
+                {/* Special Packaging Section - Moved to Bottom */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                   <h4 className="text-sm font-black text-amber-800 uppercase tracking-wide flex items-center gap-2">
+                     <HistoryIcon className="w-4 h-4" /> Special Packaging
+                   </h4>
+                   
+                     {/* Warp Toggle */}
+                     <div className="flex items-center gap-3">
+                        <label className="text-sm font-bold text-slate-700">Warp Required?</label>
+                        <button
+                           type="button"
+                           onClick={() => {
+                              const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'] || {};
+                              setNewItem({
+                                 ...newItem,
+                                 packingRules: {
+                                    ...currentRules,
+                                    warp: !currentRules.warp
+                                 }
+                              });
+                           }}
+                           className={cn("w-12 h-6 rounded-full transition-colors relative", 
+                              (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-emerald-500" : "bg-slate-300"
+                           )}
+                        >
+                           <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 transition-all", 
+                              (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "left-7" : "left-1"
+                           )} />
+                        </button>
+                     </div>
+                </div>
+
+             </div>
+            
+            <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/30">
+               Update Packing Standards
+            </button>
+         </form>
       </Modal>
 
       {/* Bulk Import Modal */}

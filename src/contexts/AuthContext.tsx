@@ -20,7 +20,12 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: AuthError }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: AuthError }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: AuthError }>;
+  signInWithGoogleRedirect: () => Promise<{ success: boolean; error?: AuthError }>;
   signOut: () => Promise<void>;
+  updateProfileImage: (file: File) => Promise<{ success: boolean; photoURL?: string; error?: AuthError }>;
+  updateUserProfileData: (data: { displayName?: string; department?: string }) => Promise<{ success: boolean; error?: AuthError }>;
+  updateUser: (uid: string, data: Partial<User>) => Promise<{ success: boolean; error?: AuthError }>;
+  deleteUser: (uid: string) => Promise<{ success: boolean; error?: AuthError }>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: AuthError }>;
   clearError: () => void;
 }
@@ -39,10 +44,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for auth state changes
   useEffect(() => {
+    // 1. Handle Redirect Result (If returning from Google Redirect)
+    const handleRedirect = async () => {
+      try {
+        const { result, error: redirectError } = await AuthService.getRedirectResult();
+        if (redirectError) {
+          setError(redirectError);
+        } else if (result?.user) {
+          // Document will be handled by the listener below
+          console.log("Redirect Sign-in Success:", result.user.email);
+        }
+      } catch (err) {
+        console.error("Redirect handling top-level error:", err);
+      }
+    };
+    handleRedirect();
+
+    // 2. Main Auth Listener
     const unsubscribeAuth = AuthService.onAuthStateChange(async (fbUser) => {
       setFirebaseUser(fbUser);
       
       if (fbUser) {
+        // Ensure Firestore document exists (especially for Google logins)
+        try {
+          await AuthService.checkAndCreateUserDoc(fbUser);
+        } catch (err) {
+          console.error("Failed to ensure user doc exists:", err);
+        }
+
         // Get additional user data from Firestore with real-time updates
         const userDocRef = doc(db, "users", fbUser.uid);
         
@@ -60,9 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               lastLogin: userData.lastLogin?.toDate() || new Date(),
               status: userData.status || "pending",
             });
-          } else {
-            // User doc not yet created (edge case)
-            setUser(null);
           }
           setLoading(false);
         });
@@ -114,14 +140,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     
+    // Popup approach
     const result = await AuthService.signInWithGoogle();
     
     if (result.error) {
+      if (result.error.code === 'auth/popup-closed-by-user' || result.error.code === 'auth/popup-blocked') {
+        // Try redirect fallback
+        console.warn("Popup blocked or closed, falling back to redirect...");
+        return await signInWithGoogleRedirect();
+      }
       setError(result.error);
       setLoading(false);
       return { success: false, error: result.error };
     }
     
+    return { success: true };
+  };
+
+  // ✅ Sign In with Google (Redirect Fallback)
+  const signInWithGoogleRedirect = async () => {
+    setLoading(true);
+    setError(null);
+    const result = await AuthService.signInWithGoogleRedirect();
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+      return { success: false, error: result.error };
+    }
     return { success: true };
   };
 
@@ -149,6 +194,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   };
 
+  // ✅ Update Profile Image
+  const updateProfileImage = async (file: File) => {
+    setError(null);
+    const result = await AuthService.updateProfileImage(file);
+    if (!result.success) {
+      setError(result.error || { code: 'unknown', message: 'Failed to update image' });
+    }
+    return result;
+  };
+
+  // ✅ Update User Profile Data
+  const updateUserProfileData = async (data: { displayName?: string; department?: string }) => {
+    setError(null);
+    const result = await AuthService.updateUserProfileData(data);
+    if (!result.success) {
+      setError(result.error || { code: 'unknown', message: 'Failed to update profile' });
+    }
+    return result;
+  };
+
+  // ✅ Update Other User (Admin Action)
+  const updateUser = async (uid: string, data: Partial<User>) => {
+    setError(null);
+    const result = await AuthService.updateUser(uid, data);
+    if (!result.success) {
+      setError(result.error || { code: 'unknown', message: 'Failed to update user' });
+    }
+    return result;
+  };
+
+  // ✅ Delete User (Admin Action)
+  const deleteUser = async (uid: string) => {
+    setError(null);
+    const result = await AuthService.deleteUser(uid);
+    if (!result.success) {
+      setError(result.error || { code: 'unknown', message: 'Failed to delete user' });
+    }
+    return result;
+  };
+
   // ✅ Clear Error
   const clearError = () => setError(null);
 
@@ -162,8 +247,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signUp,
         signInWithGoogle,
+        signInWithGoogleRedirect,
         signOut,
         resetPassword,
+        updateProfileImage,
+        updateUserProfileData,
+        updateUser,
+        deleteUser,
         clearError,
       }}
     >

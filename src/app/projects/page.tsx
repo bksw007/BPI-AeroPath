@@ -7,6 +7,7 @@ import {
   BarChart3,
   Wrench,
   Users,
+  Boxes,
 } from "lucide-react";
 
 import { ProjectCard } from "@/components/shared/ProjectCard";
@@ -35,6 +36,15 @@ export default function ProjectsPage() {
               href="/projects/material-control"
               status="active"
               iconColor="from-blue-500 to-blue-600"
+            />
+
+            <ProjectCard
+              title="Smart Packaging"
+              description="Automated packaging planning and optimization system for efficient logistics and material handling."
+              icon={Boxes}
+              href="/projects/packaging"
+              status="active"
+              iconColor="from-emerald-500 to-emerald-600"
             />
 
             <ProjectCard
