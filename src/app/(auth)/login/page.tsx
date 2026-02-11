@@ -110,16 +110,16 @@ export default function LoginPage() {
           Sign in with Google
         </button>
 
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
-          </div>
-          <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em]">
-            <span className="bg-[#f6edde] px-3 text-slate-400 font-bold">Secure Access</span>
-          </div>
+        <div className="relative mb-8 flex items-center gap-4">
+          <div className="flex-1 border-t-2 border-slate-100"></div>
+          <div className="text-[10px] font-black text-slate-950 uppercase tracking-[0.3em] italic">Secure Access</div>
+          <div className="flex-1 border-t-2 border-slate-100"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form 
+          onSubmit={handleSubmit} 
+          className="space-y-5 p-8 bg-white/40 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.12)] border border-white/60 backdrop-blur-sm"
+        >
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Terminal</label>
             <div className="relative group">
@@ -128,7 +128,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3.5 bg-white/50 border-2 border-slate-50 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-800 text-sm"
                 placeholder="USER@AEROPATH.SYS"
                 required
               />
@@ -153,7 +153,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3.5 bg-white/50 border-2 border-slate-50 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-800 text-sm"
                   placeholder="••••••••"
                   required
                 />
@@ -181,17 +181,17 @@ export default function LoginPage() {
               </>
             )}
           </button>
-
-          {isForgotPassword && (
-            <button
-              type="button"
-              onClick={() => setIsForgotPassword(false)}
-              className="w-full text-center text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors mt-4"
-            >
-              Back to Sign In
-            </button>
-          )}
         </form>
+
+        {isForgotPassword && (
+          <button
+            type="button"
+            onClick={() => setIsForgotPassword(false)}
+            className="w-full text-center text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors mt-6"
+          >
+            Back to Sign In
+          </button>
+        )}
       </div>
     </AuthContainer>
   );
