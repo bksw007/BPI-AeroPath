@@ -62,7 +62,7 @@ export default function SignupPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all flex items-center justify-center gap-3 mb-6 shadow-2xl active:scale-[0.98] text-[10px] uppercase tracking-[0.2em] italic border border-white/10"
+          className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all flex items-center justify-center gap-3 mb-6 shadow-2xl active:scale-[0.98] text-[10px] uppercase tracking-[0.2em] border border-white/10"
         >
           <svg className="w-5 h-5 brightness-110" viewBox="0 0 24 24">
             <path
@@ -176,7 +176,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4.5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-4 text-[11px] uppercase tracking-[0.3em] italic"
+            className="w-full py-4.5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-4 text-[11px] uppercase tracking-[0.3em]"
           >
             {loading ? (
               <div className="w-5 h-5 border-3 border-white/30 border-t-green-400 rounded-full animate-spin" />
