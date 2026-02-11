@@ -66,7 +66,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
                   <h2 className="text-3xl font-black mb-3 tracking-tighter drop-shadow-sm italic uppercase">
                     {isLogin ? "Welcome Back!" : "Join the Path"}
                   </h2>
-                  <p className="text-slate-400 text-sm md:text-base font-bold leading-relaxed mb-8 max-w-[280px] mx-auto drop-shadow-sm uppercase tracking-tight">
+                  <p className="text-slate-400 text-sm md:text-base font-light leading-relaxed mb-8 max-w-[280px] mx-auto drop-shadow-sm tracking-wider">
                     {isLogin 
                       ? "Sign in to keep tracking your warehouse movements and stay synchronized." 
                       : "Start your journey with BPI AeroPath. Real-time visibility and logistics."}
