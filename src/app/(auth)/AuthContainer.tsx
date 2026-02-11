@@ -20,7 +20,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
     <div className="w-full max-w-5xl mx-auto px-4 py-4 md:py-8" style={{ perspective: "2000px" }}>
       <motion.div 
         layout
-        className="relative bg-white/40 backdrop-blur-2xl border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden min-h-[500px] md:min-h-[580px] flex flex-col md:flex-row transform-gpu transition-all duration-700"
+        className="relative bg-white/40 backdrop-blur-2xl border-4 border-white/60 shadow-[0_45px_150px_-20px_rgba(0,0,0,0.22)] rounded-[4rem] overflow-hidden min-h-[500px] md:min-h-[580px] flex flex-col md:flex-row transform-gpu transition-all duration-700"
       >
         
         {/* Animated Background Overlay */}
