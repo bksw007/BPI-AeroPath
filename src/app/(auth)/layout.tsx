@@ -23,20 +23,20 @@ export default function AuthLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#f6edde]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
       </div>
     );
   }
 
   return (
     <ParallaxProvider>
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50">
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-[#f6edde]">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10" />
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-400/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-slate-900/5" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-400/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-400/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
         <FloatingElements />
       </div>
 
