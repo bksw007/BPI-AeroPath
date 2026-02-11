@@ -77,7 +77,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
 
             <button
               onClick={onToggleMode}
-              className="px-10 py-3.5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 text-[10px] uppercase tracking-[0.3em] shadow-2xl text-green-400 italic"
+              className="px-10 py-3.5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 text-[10px] uppercase tracking-[0.3em] shadow-2xl text-green-400"
             >
               {isLogin ? "Create an Account" : "Sign In instead"}
             </button>
