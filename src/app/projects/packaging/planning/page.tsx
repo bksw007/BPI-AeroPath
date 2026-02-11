@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   FileSpreadsheet, 
   RotateCcw, 
@@ -14,7 +14,8 @@ import {
   FileText,
   Search,
   Users,
-  Save
+  Save,
+  Clock // Add Clock Icon
 } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
@@ -38,6 +39,15 @@ interface PlanSummary {
   totalItems: number;
 }
 
+interface RecentPlan {
+  id: string;
+  customer: { name: string; region: string };
+  summary: PlanSummary;
+  createdAt: { seconds: number; nanoseconds: number };
+  data: string; // JSON string
+  poList: string[];
+}
+
 export default function PackagingBookingPage() {
   const [activeStep, setActiveStep] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<{code: string; region: string} | null>(null);
@@ -45,6 +55,63 @@ export default function PackagingBookingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [planResult, setPlanResult] = useState<POCase[]>([]);
   const [planSummary, setPlanSummary] = useState<PlanSummary | null>(null);
+  const [recentPlans, setRecentPlans] = useState<RecentPlan[]>([]);
+  const [isHistoryMode, setIsHistoryMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // --- Load History on Mount ---
+  useEffect(() => {
+      loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+      const history = await PackagingService.getRecentPackingPlans(3);
+      setRecentPlans(history as unknown as RecentPlan[]);
+  };
+
+  const handleLoadPlan = (plan: RecentPlan) => {
+      try {
+          const parsedData = JSON.parse(plan.data);
+          setPlanResult(parsedData);
+          setPlanSummary(plan.summary);
+          setSelectedCustomer({ code: plan.customer.name, region: plan.customer.region });
+          setActiveStep(3); // Go to Review
+          setIsHistoryMode(true);
+      } catch (e) {
+          console.error("Failed to load plan", e);
+      }
+  };
+
+  // --- Save Plan ---
+  const handleSavePlan = async () => {
+      if (!planResult.length || !selectedCustomer || isHistoryMode) return;
+      setIsSaving(true);
+      
+      try {
+          const dataToSave = {
+              customer: { id: selectedCustomer.code, name: selectedCustomer.code, region: selectedCustomer.region },
+              summary: planSummary!,
+              poList: planResult.map(p => p.po),
+              data: JSON.stringify(planResult)
+          };
+          
+          const result = await PackagingService.savePackingPlan(dataToSave);
+          if (result.success) {
+              // alert("Plan saved successfully!"); // Removed alert
+              setShowSuccessModal(true); // Show Modal
+              setIsHistoryMode(true); // Disable save button
+              loadHistory(); // Refresh history
+          } else {
+              alert("Failed to save plan.");
+          }
+      } catch (e) {
+          console.error("Save error", e);
+          alert("Error saving plan.");
+      } finally {
+          setIsSaving(false);
+      }
+  };
 
   // --- 1. Customer Selection ---
   const handleCustomerSelect = (code: string) => {
@@ -255,6 +322,44 @@ export default function PackagingBookingPage() {
                                  </button>
                              ))}
                          </div>
+
+                          {/* Recent History Section */}
+                          <div className="pt-6 border-t border-slate-100 mt-6">
+                                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <Clock className="w-4 h-4"/> Recent Calculations
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {recentPlans.map(plan => (
+                                        <button 
+                                            key={plan.id}
+                                            onClick={() => handleLoadPlan(plan)}
+                                            className="p-4 bg-white/50 border border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-white text-left transition-all group shadow-sm hover:shadow-md"
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="font-bold text-slate-700 group-hover:text-indigo-700">{plan.customer.name}</span>
+                                                <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md group-hover:bg-indigo-50 group-hover:text-indigo-600">
+                                                    {plan.createdAt?.seconds ? new Date(plan.createdAt?.seconds * 1000).toLocaleDateString() : 'Just now'}
+                                                </span>
+                                            </div>
+                                            <div className="text-xs text-slate-500 space-y-1">
+                                                <div className="flex justify-between">
+                                                    <span>POs: {plan.poList.length}</span>
+                                                    <span>Item: {plan.summary.totalItems}</span>
+                                                </div>
+                                                <div className="flex justify-between font-medium text-slate-600">
+                                                    <span>Pallets: {plan.summary.totalPallets}</span>
+                                                    <span>Boxes: {plan.summary.totalBoxes}</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                    {recentPlans.length === 0 && (
+                                        <div className="col-span-3 text-center py-8 text-slate-400 text-sm italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                                            No recent history found.
+                                        </div>
+                                    )}
+                                </div>
+                          </div>
                      </GlassCard>
                  )}
 
@@ -401,12 +506,12 @@ export default function PackagingBookingPage() {
                          </div>
 
                          <div className="flex justify-center pt-8 gap-4">
-                             <button 
-                                 onClick={() => { setActiveStep(2); setPlanResult([]); }}
-                                 className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold transition-colors"
-                             >
-                                 <RotateCcw className="w-4 h-4"/> Back to Input
-                             </button>
+                              <button 
+                                  onClick={() => { setActiveStep(2); setPlanResult([]); setIsHistoryMode(false); }}
+                                  className="px-6 py-3 border-2 border-slate-200 text-slate-500 font-bold rounded-xl hover:border-slate-400 hover:text-slate-700 transition-all flex items-center gap-2"
+                              >
+                                  <RotateCcw className="w-4 h-4"/> Back to Input
+                              </button>
                               <button 
                                  onClick={() => setActiveStep(4)}
                                  className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center gap-2"
@@ -431,11 +536,27 @@ export default function PackagingBookingPage() {
                               
                               <div className="grid grid-cols-2 gap-4 w-full max-w-md mt-4">
                                   <button 
-                                      onClick={() => alert("Save function coming soon!")} // Placeholder
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
+                                      onClick={handleSavePlan}
+                                      disabled={isHistoryMode || isSaving}
+                                      className={`flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 rounded-2xl transition-all group ${
+                                          isHistoryMode || isSaving 
+                                          ? 'border-slate-100 opacity-50 cursor-not-allowed' 
+                                          : 'border-slate-100 hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer'
+                                      }`}
                                   >
-                                      <Save className="w-8 h-8 text-slate-400 group-hover:text-emerald-600 transition-colors"/>
-                                      <span className="font-bold text-slate-600 group-hover:text-emerald-800">Save to DB</span>
+                                      {isHistoryMode ? (
+                                          <>
+                                            <CheckCircle2 className="w-8 h-8 text-emerald-500"/>
+                                            <span className="font-bold text-emerald-600">Saved to DB</span>
+                                          </>
+                                      ) : (
+                                          <>
+                                            <Save className={`w-8 h-8 text-slate-400 ${!isSaving && 'group-hover:text-emerald-600'} transition-colors`}/>
+                                            <span className={`font-bold text-slate-600 ${!isSaving && 'group-hover:text-emerald-800'}`}>
+                                                {isSaving ? 'Saving...' : 'Save to DB'}
+                                            </span>
+                                          </>
+                                      )}
                                   </button>
                                   
                                   <button 
@@ -448,12 +569,12 @@ export default function PackagingBookingPage() {
                               </div>
                           </GlassCard>
 
-                          <button 
-                              onClick={() => { setActiveStep(1); setPlanResult([]); }}
-                              className="text-slate-400 hover:text-slate-600 font-bold transition-colors flex items-center justify-center gap-2 mx-auto"
-                          >
-                              <RotateCcw className="w-4 h-4"/> Start New Plan
-                          </button>
+                           <button 
+                               onClick={() => { setActiveStep(1); setPlanResult([]); setIsHistoryMode(false); }}
+                               className="px-8 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 shadow-lg shadow-slate-200 transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-xs"
+                           >
+                               <RotateCcw className="w-4 h-4"/> Start New Plan
+                           </button>
                      </div>
                  )}
              </div>
@@ -461,6 +582,37 @@ export default function PackagingBookingPage() {
 
         </div>
       </section>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in zoom-in-95">
+             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                <CheckCircle2 className="w-8 h-8" />
+             </div>
+             <div>
+                <h3 className="text-xl font-bold text-slate-800">Saved Successfully!</h3>
+                <p className="text-slate-500 text-sm mt-2">
+                   The packing plan has been saved to the database.
+                </p>
+             </div>
+             
+             <button 
+                onClick={handleExportPDF}
+                className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+             >
+                <Download className="w-5 h-5"/> Download PDF
+             </button>
+
+             <button 
+                onClick={() => setShowSuccessModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+             >
+                Close
+             </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

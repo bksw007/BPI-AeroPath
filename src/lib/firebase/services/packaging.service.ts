@@ -6,7 +6,9 @@ import {
   getDoc,
   query, 
   where, 
-  serverTimestamp
+  serverTimestamp,
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
@@ -175,6 +177,24 @@ export const PackagingService = {
     } catch (error) {
       console.error("Error saving packing plan:", error);
       return { success: false, error };
+    }
+  },
+
+  // Get Recent Packing Plans
+  getRecentPackingPlans: async (limitCount: number = 3) => {
+    try {
+      const q = query(
+        collection(db, 'packing_plans'),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+      );
+      
+      const snapshot = await getDocs(q);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+    } catch (error) {
+       console.error("Error getting recent plans:", error);
+       return [];
     }
   },
 
