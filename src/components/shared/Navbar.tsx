@@ -63,7 +63,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onMouseEnter={() => setHoveredPath(link.href)}
-                className="relative px-4 py-2 text-[#EFD09E] hover:text-[#EFD09E] transition-colors duration-300 font-bold block"
+                className="relative px-4 py-2 text-[#272727] hover:text-[#EFD09E] transition-colors duration-300 font-bold block"
               >
                 <span className="relative z-10">{link.label}</span>
                 {hoveredPath === link.href && (
@@ -126,7 +126,7 @@ export function Navbar() {
                       <User className="w-4 h-4" />
                     )}
                   </motion.div>
-                  <span className="relative z-10 text-sm font-bold text-[#EFD09E] transition-colors uppercase tracking-tight">
+                  <span className="relative z-10 text-sm font-bold text-[#272727] transition-colors uppercase tracking-tight">
                     {user.displayName}
                   </span>
                 </Link>
