@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 
 /**
  * Navbar Component
- * 
+ *
  * Top navigation bar พร้อม:
  * - Logo และชื่อแอพ (ใช้ไฟล์ Image แทน Icon)
  * - Navigation links
@@ -54,26 +54,29 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2" onMouseLeave={() => setHoveredPath(null)}>
+          <div
+            className="hidden md:flex items-center gap-2"
+            onMouseLeave={() => setHoveredPath(null)}
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onMouseEnter={() => setHoveredPath(link.href)}
-                className="relative px-4 py-2 text-slate-700 hover:text-indigo-600 transition-colors duration-300 font-bold block"
+                className="relative px-4 py-2 text-[#EFD09E] hover:text-[#EFD09E] transition-colors duration-300 font-bold block"
               >
                 <span className="relative z-10">{link.label}</span>
                 {hoveredPath === link.href && (
                   <motion.div
                     layoutId="navbar-hover-pill"
-                    className="absolute inset-0 bg-slate-900/[0.08] rounded-xl -z-10 border border-slate-900/[0.05]"
+                    className="absolute inset-0 bg-[#272727] rounded-xl -z-10 border border-[#272727]/20"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{
                       type: "spring",
                       bounce: 0.2,
-                      duration: 0.4
+                      duration: 0.4,
                     }}
                   />
                 )}
@@ -84,19 +87,38 @@ export function Navbar() {
 
             {user && !loading ? (
               <div className="flex items-center gap-4">
-                <Link 
+                <Link
                   href="/profile"
-                  className="flex items-center gap-2 group/profile hover:bg-slate-50/50 p-1.5 pr-2 rounded-2xl transition-all duration-300 active:scale-95"
+                  onMouseEnter={() => setHoveredPath("/profile")}
+                  className="relative flex items-center gap-2 group/profile p-1.5 pr-2 rounded-2xl transition-all duration-300 active:scale-95"
                 >
-                  <motion.div 
-                    whileHover={{ scale: 2, zIndex: 60, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
+                  {hoveredPath === "/profile" && (
+                    <motion.div
+                      layoutId="navbar-hover-pill"
+                      className="absolute inset-0 bg-[#272727] rounded-2xl -z-10 border border-[#272727]/20"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.4,
+                      }}
+                    />
+                  )}
+                  <motion.div
+                    whileHover={{
+                      scale: 2,
+                      zIndex: 60,
+                      boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                    }}
                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative group-hover/profile:border-indigo-300 transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative group-hover/profile:border-[#9ACD32] transition-colors cursor-pointer"
                   >
                     {user.photoURL ? (
-                      <Image 
-                        src={user.photoURL} 
-                        alt={user.displayName || "User"} 
+                      <Image
+                        src={user.photoURL}
+                        alt={user.displayName || "User"}
                         fill
                         className="object-cover"
                       />
@@ -104,7 +126,9 @@ export function Navbar() {
                       <User className="w-4 h-4" />
                     )}
                   </motion.div>
-                  <span className="text-sm font-bold text-slate-700 group-hover/profile:text-indigo-600 transition-colors uppercase tracking-tight">{user.displayName}</span>
+                  <span className="relative z-10 text-sm font-bold text-[#EFD09E] transition-colors uppercase tracking-tight">
+                    {user.displayName}
+                  </span>
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -114,13 +138,15 @@ export function Navbar() {
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
-            ) : !loading && (
-              <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50/50 rounded-xl transition-all duration-300 active:scale-95"
-              >
-                Login
-              </Link>
+            ) : (
+              !loading && (
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50/50 rounded-xl transition-all duration-300 active:scale-95"
+                >
+                  Login
+                </Link>
+              )
             )}
           </div>
 
@@ -142,7 +168,7 @@ export function Navbar() {
         <div
           className={cn(
             "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            mobileMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+            mobileMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0",
           )}
         >
           <div className="py-4 space-y-3">
@@ -160,20 +186,28 @@ export function Navbar() {
             <div className="border-t border-slate-100 pt-3 px-4">
               {user && !loading ? (
                 <div className="flex items-center justify-between">
-                  <Link 
+                  <Link
                     href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors"
                   >
-                    <motion.div 
-                      whileHover={{ scale: 2, zIndex: 100, boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
-                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                    <motion.div
+                      whileHover={{
+                        scale: 2,
+                        zIndex: 100,
+                        boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 450,
+                        damping: 25,
+                      }}
                       className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative cursor-pointer"
                     >
                       {user.photoURL ? (
-                        <Image 
-                          src={user.photoURL} 
-                          alt={user.displayName || "User"} 
+                        <Image
+                          src={user.photoURL}
+                          alt={user.displayName || "User"}
                           fill
                           className="object-cover"
                         />
@@ -182,8 +216,12 @@ export function Navbar() {
                       )}
                     </motion.div>
                     <div>
-                      <div className="text-sm font-bold text-slate-900">{user.displayName}</div>
-                      <div className="text-xs text-slate-500 uppercase">{user.role}</div>
+                      <div className="text-sm font-bold text-slate-900">
+                        {user.displayName}
+                      </div>
+                      <div className="text-xs text-slate-500 uppercase">
+                        {user.role}
+                      </div>
                     </div>
                   </Link>
                   <button
@@ -193,14 +231,16 @@ export function Navbar() {
                     <LogOut className="w-6 h-6" />
                   </button>
                 </div>
-              ) : !loading && (
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full px-4 py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-300 active:scale-95"
-                >
-                  Login
-                </Link>
+              ) : (
+                !loading && (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full px-4 py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-300 active:scale-95"
+                  >
+                    Login
+                  </Link>
+                )
               )}
             </div>
           </div>
