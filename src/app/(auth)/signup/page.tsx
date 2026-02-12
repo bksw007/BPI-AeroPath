@@ -40,7 +40,7 @@ export default function SignupPage() {
     clearError();
     const { success } = await signInWithGoogle();
     if (success) {
-      router.push("/");
+      router.push("/pending");
     }
   };
 

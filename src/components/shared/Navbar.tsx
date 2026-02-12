@@ -82,7 +82,7 @@ export function Navbar() {
 
             <div className="h-6 w-px bg-slate-200 ml-2"></div>
 
-            {user && !loading && (
+            {user && !loading ? (
               <div className="flex items-center gap-4">
                 <Link 
                   href="/profile"
@@ -114,6 +114,13 @@ export function Navbar() {
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
+            ) : !loading && (
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50/50 rounded-xl transition-all duration-300 active:scale-95"
+              >
+                Login
+              </Link>
             )}
           </div>
 
@@ -151,7 +158,7 @@ export function Navbar() {
             ))}
 
             <div className="border-t border-slate-100 pt-3 px-4">
-              {user && !loading && (
+              {user && !loading ? (
                 <div className="flex items-center justify-between">
                   <Link 
                     href="/profile"
@@ -186,6 +193,14 @@ export function Navbar() {
                     <LogOut className="w-6 h-6" />
                   </button>
                 </div>
+              ) : !loading && (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-300 active:scale-95"
+                >
+                  Login
+                </Link>
               )}
             </div>
           </div>

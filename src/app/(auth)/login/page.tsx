@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
@@ -12,9 +12,22 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
   
-  const { signIn, signInWithGoogle, resetPassword, loading, error, clearError } = useAuth();
+  const { signIn, signInWithGoogle, resetPassword, loading, error, clearError, user } = useAuth();
   const router = useRouter();
+
+  // Redirect after successful login based on user status
+  useEffect(() => {
+    if (justLoggedIn && user && !loading) {
+      if (user.status === "active") {
+        router.push("/");
+      } else {
+        router.push("/pending");
+      }
+      setJustLoggedIn(false);
+    }
+  }, [user, loading, justLoggedIn, router]);
 
   const handleToggleMode = () => {
     router.push("/signup");
@@ -32,7 +45,7 @@ export default function LoginPage() {
 
     const { success } = await signIn(email, password);
     if (success) {
-      router.push("/pending");
+      setJustLoggedIn(true);
     }
   };
 
@@ -40,7 +53,7 @@ export default function LoginPage() {
     clearError();
     const { success } = await signInWithGoogle();
     if (success) {
-      router.push("/pending");
+      setJustLoggedIn(true);
     }
   };
 

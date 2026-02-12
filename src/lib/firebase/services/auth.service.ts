@@ -241,7 +241,7 @@ async function createUserDocument(user: User, displayName?: string) {
     photoURL: user.photoURL || null,
     createdAt: serverTimestamp(),
     lastLogin: serverTimestamp(),
-    status: 'active'
+    status: 'pending'
   });
 }
 
@@ -263,6 +263,9 @@ function mapAuthError(error: unknown): AuthError {
       break;
     case 'auth/wrong-password':
       message = "Incorrect password.";
+      break;
+    case 'auth/invalid-credential':
+      message = "Invalid email or password. Please check and try again.";
       break;
     case 'auth/email-already-in-use':
       message = "Email is already in use.";

@@ -504,7 +504,7 @@ export default function PendingPage() {
               }}
               className="px-5 py-2.5 text-xs font-bold text-slate-500 bg-white/20 hover:bg-white/40 backdrop-blur-sm border border-white/30 rounded-xl transition-all flex items-center gap-2 transform active:scale-95"
             >
-              Join Our!
+              Sign In
             </button>
           </div>
         </div>

@@ -1,5 +1,7 @@
+"use client";
+
 import { Navbar } from "@/components/shared/Navbar";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { RouteGuard } from "@/components/shared/RouteGuard";
 
 export default function ProjectsLayout({
   children,
@@ -7,9 +9,11 @@ export default function ProjectsLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthProvider>
+    <>
       <Navbar />
-      {children}
-    </AuthProvider>
+      <RouteGuard>
+        {children}
+      </RouteGuard>
+    </>
   );
 }
