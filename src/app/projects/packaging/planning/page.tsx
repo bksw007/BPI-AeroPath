@@ -24,6 +24,8 @@ import { PackagingService } from "@/lib/firebase/services/packaging.service";
 import { PackingLogicService } from "@/lib/services/packing-logic/PackingLogicService";
 import type { PackingInput, PackingOutput, PackedCase, PackingPlanResult } from "@/lib/services/packing-logic/packing.types";
 import { generatePackingListPDFMake } from "@/lib/utils/pdfMakeGenerator";
+import { generatePackingListPDF } from "@/lib/utils/pdfGenerator";
+import { generatePackingDetailsPDF, generateLayoutGridPDF } from "@/lib/utils/pdfTemplateGenerator";
 
 // UI Types
 interface POCase {
@@ -58,6 +60,7 @@ export default function PackagingBookingPage() {
   const [recentPlans, setRecentPlans] = useState<RecentPlan[]>([]);
   const [isHistoryMode, setIsHistoryMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExportingPlan, setIsExportingPlan] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // --- Load History on Mount ---
@@ -216,27 +219,41 @@ export default function PackagingBookingPage() {
     }
   };
 
-  const handleExportPDF = () => {
-      if (!planResult.length || !selectedCustomer) return;
-      
-      // Convert POCase back to structure needed by PDF generator if necessary
-      // But wait, the generator calls for PackingPlanResult[] which is roughly POCase[] with summary
-      // Let's quickly remap or adjust the generator type. 
-      // Actually, planResult is POCase[], but generatePackingListPDFMake expects PackingPlanResult[]
-      // We need to construct the right object.
-      
-      const pdfData: PackingPlanResult[] = planResult.map(po => ({
-          po: po.po,
-          cases: po.cases,
-          summary: {
-              totalPallets: po.cases.filter(c => c.type.includes("Pallet")).length,
-              totalBoxes: po.cases.filter(c => c.type.includes("Box")).length,
-              totalItems: po.cases.reduce((sum, c) => sum + c.items.reduce((s, i) => s + i.qty, 0), 0)
-          }
-      }));
+  const buildPackingPlanPdfData = (): PackingPlanResult[] => {
+    return planResult.map(po => ({
+      po: po.po,
+      cases: po.cases,
+      summary: {
+        totalPallets: po.cases.filter(c => c.type.includes("Pallet")).length,
+        totalBoxes: po.cases.filter(c => c.type.includes("Box")).length,
+        totalItems: po.cases.reduce((sum, c) => sum + c.items.reduce((s, i) => s + i.qty, 0), 0)
+      }
+    }));
+  };
 
-      const poList = planResult.map(p => p.po);
-      generatePackingListPDFMake(pdfData, selectedCustomer.code, poList);
+  const handleExportPDF = async () => {
+    if (!planResult.length || !selectedCustomer || isExportingPlan) return;
+
+    setIsExportingPlan(true);
+    const pdfData = buildPackingPlanPdfData();
+    const poList = planResult.map(p => p.po);
+
+    try {
+      await generatePackingListPDFMake(pdfData, selectedCustomer.code, poList);
+    } catch (error) {
+      console.error("PDFMake export failed. Falling back to jsPDF.", error);
+      generatePackingListPDF(pdfData, selectedCustomer.code, poList);
+    } finally {
+      setIsExportingPlan(false);
+    }
+  };
+
+  const handleExportPackingDetails = () => {
+    if (!planResult.length || !selectedCustomer) return;
+
+    const pdfData = buildPackingPlanPdfData();
+    const poList = planResult.map(p => p.po);
+    generatePackingDetailsPDF(pdfData, selectedCustomer.code, poList);
   };
 
   // --- 4. Steps Navigation ---
@@ -561,10 +578,32 @@ export default function PackagingBookingPage() {
                                   
                                   <button 
                                       onClick={handleExportPDF}
+                                      disabled={isExportingPlan}
                                       className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
                                   >
                                       <Download className="w-8 h-8 text-slate-400 group-hover:text-indigo-600 transition-colors"/>
-                                      <span className="font-bold text-slate-600 group-hover:text-indigo-800">Download PDF</span>
+                                      <span className="font-bold text-slate-600 group-hover:text-indigo-800">
+                                        {isExportingPlan ? "Preparing PDF..." : "Download Plan"}
+                                      </span>
+                                  </button>
+
+                                  <button 
+                                      onClick={handleExportPackingDetails}
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group "
+                                  >
+                                      <FileText className="w-8 h-8 text-slate-400 group-hover:text-emerald-600 transition-colors"/>
+                                      <span className="font-bold text-slate-600 group-hover:text-emerald-800">Download Packing Details</span>
+                                  </button>
+                                  
+                                  <button 
+                                      onClick={generateLayoutGridPDF}
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-50 border-2 border-slate-200 border-dashed rounded-2xl hover:border-slate-400 hover:bg-slate-100 transition-all group"
+                                  >
+                                      <div className="w-8 h-8 border border-slate-400 grid grid-cols-2 grid-rows-2 gap-[1px] bg-slate-300">
+                                          <div className="bg-white"></div><div className="bg-white"></div>
+                                          <div className="bg-white"></div><div className="bg-white"></div>
+                                      </div>
+                                      <span className="font-bold text-slate-500 group-hover:text-slate-700">Download Grid (Dev)</span>
                                   </button>
                               </div>
                           </GlassCard>
@@ -599,9 +638,10 @@ export default function PackagingBookingPage() {
              
              <button 
                 onClick={handleExportPDF}
+                disabled={isExportingPlan}
                 className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
              >
-                <Download className="w-5 h-5"/> Download PDF
+                <Download className="w-5 h-5"/> {isExportingPlan ? "Preparing PDF..." : "Download PDF"}
              </button>
 
              <button 

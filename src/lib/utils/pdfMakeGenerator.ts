@@ -2,13 +2,53 @@ import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import { PackingPlanResult } from "@/lib/services/packing-logic/packing.types";
 import { TDocumentDefinitions, Content, Style, TableCell } from "pdfmake/interfaces";
+import { sarabunFonts } from "@/lib/utils/sarabunFonts";
 
-// Initialize VFS (Embedded Fonts)
-const pdfMakeAny = pdfMake as unknown as { vfs: Record<string, string> };
-const pdfFontsAny = pdfFonts as unknown as { pdfMake?: { vfs: Record<string, string> } };
+type PdfFontFamily = {
+  normal: string;
+  bold: string;
+  italics: string;
+  bolditalics: string;
+};
 
-if (pdfMakeAny.vfs === undefined && pdfFontsAny.pdfMake?.vfs) {
-  pdfMakeAny.vfs = pdfFontsAny.pdfMake.vfs;
+type PdfMakeRuntime = {
+  addVirtualFileSystem?: (vfs: Record<string, string>) => void;
+  addFonts?: (fonts: Record<string, PdfFontFamily>) => void;
+  createPdf: (
+    docDefinition: TDocumentDefinitions,
+    tableLayouts?: unknown,
+    fonts?: Record<string, PdfFontFamily>,
+    vfs?: Record<string, string>
+  ) => { download: (fileName?: string) => void };
+};
+
+function getDefaultVfs(): Record<string, string> {
+  const withPdfMake = pdfFonts as { pdfMake?: { vfs?: Record<string, string> } };
+  return withPdfMake.pdfMake?.vfs ?? (pdfFonts as unknown as Record<string, string>);
+}
+
+function buildVfs(): Record<string, string> {
+  return {
+    ...getDefaultVfs(),
+    ...sarabunFonts,
+  };
+}
+
+function buildFonts(): Record<string, PdfFontFamily> {
+  return {
+    Roboto: {
+      normal: "Roboto-Regular.ttf",
+      bold: "Roboto-Medium.ttf",
+      italics: "Roboto-Italic.ttf",
+      bolditalics: "Roboto-MediumItalic.ttf",
+    },
+    Sarabun: {
+      normal: "Sarabun-Regular.ttf",
+      bold: "Sarabun-Regular.ttf",
+      italics: "Sarabun-Regular.ttf",
+      bolditalics: "Sarabun-Regular.ttf",
+    },
+  };
 }
 
 /**
@@ -34,6 +74,9 @@ export const generatePackingListPDFMake = async (
   const mm = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
   const filenameTimestamp = `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
+  const vfs = buildVfs();
+  const fonts = buildFonts();
+  const defaultFontFamily = "Sarabun";
 
   // --- Calculate Totals ---
   const totalPOs = results.length;
@@ -264,7 +307,7 @@ export const generatePackingListPDFMake = async (
       badge: styleBadge,
     },
     defaultStyle: {
-      font: "Roboto",
+      font: defaultFontFamily,
       fontSize: 9, 
       color: "#475569", 
     },
@@ -279,8 +322,12 @@ export const generatePackingListPDFMake = async (
     },
   };
 
-  // Generate & Download
-  pdfMake.createPdf(docDefinition).download(`PackingPlan_${customerName}_${totalItems}_${filenameTimestamp}.pdf`);
+  const pdfMakeRuntime = pdfMake as unknown as PdfMakeRuntime;
+  pdfMakeRuntime.addVirtualFileSystem?.(vfs);
+  pdfMakeRuntime.addFonts?.(fonts);
+  pdfMakeRuntime
+    .createPdf(docDefinition)
+    .download(`PackingPlan_${customerName}_${totalItems}_${filenameTimestamp}.pdf`);
 };
 
 // --- Helper Components ---
