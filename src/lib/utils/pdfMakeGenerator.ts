@@ -58,7 +58,8 @@ function buildFonts(): Record<string, PdfFontFamily> {
 export const generatePackingListPDFMake = async (
   results: PackingPlanResult[],
   customerName: string,
-  poList: string[]
+  poList: string[],
+  totalItemsRequired: number = 0 // New argument for Accuracy Rate
 ) => {
   const now = new Date();
   const today = now.toLocaleDateString("en-UK", {
@@ -66,14 +67,18 @@ export const generatePackingListPDFMake = async (
     month: "long",
     year: "numeric",
   });
-  // Custom format: yyyyMMddHHmmss
-  const yyyy = now.getFullYear();
-  const MM = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
+  // Custom format: HH:mm:ss
   const HH = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
+  const timeString = `${HH}:${mm}:${ss}`;
+  
+  // Filename timestamp
+  const yyyy = now.getFullYear();
+  const MM = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
   const filenameTimestamp = `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
+
   const vfs = buildVfs();
   const fonts = buildFonts();
   const defaultFontFamily = "Sarabun";
@@ -86,11 +91,15 @@ export const generatePackingListPDFMake = async (
   const totalWarps = results.reduce((acc, r) => acc + r.cases.filter(c => c.type.includes("Warp")).length, 0);
   const totalPackages = totalPallets + totalBoxes + totalWarps; // Sum of all containers
 
+  // Calculate Accuracy Rate
+  const accuracyRate = totalItemsRequired > 0 ? (totalItems / totalItemsRequired) * 100 : 0;
+  const accuracyText = totalItemsRequired > 0 ? `${accuracyRate.toFixed(2)}%` : "N/A";
+
   // --- Styles & Colors (Soft Pastel Theme) ---
-  const styleHeader: Style = { fontSize: 24, bold: true, color: "#6366f1", margin: [0, 0, 0, 2] }; // Indigo 500
-  const styleSubHeader: Style = { fontSize: 10, color: "#94a3b8", margin: [0, 0, 0, 10] }; // Reduced bottom margin
-  const styleSectionTitle: Style = { fontSize: 14, bold: true, color: "#334155", margin: [0, 10, 0, 2] }; // Reduced margins
-  const styleTableHeader: Style = { bold: true, fontSize: 10, color: "#475569", fillColor: "#f1f5f9", alignment: "center" }; // Slate 600 on Slate 100
+  const styleHeader: Style = { fontSize: 24, bold: true, color: "#6366f1", margin: [0, 0, 0, 2], alignment: "center" }; // Indigo 500
+  const styleSubHeader: Style = { fontSize: 10, color: "#94a3b8", margin: [0, 0, 0, 10], alignment: "center" }; 
+  const styleSectionTitle: Style = { fontSize: 14, bold: true, color: "#334155", margin: [0, 10, 0, 2] }; 
+  const styleTableHeader: Style = { bold: true, fontSize: 10, color: "#475569", fillColor: "#f1f5f9", alignment: "center" }; 
   const styleBadge: Style = { fontSize: 8, bold: true, color: "#ffffff", alignment: "center" };
 
   // --- Content Builder ---
@@ -109,54 +118,48 @@ export const generatePackingListPDFMake = async (
   }
 
   // 1. Header Section
-  // Logo height = Header (24+2=26) + Subheader (10+10=20) = 46. Let's use 45.
-  const logoHeight = 45;
+  const logoHeight = 45; // Original height
 
   content.push({
     columns: [
-      {
-         width: "auto",
-         stack: [
-             logoSvg ? { svg: logoSvg, height: logoHeight, width: 100, margin: [0, 0, 20, 0] } : { text: "LOGO", fontSize: 20 }
-         ]
-      },
-      {
-        width: "*",
-        stack: [
-          { text: "PACKING PLAN", style: "header" },
-          { text: `Generated: ${today}`, style: "subheader" },
-        ],
-      },
-      {
-        width: "auto",
-        stack: [
-          { text: "CUSTOMER", style: { fontSize: 9, bold: true, color: "#cbd5e1" } }, // Slate 300
-          { text: customerName.toUpperCase(), style: { fontSize: 14, bold: true, color: "#1e293b" } }, // Slate 800
-        ],
-        alignment: "right",
-      },
+        logoSvg ? {
+             svg: logoSvg,
+             width: 150, 
+             height: logoHeight,
+             alignment: 'left',
+             margin: [-30, 0, 0, 0] // Moved further left per request
+        } : { text: "", width: 150 },
+        {
+            stack: [
+                { text: "PACKING PLAN", style: "header", alignment: "center" },
+                { text: `Generated: ${today}   ${timeString}`, style: "subheader", alignment: "center" }, 
+            ],
+            width: '*' 
+        },
+        {
+          width: 150,
+          stack: [
+            { text: "CUSTOMER", style: { fontSize: 9, bold: true, color: "#cbd5e1" } }, // Slate 300
+            { text: customerName.toUpperCase(), style: { fontSize: 14, bold: true, color: "#1e293b" } }, // Slate 800
+          ],
+          alignment: "right",
+        },
     ],
-    margin: [0, 0, 0, 10], // Reduced margin
+    margin: [0, 0, 0, 10], 
+    columnGap: 10
   });
 
-  // 2. Summary Cards
+  // 2. Summary Cards (Single Row)
   content.push({
     columns: [
-      createSummaryCard("TOTAL PO", totalPOs.toString(), "#f8fafc", "#64748b"), 
-      createSummaryCard("TOTAL ITEMS", totalItems.toString(), "#fdf2f8", "#db2777"), 
-      createSummaryCard("TOTAL PACKAGES", totalPackages.toString(), "#f0f9ff", "#0284c7"), 
-    ],
-    columnGap: 10,
-    margin: [0, 0, 0, 5], 
-  });
-
-  content.push({
-    columns: [
+      createSummaryCard("TOTAL PO", totalPOs.toString(), "#f1f5f9", "#475569"),
+      createSummaryCard("TOTAL ITEMS", totalItems.toString(), "#f1f5f9", "#475569"),
+      createSummaryCard("TOTAL PACKAGES", totalPackages.toString(), "#f1f5f9", "#475569"),
       createSummaryCard("TOTAL PALLETS", totalPallets.toString(), "#ecfdf5", "#059669"), 
       createSummaryCard("TOTAL BOXES", totalBoxes.toString(), "#eff6ff", "#2563eb"), 
       createSummaryCard("TOTAL WARP", totalWarps.toString(), "#faf5ff", "#9333ea"), 
     ],
-    columnGap: 10,
+    columnGap: 5,
     margin: [0, 0, 0, 10], 
   });
 
@@ -164,51 +167,58 @@ export const generatePackingListPDFMake = async (
   content.push({
       text: `Orders Included: ${poList.join(', ')}`,
       style: { fontSize: 8, color: "#94a3b8", italics: true },
-      margin: [0, 0, 0, 10] 
+      margin: [0, 0, 0, 2] 
   });
 
-  // 3. PO Details
-  content.push({ text: "Detailed Packing List", style: "sectionTitle" });
+  // 3. PO Details Header with Accuracy Rate
+  content.push({
+    columns: [
+      { text: "Detailed Packing List", style: "sectionTitle", width: "*" },
+      { 
+        text: `Accuracy Rate: ${accuracyText}`, 
+        style: { fontSize: 10, bold: true, color: accuracyRate === 100 ? "#059669" : "#d97706" }, 
+        alignment: "right",
+        margin: [0, 15, 0, 0] 
+      }
+    ],
+    columnGap: 10,
+    margin: [0, 5, 0, 5]
+  });
 
   results.forEach((plan, index) => {
+    // Calculate Total Qty for this PO
+    const poTotalQty = plan.cases.reduce((sum, c) => sum + c.items.reduce((s, i) => s + i.qty, 0), 0);
+
     // Spacer between POs
-    if (index > 0) content.push({ text: "", margin: [0, 10, 0, 0] }); 
+    if (index > 0) content.push({ text: "", margin: [0, 5, 0, 0] }); 
 
-    // Group PO Header and Table to prevent Page Break split
-    // Using a 'stack' with 'unbreakable: true' is the standard way, 
-    // but unbreakable only works if the whole stack fits on one page. 
-    // If the table is long, it WILL break the page, and the whole stack moves to next page.
-    // If the table is LONGER than a page, unbreakable might cause issues or just be ignored for the body.
-    // However, we want the HEADER to stick to the TABLE.
-    // pdfmake 'unbreakable' on a stack keeps the whole stack together. 
-    // If we just want the PO Header + First Row to ideally stay together, 'dontBreakRows' in table helps the table itself.
-    // But to glue PO Header to Table, we can put the PO Header IN the table header? 
-    // OR use 'unbreakable: true' on a stack containing PO Header and the Table.
-    // Let's try the stack approach. If the table is super long, it might force a break early.
-    // Better approach for "Heading + Table Start" is to use `pageBreak: 'after'` logic or `keepWithHeaderRows` but pdfmake doesn't have `keepWithNext`.
-    // Actually, `unbreakable: true` is for the whole block.
-    // A safer way is to put the PO Header as the FIRST ROW of the table (spanning all columns).
-    // Then `headerRows: 2` (PO Header + Col Header) and `dontBreakRows: true`.
-    // This ensures they stay together and repeat headers if configured (or just stick).
-    
-    // Let's modify to put PO Header INSIDE the table as a header row.
-    
-    const poHeaderRow: TableCell[] = [
-        {
-            text: `PO: ${plan.po}`,
-            style: { fontSize: 12, bold: true, color: "#475569" }, // Background handled by fill
-            fillColor: "#f8fafc",
-            colSpan: 6,
-            border: [false, false, false, false], 
-            margin: [0, 5, 0, 5]
+    // Unified Header Table (PO + Qty)
+    // This part is the "Top half" of the block.
+    content.push({
+        table: {
+            widths: ['*'],
+            body: [
+                [
+                    { 
+                        text: [
+                            { text: `PO: ${plan.po}`, style: { fontSize: 12, bold: true, color: "#475569" } },
+                            { text: `   Qty: ${poTotalQty}`, style: { fontSize: 12, bold: true, color: "#64748b" } }
+                        ],
+                        fillColor: "#f8fafc",
+                        border: [false, false, false, false],
+                        margin: [5, 4, 5, 4]
+                    }
+                ]
+            ]
         },
-        {}, {}, {}, {}, {} // Empty cells for colSpan
-    ];
+        layout: 'noBorders',
+        margin: [0, 5, 0, 0] // Fixed to the top of the next table
+    });
 
-    // Table Body
+    // Data Table 
+    // This part is the "Bottom half" of the block. Only the headings row repeats.
     const tableBody: TableCell[][] = [
-      poHeaderRow, // Row 0: PO Header
-      [            // Row 1: Column Headers
+      [            // Row 0: Column Headers (This row repeats on page breaks)
         { text: "#", style: "tableHeader", border: [false, false, false, false] },
         { text: "Type", style: "tableHeader", border: [false, false, false, false] },
         { text: "Item", style: "tableHeader", border: [false, false, false, false] },
@@ -248,49 +258,51 @@ export const generatePackingListPDFMake = async (
           alignment: "center",
           fillColor: rowColor,
           fontSize: 9,
-          color: "#475569",
+          color: "#334155",
           border: [false, false, false, true],
           borderColor: ["#e2e8f0", "#e2e8f0", "#e2e8f0", "#e2e8f0"],
         },
         { 
-            text: c.dims || "-", 
-            alignment: "center", 
-            fillColor: rowColor, 
-            fontSize: 9, 
-            color: "#1e293b", 
-            bold: true, 
-            border: [false, false, false, true], 
-            borderColor: ["#e2e8f0", "#e2e8f0", "#e2e8f0", "#e2e8f0"] 
+          text: c.dims || "-", 
+          alignment: "center", 
+          fillColor: rowColor, 
+          fontSize: 9, 
+          color: "#64748b",
+          border: [false, false, false, true],
+          borderColor: ["#e2e8f0", "#e2e8f0", "#e2e8f0", "#e2e8f0"],
+          font: "Roboto" 
         },
-        { text: c.note || "-", fillColor: rowColor, fontSize: 8, color: "#94a3b8", border: [false, false, false, true], borderColor: ["#e2e8f0", "#e2e8f0", "#e2e8f0", "#e2e8f0"] },
+        { 
+          text: c.note || "-", 
+          alignment: "left", 
+          italics: true, 
+          fillColor: rowColor, 
+          fontSize: 8, 
+          color: "#94a3b8",
+          border: [false, false, false, true],
+          borderColor: ["#e2e8f0", "#e2e8f0", "#e2e8f0", "#e2e8f0"],
+        },
       ]);
     });
 
     content.push({
       table: {
-        headerRows: 2, // Header includes PO Row and Column Titles
-        dontBreakRows: true, 
+        headerRows: 1, 
         widths: [20, 70, 110, 30, 90, "*"], 
         body: tableBody,
       },
       layout: {
         hLineWidth: (i: number, node: { table: { body: unknown[][] } }) => {
-            // Updated logic: i=2 is the line under Column Titles (Index 1)
-            // i=0 is top (above PO) -> 0
-            // i=1 is middle (above Columns) -> 0 (or 1 if we want line between PO and Cols, let's say 0 for cleaner look)
-            // i=2 is line under Columns -> 1 
-            // i=length is bottom -> 1
-            if (i === 2 || i === node.table.body.length) return 1;
-            return 0; 
+            return (i === 1 || i === node.table.body.length) ? 1 : 0;
         },
         vLineWidth: () => 0,
-        hLineColor: () => "#e2e8f0", 
+        hLineColor: () => "#e2e8f0",
         paddingLeft: () => 4, 
         paddingRight: () => 4,
         paddingTop: () => 3, 
         paddingBottom: () => 3, 
-      },
-      margin: [0, 0, 0, 0], 
+      } as unknown as string, 
+      margin: [0, 0, 0, 15], 
     });
   });
 

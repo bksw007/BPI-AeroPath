@@ -238,11 +238,27 @@ export default function PackagingBookingPage() {
     const pdfData = buildPackingPlanPdfData();
     const poList = planResult.map(p => p.po);
 
+    // Calculate Total Items Required from Raw Input
+    let totalItemsRequired = 0;
+    if (activeStep >= 3 && rawData) {
+       // Re-parse raw data to get total required
+       // Assuming rawData format: PO, SKU, QTY
+       const lines = rawData.split("\n");
+       lines.forEach(line => {
+           const parts = line.trim().split(/[\t,]+/);
+           if (parts.length >= 3) {
+               const qty = parseInt(parts[2].replace(/,/g, "").trim());
+               if (!isNaN(qty)) totalItemsRequired += qty;
+           }
+       });
+    }
+
     try {
-      await generatePackingListPDFMake(pdfData, selectedCustomer.code, poList);
+      await generatePackingListPDFMake(pdfData, selectedCustomer.code, poList, totalItemsRequired);
     } catch (error) {
       console.error("PDFMake export failed. Falling back to jsPDF.", error);
-      generatePackingListPDF(pdfData, selectedCustomer.code, poList);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      generatePackingListPDF(pdfData as any, selectedCustomer.code, poList);
     } finally {
       setIsExportingPlan(false);
     }
@@ -599,7 +615,7 @@ export default function PackagingBookingPage() {
                                       onClick={generateLayoutGridPDF}
                                       className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-50 border-2 border-slate-200 border-dashed rounded-2xl hover:border-slate-400 hover:bg-slate-100 transition-all group"
                                   >
-                                      <div className="w-8 h-8 border border-slate-400 grid grid-cols-2 grid-rows-2 gap-[1px] bg-slate-300">
+                                      <div className="w-8 h-8 border border-slate-400 grid grid-cols-2 grid-rows-2 gap-px bg-slate-300">
                                           <div className="bg-white"></div><div className="bg-white"></div>
                                           <div className="bg-white"></div><div className="bg-white"></div>
                                       </div>
