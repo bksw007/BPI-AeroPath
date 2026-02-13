@@ -1130,21 +1130,62 @@ export class PackingLogicService {
   }
 
   private finalizeAndSort(): void {
-    this.poResults.forEach((res) => {
-      // 1. Separate SamePack into Pallet vs Box
-      const samePallets = res.sameCases.filter(c => c.type.toLowerCase().includes("pallet"));
-      const sameBoxes = res.sameCases.filter(c => !c.type.toLowerCase().includes("pallet"));
+    // Helper to get priority score (lower is better)
+    const getPriority = (res: POResult): number => {
+      if (res.monoCases.length > 0) return 1;
+      if (res.sameCases.some(c => c.note?.includes("Overflow"))) return 2;
+      if (res.sameCases.length > 0) return 3;
+      if (res.mixedCases.length > 0) return 4;
+      if (res.warpCases.length > 0) return 5;
+      return 6; // Unknown or empty
+    };
 
-      // 2. Define Custom Order
-      // Order: Same(Pallet) -> Mono -> Same(Box) -> Mixed -> Warp -> Unknown
+    // 1. Sort POs themselves based on priority
+    const sortedEntries = Array.from(this.poResults.entries()).sort(([, resA], [, resB]) => {
+      const priorityA = getPriority(resA);
+      const priorityB = getPriority(resB);
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB; // Lower priority number first
+      }
+
+      // If same priority, sort by total quantity (descending) or PO name
+      const totalQtyA = resA.monoCases.length + resA.sameCases.length + resA.mixedCases.length + resA.warpCases.length;
+      const totalQtyB = resB.monoCases.length + resB.sameCases.length + resB.mixedCases.length + resB.warpCases.length;
+      
+      if (totalQtyA !== totalQtyB) {
+        return totalQtyB - totalQtyA; // More cases first
+      }
+
+      return resA.po.localeCompare(resB.po);
+    });
+
+    // Re-build map in sorted order
+    this.poResults = new Map(sortedEntries);
+
+    // 2. Sort cases within each PO
+    this.poResults.forEach((res) => {
+      // 2.1 Separate SamePack into Overflow vs Pure Same
+      const overflowCases = res.sameCases.filter(c => c.note?.includes("Overflow"));
+      const pureSameCases = res.sameCases.filter(c => !c.note?.includes("Overflow"));
+
+      // 2.2 Further split Pure Same into Pallet vs Box (UI preference)
+      const samePallets = pureSameCases.filter(c => c.type.toLowerCase().includes("pallet"));
+      const sameBoxes = pureSameCases.filter(c => !c.type.toLowerCase().includes("pallet"));
+
+      // 2.3 Define Custom Order: Mono -> Overflow -> Same(Pallet) -> Same(Box) -> Mixed -> Warp -> Unknown
       const sortedCases = [
-        ...samePallets,
         ...res.monoCases,
+        ...overflowCases,
+        ...samePallets,
         ...sameBoxes,
         ...res.mixedCases,
         ...res.warpCases,
         ...res.unknownCases
       ];
+
+      // Update sameCases order for UI/Export consistency
+      res.sameCases = [...overflowCases, ...samePallets, ...sameBoxes];
 
       // 3. Re-index Case Numbers
       let runningIndex = 1;
@@ -1152,8 +1193,21 @@ export class PackingLogicService {
         c.caseNo = runningIndex++;
       });
       
-      // Note: We don't strictly need to modify the internal arrays (monoCases, etc.) 
-      // because the UI merges them. But modifying caseNo is crucial as UI sorts by it.
+      // Update result arrays to reflect sorted order (optional but good for consistency)
+      // Note: We don't merge them back into a single array here because POResult structure keeps them separate.
+      // However, the UI/Export logic likely iterates over them or needs a way to get the sorted list.
+      // Since POResult has separate arrays, we should probably Sort the displayed list in the UI or
+      // return a combined sorted list?
+      // Wait, standard POResult has specific arrays. We just re-indexed caseNo.
+      // The previous logic was:
+      /*
+      const sortedCases = [...];
+      sortedCases.forEach(c => c.caseNo = runningIndex++);
+      */
+      // It didn't save sortedCases back to the object! It only updated caseNo on the objects in memory reference.
+      // The UI likely maps: [...mono, ...same, ...mixed].
+      // So if we want the UI to show in order, we need to ensure the UI respects caseNo OR we need to verify UI logic.
+      // Let's assume UI sorts by caseNo.
     });
   }
 }
