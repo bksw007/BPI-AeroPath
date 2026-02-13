@@ -14,6 +14,7 @@ import {
   Boxes,
 } from "lucide-react";
 import Image from "next/image";
+import * as motion from "motion/react-client";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 
@@ -26,6 +27,90 @@ import { ProjectCard } from "@/components/shared/ProjectCard";
  * - Projects Section: Grid ของโปรเจคทั้งหมด
  * - Footer
  */
+
+const modules = [
+  {
+    title: "Material Control",
+    description:
+      "Manage inventory, requisitions, and receiving. Track stock levels and automate reorder points.",
+    icon: Package,
+    href: "/projects/material-control",
+    status: "active" as const,
+    iconColor: "from-blue-500 to-blue-600",
+  },
+  {
+    title: "Warehouse Management",
+    description:
+      "Optimize warehouse operations with location tracking, stock movements, and space utilization.",
+    icon: Warehouse,
+    href: "/projects/warehouse",
+    status: "active" as const,
+    iconColor: "from-purple-500 to-purple-600",
+  },
+  {
+    title: "Smart Packaging",
+    description:
+      "Intelligent packing plans based on customer specs. Manage pallets, box sizes, and automated lists.",
+    icon: Boxes,
+    href: "/projects/packaging",
+    status: "active" as const,
+    iconColor: "from-green-500 to-green-600",
+  },
+  {
+    title: "Delivery Tracking",
+    description:
+      "Monitor shipments, delivery status, and logistics in real-time with automated notifications.",
+    icon: Truck,
+    href: "/projects/delivery",
+    status: "active" as const,
+    iconColor: "from-indigo-500 to-blue-600",
+  },
+  {
+    title: "Document Center",
+    description:
+      "Centralized repository for all documents, reports, and compliance records.",
+    icon: FileText,
+    href: "/projects/documents",
+    status: "beta" as const,
+    iconColor: "from-amber-500 to-amber-600",
+  },
+  {
+    title: "Task Management",
+    description:
+      "Assign, track, and manage team tasks with priorities and deadlines.",
+    icon: ListTodo,
+    href: "/projects/tasks",
+    status: "beta" as const,
+    iconColor: "from-cyan-500 to-cyan-600",
+  },
+  {
+    title: "Analytics Dashboard",
+    description:
+      "Comprehensive reports and insights on inventory, operations, and team performance.",
+    icon: BarChart3,
+    href: "/projects/analytics",
+    status: "coming-soon" as const,
+    iconColor: "from-pink-500 to-pink-600",
+  },
+  {
+    title: "Maintenance Log",
+    description:
+      "Track equipment maintenance, repairs, and service schedules.",
+    icon: Wrench,
+    href: "/projects/maintenance",
+    status: "coming-soon" as const,
+    iconColor: "from-red-500 to-red-600",
+  },
+  {
+    title: "Staff Schedule",
+    description:
+      "Manage team schedules, shifts, and availability for optimal coverage.",
+    icon: Users,
+    href: "/projects/staff",
+    status: "coming-soon" as const,
+    iconColor: "from-indigo-500 to-indigo-600",
+  },
+];
 
 export default function Home() {
   return (
@@ -155,88 +240,62 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Projects Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <ProjectCard
-              title="Material Control"
-              description="Manage inventory, requisitions, and receiving. Track stock levels and automate reorder points."
-              icon={Package}
-              href="/projects/material-control"
-              status="active"
-              iconColor="from-blue-500 to-blue-600"
-            />
-
-            <ProjectCard
-              title="Warehouse Management"
-              description="Optimize warehouse operations with location tracking, stock movements, and space utilization."
-              icon={Warehouse}
-              href="/projects/warehouse"
-              status="active"
-              iconColor="from-purple-500 to-purple-600"
-            />
-
-            <ProjectCard
-              title="Smart Packaging"
-              description="Intelligent packing plans based on customer specs. Manage pallets, box sizes, and automated lists."
-              icon={Boxes}
-              href="/projects/packaging"
-              status="active"
-              iconColor="from-green-500 to-green-600"
-            />
-
-            <ProjectCard
-              title="Delivery Tracking"
-              description="Monitor shipments, delivery status, and logistics in real-time with automated notifications."
-              icon={Truck}
-              href="/projects/delivery"
-              status="active"
-              iconColor="from-indigo-500 to-blue-600"
-            />
-
-            <ProjectCard
-              title="Document Center"
-              description="Centralized repository for all documents, reports, and compliance records."
-              icon={FileText}
-              href="/projects/documents"
-              status="beta"
-              iconColor="from-amber-500 to-amber-600"
-            />
-
-            <ProjectCard
-              title="Task Management"
-              description="Assign, track, and manage team tasks with priorities and deadlines."
-              icon={ListTodo}
-              href="/projects/tasks"
-              status="beta"
-              iconColor="from-cyan-500 to-cyan-600"
-            />
-
-            <ProjectCard
-              title="Analytics Dashboard"
-              description="Comprehensive reports and insights on inventory, operations, and team performance."
-              icon={BarChart3}
-              href="/projects/analytics"
-              status="coming-soon"
-              iconColor="from-pink-500 to-pink-600"
-            />
-
-            <ProjectCard
-              title="Maintenance Log"
-              description="Track equipment maintenance, repairs, and service schedules."
-              icon={Wrench}
-              href="/projects/maintenance"
-              status="coming-soon"
-              iconColor="from-red-500 to-red-600"
-            />
-
-            <ProjectCard
-              title="Staff Schedule"
-              description="Manage team schedules, shifts, and availability for optimal coverage."
-              icon={Users}
-              href="/projects/staff"
-              status="coming-soon"
-              iconColor="from-indigo-500 to-indigo-600"
-            />
+          {/* Projects Stack Deck */}
+          <div className="relative mx-auto flex max-w-6xl flex-col pt-2 pb-6">
+            {modules.map((module, index) => (
+              <motion.div
+                key={module.href}
+                initial={{
+                  opacity: 0,
+                  y: 120,
+                  x: index % 2 === 0 ? -80 : 80,
+                  scale: 0.86,
+                  rotate: index % 2 === 0 ? -7 : 7,
+                  filter: "blur(12px)",
+                }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                  x: 0,
+                  scale: 1,
+                  rotate: index % 2 === 0 ? -0.7 : 0.7,
+                  filter: "blur(0px)",
+                }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 290,
+                  damping: 16,
+                  mass: 0.68,
+                  delay: index * 0.06,
+                }}
+                whileHover={{
+                  scale: 1.08,
+                  y: -30,
+                  x: index % 2 === 0 ? 120 : -120,
+                  rotate: 0,
+                  zIndex: 220,
+                  boxShadow: "0 42px 70px rgba(39, 39, 39, 0.34)",
+                }}
+                whileTap={{ scale: 0.94, rotate: 0 }}
+                className="transform-gpu will-change-transform"
+                style={{
+                  zIndex: modules.length - index,
+                  marginTop: index === 0 ? 0 : -42,
+                  alignSelf: index % 2 === 0 ? "flex-start" : "flex-end",
+                  width: index % 2 === 0 ? "min(94%, 980px)" : "min(90%, 940px)",
+                }}
+              >
+                <ProjectCard
+                  title={module.title}
+                  description={module.description}
+                  icon={module.icon}
+                  href={module.href}
+                  status={module.status}
+                  iconColor={module.iconColor}
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
