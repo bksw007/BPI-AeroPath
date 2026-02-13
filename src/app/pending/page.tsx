@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { 
   Clock, 
@@ -41,18 +42,20 @@ import { FloatingElements } from "@/components/effects/FloatingElements";
 // ------------------------------------------------------------------
 function WorldClock({ city, timezone }: { city: string; timezone: string }) {
   const [time, setTime] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="flex flex-col items-center p-2.5 bg-white/40 rounded-xl backdrop-blur-sm border border-white/30 min-w-[70px]">
-      <span className="text-lg font-bold text-slate-700 font-mono">
-        {time.toLocaleTimeString("en-US", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hour12: false })}
+    <div className="flex flex-col items-center p-2.5 bg-[#EFD09E]/30 rounded-xl backdrop-blur-sm border border-[#D4AA7D]/20 min-w-[70px]">
+      <span className="text-lg font-bold text-[#272727] font-mono">
+        {mounted ? time.toLocaleTimeString("en-US", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hour12: false }) : "--:--"}
       </span>
-      <span className="text-[10px] text-slate-500 font-medium">{city}</span>
+      <span className="text-[10px] text-[#7E5C4A] font-medium">{city}</span>
     </div>
   );
 }
@@ -151,7 +154,7 @@ function WeatherWidget() {
   if (loading) {
     return (
       <GlassCard className="h-full p-6 flex items-center justify-center">
-         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+         <div className="w-8 h-8 border-4 border-[#7E5C4A] border-t-transparent rounded-full animate-spin"></div>
       </GlassCard>
     );
   }
@@ -161,8 +164,8 @@ function WeatherWidget() {
   };
 
   return (
-    <GlassCard className="h-full p-6 flex flex-col justify-between relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none z-0" />
+    <GlassCard className="h-full p-6 flex flex-col justify-between relative overflow-hidden group bg-[#F6EDDE]/40 border-[#D4AA7D]/15">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AA7D]/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none z-0" />
       
       {/* Large Centered Custom Icon */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
@@ -178,8 +181,8 @@ function WeatherWidget() {
 
       <div className="flex justify-between items-start z-10 relative">
         <div>
-          <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">{data.city}</h3>
-          <p className="text-xs text-slate-400 mt-1 capitalize">{data.description}</p>
+          <h3 className="text-[#7E5C4A] text-sm font-medium uppercase tracking-wider">{data.city}</h3>
+          <p className="text-xs text-[#D4AA7D] mt-1 capitalize">{data.description}</p>
           {data.is_mock && <span className="text-[9px] text-rose-400 block mt-1">(Using Standard Data)</span>}
         </div>
         <div className="-mt-1 -mr-1 opacity-80 scale-90">
@@ -188,8 +191,8 @@ function WeatherWidget() {
       </div>
       
       <div className="mt-4 z-10 relative">
-        <h2 className="text-4xl font-bold text-slate-700">{data.temp}°C</h2>
-        <div className="flex gap-3 mt-2 text-xs text-slate-500 font-medium">
+        <h2 className="text-4xl font-bold text-[#272727]">{data.temp}°C</h2>
+        <div className="flex gap-3 mt-2 text-xs text-[#7E5C4A] font-medium">
           <span>H: {data.high}°</span>
           <span>L: {data.low}°</span>
           <span>Humidity: {data.humidity}%</span>
@@ -243,9 +246,9 @@ function OilPriceWidget() {
   }, []);
 
   return (
-    <GlassCard className="h-full flex flex-col px-6 pb-6 pt-3 relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
+    <GlassCard className="h-full flex flex-col px-6 pb-6 pt-3 relative overflow-hidden bg-[#F6EDDE]/40 backdrop-blur-md border-[#D4AA7D]/15">
       {/* Header */}
-      <div className="flex flex-col items-center gap-1 mb-4 pb-3 border-b border-slate-200/50 flex-shrink-0">
+      <div className="flex flex-col items-center gap-1 mb-4 pb-3 border-b border-[#D4AA7D]/30 shrink-0">
         <div className="relative w-full h-16">
            <Image
              src="/images/Logo bangchak horizontal.svg"
@@ -254,7 +257,7 @@ function OilPriceWidget() {
              className="object-contain object-center"
            />
         </div>
-        <div className="flex items-center gap-1.5 text-slate-500">
+        <div className="flex items-center gap-1.5 text-[#7E5C4A]">
           <Droplet className="w-3.5 h-3.5" />
           <span className="text-xs font-semibold tracking-wider uppercase">Oil Prices</span>
         </div>
@@ -266,23 +269,23 @@ function OilPriceWidget() {
           [1, 2, 3, 4, 5].map(i => <div key={i} className="h-9 bg-slate-100/50 rounded-lg animate-pulse" />)
         ) : (
           prices.map((fuel, idx) => (
-            <div key={idx} className="flex justify-between items-center text-sm p-2.5 bg-white/40 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-slate-100 shadow-sm hover:shadow-md group">
-              <span className="text-slate-600 font-medium group-hover:text-slate-800 transition-colors text-xs">{fuel.OilName}</span>
-              <span className="font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-slate-100 group-hover:text-indigo-600 transition-colors">
+            <div key={idx} className="flex justify-between items-center text-sm p-2.5 bg-[#EFD09E]/25 rounded-xl hover:bg-[#EFD09E]/50 transition-all border border-[#D4AA7D]/15 hover:border-[#D4AA7D]/30 shadow-sm hover:shadow-md group">
+              <span className="text-[#272727] font-medium group-hover:text-[#272727] transition-colors text-xs">{fuel.OilName}</span>
+              <span className="font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-[#D4AA7D]/20 group-hover:text-[#7E5C4A] transition-colors">
                 {fuel.PriceToday} ฿
               </span>
             </div>
           ))
         )}
         {prices.length === 0 && !loading && (
-          <div className="text-center py-6 text-slate-400 text-sm">
+          <div className="text-center py-6 text-[#7E5C4A] text-sm">
              Unable to load prices
           </div>
         )}
       </div>
       
       {/* Footer */}
-      <p className="text-[9px] text-slate-400 mt-3 text-center flex-shrink-0">Updated Daily • Bangchak API</p>
+      <p className="text-[9px] text-[#D4AA7D] mt-3 text-center shrink-0">Updated Daily • Bangchak API</p>
     </GlassCard>
   );
 }
@@ -358,8 +361,8 @@ function CurrencyWidget() {
   }, []);
 
   return (
-    <GlassCard className="w-full h-full px-6 pb-6 pt-3 flex flex-col relative overflow-hidden bg-white/60 backdrop-blur-md border-white/40">
-      <div className="flex flex-col items-center gap-1 mb-6 pb-3 border-b border-slate-200/50 flex-shrink-0">
+    <GlassCard className="w-full h-full px-6 pb-6 pt-3 flex flex-col relative overflow-hidden bg-[#F6EDDE]/40 backdrop-blur-md border-[#D4AA7D]/15">
+      <div className="flex flex-col items-center gap-1 mb-6 pb-3 border-b border-[#D4AA7D]/30 shrink-0">
         <div className="relative w-full h-16 mb-2">
           <Image
             src="/images/BOT_logo_1.png"
@@ -368,7 +371,7 @@ function CurrencyWidget() {
             className="object-contain object-center"
           />
         </div>
-        <div className="flex items-center gap-1.5 text-slate-500">
+        <div className="flex items-center gap-1.5 text-[#7E5C4A]">
            <Coins className="w-3.5 h-3.5" />
            <span className="text-xs font-semibold tracking-wider uppercase">Exchange Rates</span>
         </div>
@@ -382,13 +385,13 @@ function CurrencyWidget() {
            <div className="text-center py-4 text-slate-400 text-xs">{error}</div>
         ) : (
           rates.map((rate) => (
-            <div key={rate.currency_id} className="flex items-center justify-between bg-white/40 px-3 py-3 rounded-xl border border-white/50 hover:bg-white/60 transition-colors">
+            <div key={rate.currency_id} className="flex items-center justify-between bg-[#EFD09E]/25 px-3 py-3 rounded-xl border border-[#D4AA7D]/15 hover:bg-[#EFD09E]/50 transition-colors">
                <div className="flex items-center gap-2">
                  <span className="text-2xl">{CURRENCY_FLAGS[rate.currency_id] || "🏳️"}</span>
-                 <span className="font-bold text-slate-700 text-sm">{rate.currency_id}</span>
+                 <span className="font-bold text-[#272727] text-sm">{rate.currency_id}</span>
                </div>
                <div className="text-right">
-                  <span className="block text-sm font-bold text-slate-800 leading-none mb-1">
+                  <span className="block text-sm font-bold text-[#272727] leading-none mb-1">
                     {parseFloat(rate.selling).toFixed(2)}
                   </span>
                   <div className={`flex items-center justify-end gap-0.5 text-[10px] font-medium ${
@@ -406,15 +409,79 @@ function CurrencyWidget() {
       </div>
 
       {/* Footer */}
-      <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+      <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-[#D4AA7D]">
         <span className="font-medium">Bank of Thailand</span>
         {date && (
           <>
-            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+            <span className="w-1 h-1 rounded-full bg-[#D4AA7D]"></span>
             <span>{date}</span>
           </>
         )}
       </div>
+    </GlassCard>
+  );
+}
+
+// ------------------------------------------------------------------
+// 🗺️ Components: Time Zone Widget
+// ------------------------------------------------------------------
+function TimeZoneWidget() {
+  const [times, setTimes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const updateTimes = () => {
+      const now = new Date();
+      const cities = [
+        { name: "Bangkok", tz: "Asia/Bangkok" },
+        { name: "Tokyo", tz: "Asia/Tokyo" },
+        { name: "London", tz: "Europe/London" },
+        { name: "New York", tz: "America/New_York" }
+      ];
+      
+      const newTimes: Record<string, string> = {};
+      cities.forEach(city => {
+        newTimes[city.name] = now.toLocaleTimeString("en-US", {
+          timeZone: city.tz,
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        });
+      });
+      setTimes(newTimes);
+    };
+
+    updateTimes();
+    const interval = setInterval(updateTimes, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <GlassCard className="h-full p-6 flex flex-col relative overflow-hidden bg-[#F6EDDE]/40 backdrop-blur-md border-[#D4AA7D]/15">
+      <div className="flex items-center gap-2 mb-6 pb-3 border-b border-[#D4AA7D]/30 shrink-0">
+        <GlobeLock className="w-5 h-5 text-[#7E5C4A]" />
+        <span className="text-sm font-bold tracking-wider uppercase text-[#7E5C4A]">Global Time Zones</span>
+      </div>
+
+      <div className="flex-1 grid grid-cols-2 gap-4">
+        {[
+          { name: "Bangkok", flag: "🇹🇭" },
+          { name: "Tokyo", flag: "🇯🇵" },
+          { name: "London", flag: "🇬🇧" },
+          { name: "New York", flag: "🇺🇸" }
+        ].map((city) => (
+          <div key={city.name} className="flex flex-col p-3 bg-[#EFD09E]/25 rounded-2xl border border-[#D4AA7D]/10 hover:bg-[#EFD09E]/40 transition-all hover:shadow-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base">{city.flag}</span>
+              <span className="text-[11px] font-bold text-[#7E5C4A] uppercase tracking-tight">{city.name}</span>
+            </div>
+            <div className="text-2xl font-black text-[#272727] font-mono tracking-tighter">
+              {times[city.name] || "--:--"}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <p className="text-[9px] text-[#D4AA7D] mt-4 text-center italic">Synchronized with World Atomic Clock</p>
     </GlassCard>
   );
 }
@@ -433,13 +500,13 @@ function NewsCard({ title, date, category, image }: { title: string; date: strin
           sizes="(max-width: 768px) 100vw, 33vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-        <span className="absolute top-3 left-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full z-20">
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10" />
+        <span className="absolute top-3 left-3 bg-[#7E5C4A] text-white text-[10px] font-bold px-2 py-1 rounded-full z-20">
           {category}
         </span>
       </div>
       <p className="text-xs text-slate-400 mb-1">{date}</p>
-      <h4 className="font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">
+      <h4 className="font-bold text-[#272727] leading-snug group-hover:text-[#7E5C4A] transition-colors">
         {title}
       </h4>
     </div>
@@ -450,8 +517,9 @@ function NewsCard({ title, date, category, image }: { title: string; date: strin
 // 🚀 Main Page Component
 // ------------------------------------------------------------------
 export default function PendingPage() {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
+  const [isJoinHovered, setIsJoinHovered] = useState(false);
 
   // Redirect if actually active
   useEffect(() => {
@@ -462,19 +530,10 @@ export default function PendingPage() {
 
   return (
     <ParallaxProvider>
-    <div 
-      className="min-h-screen"
-      style={{
-        backgroundImage: "url('/images/airplanes-leader-flying.svg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
+    <div className="min-h-screen bg-[#F6EDDE]">
       
       {/* 1. Header / Top Bar */}
-      <header className="bg-white/30 backdrop-blur-2xl border-b border-white/20 sticky top-0 z-50 shadow-sm">
+      <header className="bg-[#F6EDDE]/70 backdrop-blur-2xl border-b border-[#D4AA7D]/20 sticky top-0 z-50 shadow-sm">
         <div className="container-custom py-3.5 flex justify-between items-center">
           <div className="flex items-center gap-3.5">
             <Image 
@@ -495,46 +554,78 @@ export default function PendingPage() {
               <WorldClock city="London" timezone="Europe/London" />
             </div>
             
-            <div className="h-8 w-px bg-slate-200 hidden lg:block"></div>
+            <div className="h-8 w-px bg-[#D4AA7D]/30 hidden lg:block"></div>
             
             <button 
               onClick={async () => {
                 await signOut();
                 router.push("/login");
               }}
-              className="px-5 py-2.5 text-xs font-bold text-slate-500 bg-white/20 hover:bg-white/40 backdrop-blur-sm border border-white/30 rounded-xl transition-all flex items-center gap-2 transform active:scale-95"
+              onMouseEnter={() => setIsJoinHovered(true)}
+              onMouseLeave={() => setIsJoinHovered(false)}
+              className="relative px-6 py-2.5 text-sm font-bold transition-all duration-300 transform active:scale-95 flex items-center justify-center min-w-[100px]"
             >
-              Sign In
+              <motion.span 
+                animate={isJoinHovered ? { color: '#EFD09E' } : { color: ['#272727', '#EFD09E', '#272727'] }}
+                transition={isJoinHovered ? { duration: 0.3 } : { duration: 3, repeat: Infinity, ease: "linear" }}
+                className="relative z-10"
+              >
+                Join us!!
+              </motion.span>
+              <AnimatePresence>
+                {isJoinHovered && (
+                  <motion.div
+                    layoutId="join-us-pill"
+                    className="absolute inset-0 bg-[#272727] rounded-xl z-0 border border-[#272727]/20"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{
+                      type: "spring",
+                      bounce: 0.2,
+                      duration: 0.4
+                    }}
+                  />
+                )}
+              </AnimatePresence>
             </button>
           </div>
         </div>
       </header>
 
       {/* Sticky Notification Bar */}
-      <div className="sticky top-[57px] z-40 w-full py-3 flex justify-center">
-        <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-white/30 backdrop-blur-xl border border-white/40 rounded-full shadow-lg shadow-black/5">
-          <div className="relative">
-            <Clock className="w-4 h-4 text-amber-600" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full"></span>
+      {user && !loading && (
+        <div className="sticky top-[57px] z-40 w-full py-3 flex justify-center">
+          <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-[#EFD09E]/40 backdrop-blur-xl border border-[#D4AA7D]/30 rounded-full shadow-lg shadow-black/5">
+            <div className="relative">
+              <Clock className="w-4 h-4 text-[#7E5C4A]" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#D4AA7D] rounded-full animate-ping"></span>
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#D4AA7D] rounded-full"></span>
+            </div>
+            <span className="text-sm font-semibold text-[#7E5C4A] tracking-wide">ACCOUNT PENDING APPROVAL</span>
           </div>
-          <span className="text-sm font-semibold text-amber-700 tracking-wide">ACCOUNT PENDING APPROVAL</span>
         </div>
-      </div>
+      )}
 
       {/* 2. Welcome Message */}
       <section 
-        className="relative overflow-hidden bg-gradient-to-b from-white/50 via-indigo-50/20 to-transparent -mt-[110px]"
+        className="relative overflow-hidden -mt-[110px]"
         style={{ 
           paddingTop: '130px', 
           paddingBottom: '80px',
-          backgroundImage: "url('/images/Clouds_Background_With_Blue_Sky%20(1).svg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
         }}
       >
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
+        {/* Retro Groovy Background */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "url('/images/retro-groovy.svg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.4,
+          zIndex: 0
+        }} />
+        <div className="absolute inset-0 bg-linear-to-b from-[#F6EDDE]/50 via-transparent to-[#F6EDDE]/60" style={{ zIndex: 1 }} />
+        <div className="absolute top-0 inset-x-0 h-px bg-linear-to-r from-transparent via-[#9ACD32]/30 to-transparent"></div>
         
         {/* Background Elements */}
         <FloatingElements />
@@ -560,50 +651,57 @@ export default function PendingPage() {
             {/* 🎯 Main Heading with Medium Parallax */}
             <ParallaxElement depth={0.05} speed="medium">
             <h1 
-              className="text-4xl md:text-6xl mb-10 tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-indigo-800 to-slate-900 animate-fade-in-up animate-pulse" 
+              className="text-4xl md:text-6xl mb-10 tracking-tight leading-tight text-[#272727] animate-fade-in-up" 
               style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 600, fontStyle: 'italic', animationDuration: '1.5s' }}
             >
               Consolidate Your <br />
-              <span className="lg:whitespace-nowrap text-3xl md:text-5xl">Operating System Workflow</span>
+              <span className="lg:whitespace-nowrap text-3xl md:text-5xl text-[#7E5C4A]">Operating System Workflow</span>
             </h1>
             </ParallaxElement>
 
             {/* 🎯 Subtitle with Subtle Parallax (Far/Slow) */}
             <ParallaxElement depth={0.02} speed="slow">
-            <p className="text-lg md:text-xl leading-relaxed max-w-none mx-auto text-center" style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 400, fontStyle: 'italic' }}>
-              <span className="block text-slate-700 animate-fade-in-up delay-150 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
-                Transform your warehouse operations into a streamlined, digital powerhouse.
-              </span>
-              <span className="block text-slate-600 animate-fade-in-up delay-200 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
-                Real-time tracking, seamless syncing, enterprise-grade security — all in one hub.
-              </span>
-            </p>
+            <div className="inline-block bg-[#EFD09E]/30 border border-[#D4AA7D]/20 rounded-2xl px-8 py-5">
+              <p className="text-lg md:text-xl leading-relaxed max-w-none mx-auto text-center" style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 400, fontStyle: 'italic' }}>
+                <span className="block text-[#272727] animate-fade-in-up delay-150 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
+                  Transform your warehouse operations into a streamlined, digital powerhouse.
+                </span>
+                <span className="block text-[#7E5C4A] animate-fade-in-up delay-200 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
+                  Real-time tracking, seamless syncing, enterprise-grade security — all in one hub.
+                </span>
+              </p>
+            </div>
             </ParallaxElement>
           </div>
 
           {/* Main Grid Layout - 12 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto pb-10">
             
-            {/* Row 1: Exchange Rates (6) | Weather (3) | Oil (3 start) */}
-            
-            {/* Exchange Rates - Col Span 6 */}
-            <div className="lg:col-span-6">
+            {/* Exchange Rates - Col Span 7 (wider) */}
+            <div className="lg:col-span-7">
                <ParallaxElement depth={0.03} speed="medium" className="h-full">
                <CurrencyWidget />
                </ParallaxElement>
             </div>
 
-            {/* Weather - Col Span 3 */}
-            <div className="lg:col-span-3">
-              <ParallaxElement depth={0.04} speed="medium" className="h-full">
-              <WeatherWidget />
+            {/* Oil Prices - Col Span 5 */}
+            <div className="lg:col-span-5">
+              <ParallaxElement depth={0.035} speed="medium" className="h-full">
+              <OilPriceWidget />
               </ParallaxElement>
             </div>
 
-            {/* Oil Prices - Col Span 3 */}
-            <div className="lg:col-span-3">
-              <ParallaxElement depth={0.035} speed="medium" className="h-full">
-              <OilPriceWidget />
+            {/* Time Zones - Col Span 5 (Placed on the left) */}
+            <div className="lg:col-span-5">
+              <ParallaxElement depth={0.03} speed="medium" className="h-full">
+              <TimeZoneWidget />
+              </ParallaxElement>
+            </div>
+
+            {/* Weather - Col Span 7 (Placed on the right) */}
+            <div className="lg:col-span-7">
+              <ParallaxElement depth={0.04} speed="medium" className="h-full">
+              <WeatherWidget />
               </ParallaxElement>
             </div>
 
@@ -611,18 +709,33 @@ export default function PendingPage() {
         </div>
       </section>
 
+      {/* ═══ MIDDLE SECTIONS — vintage-retro.svg background ═══ */}
+      <div className="relative overflow-hidden">
+        {/* Vintage Retro Background */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "url('/images/vintage-retro.svg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'repeat-y',
+          opacity: 0.3,
+          zIndex: 0
+        }} />
+        <div className="absolute inset-0 bg-[#F6EDDE]/60" style={{ zIndex: 1 }} />
+
       {/* 3. News Section */}
-      <section className="py-20 bg-white relative">
+      <section className="py-20 relative z-2">
         <div className="container-custom">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4 border-b border-slate-100 pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4 border-b border-[#D4AA7D]/30 pb-6">
             <div>
-              <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                <Newspaper className="w-8 h-8 text-indigo-600" />
+              <h2 className="text-3xl font-bold text-[#272727] flex items-center gap-3">
+                <div className="p-2 bg-[#D4AA7D]/30 rounded-xl">
+                  <Newspaper className="w-8 h-8 text-[#9ACD32]" />
+                </div>
                 Latest Announcements
               </h2>
-              <p className="text-slate-500 mt-2 font-medium">Stay updated with the latest news from BPI AeroPath team</p>
+              <p className="text-[#7E5C4A] mt-2 font-medium">Stay updated with the latest news from BPI AeroPath team</p>
             </div>
-            <a href="#" className="px-6 py-2 bg-indigo-50 text-indigo-600 rounded-full text-sm font-bold hover:bg-indigo-100 transition-colors">View All →</a>
+            <a href="#" className="px-6 py-2.5 bg-[#7E5C4A] text-[#EFD09E] rounded-full text-sm font-bold hover:bg-[#272727] transition-colors">View All →</a>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -650,19 +763,19 @@ export default function PendingPage() {
 
       {/* 4. System Showcase (Infographic Section) */}
       <section 
-        className="py-20 relative"
+        className="py-20 relative z-2"
       >
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/60 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-[#F6EDDE]/60 via-[#F6EDDE]/40 to-[#F6EDDE]/60 pointer-events-none"></div>
         
         <div className="container-custom relative z-10">
           
           {/* Intro */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#272727] mb-4">
               Why AeroPath?
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-xl text-[#7E5C4A] max-w-3xl mx-auto">
               A comprehensive digital solution designed to transform warehouse logistics into a secure, real-time, and paperless operation.
             </p>
           </div>
@@ -670,69 +783,69 @@ export default function PendingPage() {
           {/* Benefits Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
             <div className="text-center">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Warehouse className="w-10 h-10 text-blue-600" />
+              <div className="w-20 h-20 bg-[#D4AA7D]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Warehouse className="w-10 h-10 text-[#9ACD32]" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">Total Visibility</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-[#272727] mb-3">Total Visibility</h3>
+              <p className="text-[#7E5C4A] leading-relaxed">
                 Track every movement from receiving to dispatch. Real-time dashboards provide instant insights into stock levels and asset location.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShieldCheck className="w-10 h-10 text-emerald-600" />
+              <div className="w-20 h-20 bg-[#D4AA7D]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShieldCheck className="w-10 h-10 text-[#9ACD32]" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">Enterprise Security</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-[#272727] mb-3">Enterprise Security</h3>
+              <p className="text-[#7E5C4A] leading-relaxed">
                 Built with industry-standard encryption and role-based access control to ensure your data remains secure and compliant.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Truck className="w-10 h-10 text-purple-600" />
+              <div className="w-20 h-20 bg-[#D4AA7D]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Truck className="w-10 h-10 text-[#9ACD32]" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-3">Operational Redundancy</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-xl font-bold text-[#272727] mb-3">Operational Redundancy</h3>
+              <p className="text-[#7E5C4A] leading-relaxed">
                 Enable seamless team collaboration. No single point of failure means your operations continue smoothly even when key staff are away.
               </p>
             </div>
           </div>
 
           {/* Tech Stack Infographic */}
-          <GlassCard className="p-10 md:p-16 relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0">
+          <GlassCard className="p-10 md:p-16 relative overflow-hidden bg-linear-to-br from-[#272727] to-[#1a1a1a] text-white border-0">
              {/* Background Mesh */}
-             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500 via-slate-900 to-black"></div>
+             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-[#D4AA7D] via-[#272727] to-black"></div>
              
              <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
                 <div className="flex-1 space-y-6">
-                  <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-sm font-medium">
+                  <div className="inline-block px-4 py-1.5 rounded-full bg-[#9ACD32]/15 border border-[#9ACD32]/30 text-[#9ACD32] text-sm font-medium">
                     POWERED BY ANTIGRAVITY
                   </div>
                   <h2 className="text-3xl md:text-5xl font-bold leading-tight">
-                    Modern Architecture for <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Maximum Performance</span>
+                    Modern Architecture for <br/> <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D4AA7D] to-[#EFD09E]">Maximum Performance</span>
                   </h2>
-                  <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
+                  <p className="text-[#D4AA7D] text-lg leading-relaxed max-w-xl">
                     Leveraging the latest in web technology to deliver a lightning-fast, secure, and scalable experience.
                   </p>
                 </div>
                 
                 <div className="flex-1 grid grid-cols-2 gap-4 w-full md:w-auto">
-                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
                       <Server className="w-8 h-8 text-white mb-4" />
                       <h4 className="font-bold text-lg mb-1">Next.js 14</h4>
                       <p className="text-sm text-slate-400">Server-side rendering for ultimate speed and SEO.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
                       <Lock className="w-8 h-8 text-white mb-4" />
                       <h4 className="font-bold text-lg mb-1">Firebase Auth</h4>
                       <p className="text-sm text-slate-400">Secure identity management with Google integration.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
                       <Database className="w-8 h-8 text-white mb-4" />
                       <h4 className="font-bold text-lg mb-1">Firestore</h4>
                       <p className="text-sm text-slate-400">Real-time NoSQL database for instant data sync.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
                       <FileText className="w-8 h-8 text-white mb-4" />
                       <h4 className="font-bold text-lg mb-1">Cloud Storage</h4>
                       <p className="text-sm text-slate-400">Enterprise-grade storage for documents and assets.</p>
@@ -745,84 +858,92 @@ export default function PendingPage() {
       </section>
 
       {/* 5. Problem & Solution Section */}
-      <section className="mx-auto max-w-7xl px-6 py-24 bg-white/50 backdrop-blur-sm rounded-3xl my-10 border border-white/40">
-        <h2 className="text-3xl font-bold mb-4 text-center text-slate-800">
+      <section className="mx-auto max-w-7xl px-6 py-24 bg-[#F6EDDE]/50 backdrop-blur-sm rounded-3xl my-10 border border-[#D4AA7D]/30 relative z-2">
+        <h2 className="text-3xl font-bold mb-4 text-center text-[#272727]">
           Common Challenges in Warehouse Operations
         </h2>
-        <p className="text-center text-slate-500 mb-16 max-w-2xl mx-auto">
+        <p className="text-center text-[#7E5C4A] mb-16 max-w-2xl mx-auto">
           Manual operations lead to errors, delays, and significant hidden costs.
         </p>
         
         <div className="grid gap-10 md:grid-cols-2">
-          <GlassCard className="p-8 hover:shadow-lg transition-all border-white/60 bg-white/60">
+          <GlassCard className="p-8 hover:shadow-lg transition-all border-[#D4AA7D]/20 bg-[#F6EDDE]/60">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-rose-100 rounded-lg text-rose-600">
-                 <AlertCircle size={24} />
+              <div className="p-3 bg-[#D4AA7D]/30 rounded-lg">
+                 <AlertCircle size={24} className="text-[#9ACD32]" />
               </div>
               <div>
-                <h3 className="font-bold text-xl text-slate-800">Manual & Fragmented Workflow</h3>
-                <p className="mt-4 text-slate-600 leading-relaxed">
+                <h3 className="font-bold text-xl text-[#272727]">Manual & Fragmented Workflow</h3>
+                <p className="mt-4 text-[#7E5C4A] leading-relaxed">
                   Using multiple paper systems leads to data mismatch. 
                   Redundant data entry wastes time and increases error rates, distracting the team from core operational tasks.
                 </p>
               </div>
             </div>
-            <div className="mt-8 pt-6 border-t border-slate-200/50">
-              <p className="flex items-center gap-2 font-bold text-indigo-600">
-                <CheckCircle2 size={20} /> Real-time Digital Workflow
-              </p>
+            <div className="mt-8 pt-6 border-t border-[#9ACD32]/20">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/30 rounded-xl">
+                <CheckCircle2 size={20} className="text-[#7E5C4A]" />
+                <span className="font-bold text-[#7E5C4A]">Real-time Digital Workflow</span>
+              </div>
             </div>
           </GlassCard>
 
-          <GlassCard className="p-8 hover:shadow-lg transition-all border-white/60 bg-white/60">
+          <GlassCard className="p-8 hover:shadow-lg transition-all border-[#D4AA7D]/20 bg-[#F6EDDE]/60">
              <div className="flex items-start gap-4">
-              <div className="p-3 bg-amber-100 rounded-lg text-amber-600">
-                 <AlertCircle size={24} />
+              <div className="p-3 bg-[#D4AA7D]/30 rounded-lg">
+                 <AlertCircle size={24} className="text-[#9ACD32]" />
               </div>
               <div>
-                <h3 className="font-bold text-xl text-slate-800">Lack of Visibility</h3>
-                <p className="mt-4 text-slate-600 leading-relaxed">
+                <h3 className="font-bold text-xl text-[#272727]">Lack of Visibility</h3>
+                <p className="mt-4 text-[#7E5C4A] leading-relaxed">
                   Executives lack real-time visibility into operations. 
                   Reporting that lags by days or weeks leads to decisions based on outdated and potentially inaccurate information.
                 </p>
               </div>
             </div>
-            <div className="mt-8 pt-6 border-t border-slate-200/50">
-              <p className="flex items-center gap-2 font-bold text-indigo-600">
-                 <CheckCircle2 size={20} /> Instant Live Dashboard
-              </p>
+            <div className="mt-8 pt-6 border-t border-[#9ACD32]/20">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/30 rounded-xl">
+                <CheckCircle2 size={20} className="text-[#7E5C4A]" />
+                <span className="font-bold text-[#7E5C4A]">Instant Live Dashboard</span>
+              </div>
             </div>
           </GlassCard>
         </div>
       </section>
 
       {/* 5.5 Business Impact Section */}
-      <section className="mx-auto max-w-7xl px-6 pb-24">
-        <h2 className="text-3xl font-bold mb-12 text-center text-slate-800">
+      <section className="mx-auto max-w-7xl px-6 pb-24 relative z-2">
+        <h2 className="text-3xl font-bold mb-12 text-center text-[#272727]">
           Measurable Business Impact
         </h2>
         <div className="grid gap-8 md:grid-cols-3">
           
-          <GlassCard className="p-10 flex flex-col items-center text-center bg-white/70 hover:scale-105 transition-transform duration-300 border-white/60">
-            <span className="text-5xl font-black text-sky-500 mb-4 tracking-tight">-80%</span>
-            <h3 className="text-xl font-bold text-slate-800 mb-3">Infrastructure Cost</h3>
-            <p className="text-slate-500 leading-relaxed text-sm">
+          <GlassCard className="md:col-span-2 p-10 flex flex-col items-center text-center bg-[#F6EDDE]/70 hover:scale-[1.02] transition-transform duration-300 border-[#D4AA7D]/20">
+            <div className="px-6 py-3 bg-[#EFD09E]/40 rounded-xl mb-4">
+              <span className="text-5xl font-black text-[#272727] tracking-tight">-80%</span>
+            </div>
+            <h3 className="text-xl font-bold text-[#272727] mb-3">Infrastructure Cost</h3>
+            <p className="text-[#7E5C4A] leading-relaxed text-sm">
               No server hardware required. <br/> Pay only for what you use.
             </p>
           </GlassCard>
 
-          <GlassCard className="p-10 flex flex-col items-center text-center bg-white/70 hover:scale-105 transition-transform duration-300 border-white/60">
-            <span className="text-5xl font-black text-sky-500 mb-4 tracking-tight">+30%</span>
-            <h3 className="text-xl font-bold text-slate-800 mb-3">Operational Efficiency</h3>
-            <p className="text-slate-500 leading-relaxed text-sm">
+          <GlassCard className="p-10 flex flex-col items-center text-center bg-[#F6EDDE]/70 hover:scale-[1.02] transition-transform duration-300 border-[#D4AA7D]/20">
+            <div className="px-6 py-3 bg-[#EFD09E]/40 rounded-xl mb-4">
+              <span className="text-5xl font-black text-[#272727] tracking-tight">+30%</span>
+            </div>
+            <h3 className="text-xl font-bold text-[#272727] mb-3">Operational Efficiency</h3>
+            <p className="text-[#7E5C4A] leading-relaxed text-sm">
                Accelerate workflows, reduce redundancy, and minimize human error.
             </p>
           </GlassCard>
 
-          <GlassCard className="p-10 flex flex-col items-center text-center bg-white/70 hover:scale-105 transition-transform duration-300 border-white/60">
-            <span className="text-5xl font-black text-sky-500 mb-4 tracking-tight">1-4</span>
-            <h3 className="text-xl font-bold text-slate-800 mb-3">Weeks to Value</h3>
-            <p className="text-slate-500 leading-relaxed text-sm">
+          <GlassCard className="md:col-span-1 p-10 flex flex-col items-center text-center bg-[#F6EDDE]/70 hover:scale-[1.02] transition-transform duration-300 border-[#D4AA7D]/20">
+            <div className="px-6 py-3 bg-[#EFD09E]/40 rounded-xl mb-4">
+              <span className="text-5xl font-black text-[#272727] tracking-tight">1-4</span>
+            </div>
+            <h3 className="text-xl font-bold text-[#272727] mb-3">Weeks to Value</h3>
+            <p className="text-[#7E5C4A] leading-relaxed text-sm">
                Rapid deployment. <br/> Go live in weeks, not years.
             </p>
           </GlassCard>
@@ -830,9 +951,24 @@ export default function PendingPage() {
         </div>
       </section>
 
+      </div>{/* end MIDDLE SECTIONS wrapper */}
+
+      {/* ═══ BOTTOM SECTIONS — vintage-retro-stripe.svg background ═══ */}
+      <div className="relative overflow-hidden">
+        {/* Vintage Retro Stripe Background */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "url('/images/vintage-retro-stripe.svg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center bottom',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.35,
+          zIndex: 0
+        }} />
+        <div className="absolute inset-0 bg-linear-to-b from-[#F6EDDE]/60 via-[#F6EDDE]/30 to-transparent" style={{ zIndex: 1 }} />
+
       {/* 6. How It Works Section */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <h2 className="text-3xl font-bold mb-16 text-center text-slate-800">
+      <section className="mx-auto max-w-7xl px-6 py-24 relative z-2">
+        <h2 className="text-3xl font-bold mb-16 text-center text-[#272727]">
           How It Works
         </h2>
         <div className="grid gap-10 md:grid-cols-4 text-center">
@@ -862,22 +998,22 @@ export default function PendingPage() {
               desc: 'Live Dashboard & automated alerts for precise, data-driven decisions.'
             }
           ].map((item, index) => (
-            <GlassCard key={index} className="p-8 flex flex-col items-center hover:border-indigo-400 transition-colors group bg-white/70">
-              <div className="mb-6 p-4 rounded-full bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <GlassCard key={index} className="p-8 flex flex-col items-center hover:border-[#7E5C4A] transition-colors group bg-[#F6EDDE]/70 border-[#D4AA7D]/20">
+              <div className="mb-6 p-4 rounded-full bg-[#D4AA7D] text-[#9ACD32] group-hover:bg-[#272727] transition-colors">
                 <item.icon size={32} />
               </div>
-              <p className="text-4xl font-black text-indigo-200 group-hover:text-indigo-600 transition-colors mb-2">{item.step}</p>
-              <h4 className="mt-2 font-bold text-lg text-slate-800">{item.title}</h4>
-              <p className="mt-2 text-sm text-slate-500">{item.desc}</p>
+              <p className="text-4xl font-black text-[#D4AA7D] group-hover:text-[#7E5C4A] transition-colors mb-2">{item.step}</p>
+              <h4 className="mt-2 font-bold text-lg text-[#272727]">{item.title}</h4>
+              <p className="mt-2 text-sm text-[#7E5C4A]">{item.desc}</p>
             </GlassCard>
           ))}
         </div>
       </section>
 
       {/* 7. Security Layers Section */}
-      <section className="py-24 bg-slate-50/50 backdrop-blur-sm border-y border-white">
+      <section className="py-24 bg-[#F6EDDE]/50 backdrop-blur-sm border-y border-[#D4AA7D]/20 relative z-2">
         <div className="mx-auto max-w-7xl px-6">
-          <h2 className="text-3xl font-bold mb-16 text-center text-slate-800">
+          <h2 className="text-3xl font-bold mb-16 text-center text-[#272727]">
             Enterprise-Grade Architecture & Security
           </h2>
           <div className="grid gap-8 md:grid-cols-4">
@@ -903,12 +1039,12 @@ export default function PendingPage() {
                 desc: "Vercel Edge Network · HTTPS · DDoS Protection"
               }
             ].map((item, index) => (
-               <div key={index} className="rounded-2xl bg-white p-8 shadow-sm hover:shadow-lg transition-all border border-slate-100">
-                  <div className="mb-4 text-indigo-600 bg-indigo-50 w-fit p-3 rounded-xl">
-                      <item.icon size={24} />
+               <div key={index} className="rounded-2xl bg-white p-8 shadow-sm hover:shadow-lg transition-all border border-[#D4AA7D]/15">
+                  <div className="mb-4 bg-[#D4AA7D]/30 w-fit p-3 rounded-xl">
+                      <item.icon size={24} className="text-[#9ACD32]" />
                   </div>
-                  <h4 className="font-bold mb-2 text-lg text-slate-800">{item.title}</h4>
-                  <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                  <h4 className="font-bold mb-2 text-lg text-[#272727]">{item.title}</h4>
+                  <p className="text-sm text-[#7E5C4A] leading-relaxed">{item.desc}</p>
                </div>
             ))}
           </div>
@@ -916,11 +1052,11 @@ export default function PendingPage() {
       </section>
 
       {/* 8. Custom Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+      <footer className="bg-[#272727] text-[#D4AA7D] py-12 border-t border-[#7E5C4A]/30 relative z-2">
         <div className="container-custom text-center">
           <div className="flex justify-center items-center gap-3 mb-8">
             <Image src="/icons/Logo no bg.png" alt="BPI AeroPath" width={50} height={50} className="opacity-80 grayscale hover:grayscale-0 transition-all" />
-            <span className="text-2xl font-bold text-white tracking-tight">BPI AeroPath</span>
+            <span className="text-2xl font-bold text-[#EFD09E] tracking-tight">BPI AeroPath</span>
           </div>
           
           <div className="max-w-2xl mx-auto mb-10">
@@ -937,14 +1073,16 @@ export default function PendingPage() {
              </div>
           </div>
 
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs">
+          <div className="border-t border-[#7E5C4A]/30 pt-8 flex flex-col md:flex-row justify-between items-center text-xs">
             <p>© {new Date().getFullYear()} BPI AeroPath. All rights reserved.</p>
             <p className="mt-2 md:mt-0">
-              Created by <span className="text-indigo-400 font-bold">Antigravity</span>
+              Created by <span className="text-[#9ACD32] font-bold">Antigravity</span>
             </p>
           </div>
         </div>
       </footer>
+
+      </div>{/* end BOTTOM SECTIONS wrapper */}
 
     </div>
     </ParallaxProvider>

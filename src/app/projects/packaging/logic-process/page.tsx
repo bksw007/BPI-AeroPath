@@ -1166,7 +1166,7 @@ export default function LogicProcessPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-3xl font-bold mb-4"
           >
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 drop-shadow-sm">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-emerald-600 via-teal-600 to-indigo-600 drop-shadow-sm">
               🧪 Logic Process Visualizer
             </span>
           </motion.h1>
@@ -1183,7 +1183,7 @@ export default function LogicProcessPage() {
                 className="group relative flex items-center gap-3 px-8 py-3 bg-white/40 backdrop-blur-xl border border-white/60 rounded-full shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-all cursor-pointer overflow-hidden"
               >
                 {/* Glossy background effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-indigo-500/5 group-hover:from-emerald-500/10 group-hover:to-indigo-500/10 transition-colors" />
+                <div className="absolute inset-0 bg-linear-to-tr from-emerald-500/5 to-indigo-500/5 group-hover:from-emerald-500/10 group-hover:to-indigo-500/10 transition-colors" />
                 
                 <div className="relative flex items-center gap-3">
                   <div className="p-2 bg-emerald-500/10 rounded-full text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all ring-1 ring-emerald-500/20">
@@ -1286,7 +1286,7 @@ export default function LogicProcessPage() {
                   <button
                     onClick={handleStart}
                     disabled={!rawInput.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
                   >
                     <Play className="w-4 h-4" /> Start
                   </button>
@@ -1297,7 +1297,7 @@ export default function LogicProcessPage() {
                       disabled={
                         currentStepIndex >= STEP_FLOW.length - 1 || isProcessing
                       }
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
                     >
                       {isProcessing ? "Processing..." : "Next"}{" "}
                       <ChevronRight className="w-4 h-4" />

@@ -34,7 +34,7 @@ export default function AuthLayout({
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-[#f6edde]">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-slate-900/5" />
+        <div className="absolute inset-0 bg-linear-to-br from-green-500/5 via-transparent to-slate-900/5" />
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-400/10 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-400/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
         <FloatingElements />

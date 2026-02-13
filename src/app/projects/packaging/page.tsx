@@ -73,7 +73,7 @@ export default function PackagingDashboard() {
           
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-indigo-700 to-slate-900 bg-[length:200%_100%] animate-shimmer">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-900 via-indigo-700 to-slate-900 bg-size-[200%_100%] animate-shimmer">
                 Smart Packaging
               </span>
             </h1>
@@ -91,12 +91,12 @@ export default function PackagingDashboard() {
                     className="h-full flex flex-col gap-5 p-6 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                   >
                     {/* Hover Gradient Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 bg-linear-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     
                     <div className="relative z-10 flex flex-col gap-4">
                       {/* Icon Container */}
                       <div
-                        className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.iconColor} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-lg`}
+                        className={`w-14 h-14 rounded-2xl bg-linear-to-br ${s.iconColor} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-lg`}
                       >
                         <Icon className="w-7 h-7 text-white" />
                       </div>

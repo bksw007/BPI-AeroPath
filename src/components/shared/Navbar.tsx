@@ -132,7 +132,7 @@ export function Navbar() {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-300"
+                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-[#272727] rounded-lg transition-all duration-300"
                   title="Sign Out"
                 >
                   <LogOut className="w-5 h-5" />
@@ -142,9 +142,24 @@ export function Navbar() {
               !loading && (
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50/50 rounded-xl transition-all duration-300 active:scale-95"
+                  onMouseEnter={() => setHoveredPath('/login')}
+                  className="relative px-4 py-2 text-sm font-bold transition-all duration-300 active:scale-95 block"
                 >
-                  Login
+                  <span className={`relative z-10 ${hoveredPath === '/login' ? 'text-[#EFD09E]' : 'text-[#272727]'}`}>Login</span>
+                  {hoveredPath === '/login' && (
+                    <motion.div
+                      layoutId="navbar-hover-pill"
+                      className="absolute inset-0 bg-[#272727] rounded-xl -z-10 border border-[#272727]/20"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.4
+                      }}
+                    />
+                  )}
                 </Link>
               )
             )}
@@ -177,7 +192,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2 text-slate-700 hover:bg-slate-50 rounded-lg transition-all duration-200 font-medium"
+                className="block px-4 py-2 text-[#272727] hover:bg-[#272727] hover:text-[#EFD09E] rounded-lg transition-all duration-200 font-bold"
               >
                 {link.label}
               </Link>
@@ -189,7 +204,7 @@ export function Navbar() {
                   <Link
                     href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-3 p-1 rounded-xl hover:bg-[#272727] group/mobile transition-colors"
                   >
                     <motion.div
                       whileHover={{
@@ -216,17 +231,13 @@ export function Navbar() {
                       )}
                     </motion.div>
                     <div>
-                      <div className="text-sm font-bold text-slate-900">
-                        {user.displayName}
-                      </div>
-                      <div className="text-xs text-slate-500 uppercase">
-                        {user.role}
-                      </div>
+                      <div className="text-sm font-bold text-[#272727] group-hover/mobile:text-[#EFD09E] transition-colors">{user.displayName}</div>
+                      <div className={`text-xs uppercase tracking-wider ${hoveredPath === '/profile' ? 'text-[#EFD09E]/70' : 'text-[#7E5C4A]'}`}>{user.role}</div>
                     </div>
                   </Link>
                   <button
                     onClick={handleSignOut}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-red-500 hover:bg-[#272727] rounded-lg transition-colors"
                   >
                     <LogOut className="w-6 h-6" />
                   </button>
@@ -236,7 +247,7 @@ export function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full px-4 py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all duration-300 active:scale-95"
+                    className="block w-full px-4 py-3 text-center text-sm font-bold text-[#EFD09E] bg-[#272727] hover:bg-black rounded-xl transition-all duration-300 active:scale-95"
                   >
                     Login
                   </Link>

@@ -283,7 +283,7 @@ const LogicNavbar = ({ sectionRefs }: { sectionRefs: React.RefObject<HTMLDivElem
   return (
     <motion.div 
       style={{ opacity, y }}
-      className="fixed top-0 left-0 right-0 z-[100] h-16 pointer-events-none print:hidden"
+      className="fixed top-0 left-0 right-0 z-100 h-16 pointer-events-none print:hidden"
     >
       <div className="container-custom h-full flex items-center justify-center pointer-events-auto">
         <div className="flex items-center gap-6">
@@ -453,7 +453,7 @@ export default function LogicDocsPage() {
           <motion.h1 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="text-5xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 bg-clip-text text-transparent italic drop-shadow-md cursor-default select-none transition-all"
+            className="text-5xl font-bold bg-linear-to-r from-indigo-900 via-purple-900 to-slate-900 bg-clip-text text-transparent italic drop-shadow-md cursor-default select-none transition-all"
           >
             Packaging Logic Documentation
           </motion.h1>
@@ -488,7 +488,7 @@ export default function LogicDocsPage() {
           viewport={{ once: true }}
           className="mt-20 mb-10"
         >
-          <div className="relative p-8 rounded-3xl bg-gradient-to-br from-indigo-50/50 to-emerald-50/50 border border-white/60 backdrop-blur-xl shadow-2xl shadow-indigo-900/5 overflow-hidden">
+          <div className="relative p-8 rounded-3xl bg-linear-to-br from-indigo-50/50 to-emerald-50/50 border border-white/60 backdrop-blur-xl shadow-2xl shadow-indigo-900/5 overflow-hidden">
             {/* Background Accent */}
             <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
@@ -543,7 +543,7 @@ export default function LogicDocsPage() {
           </div>
           
           <div className="mt-6 flex items-start gap-2 px-4 italic">
-            <AlertCircle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle size={14} className="text-amber-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-slate-400 leading-relaxed">
               *หมายเหตุ: ความคลาดเคลื่อน 3-5% อาจเกิดขึ้นจากปัจจัยทางกายภาพหน้างาน เช่น วัสดุกันกระแทก (Dunnage), ความยืดหยุ่นของบรรจุภัณฑ์ และการจัดวาง Palette ของพนักงาน
             </p>
@@ -559,7 +559,7 @@ export default function LogicDocsPage() {
 
       {/* Printing Overlay */}
       {isPrinting && (
-        <div className="fixed inset-0 bg-white z-[9999] flex items-center justify-center text-slate-900">
+        <div className="fixed inset-0 bg-white z-9999 flex items-center justify-center text-slate-900">
           <p className="text-xl font-medium animate-pulse">Preparing Report for PDF Export...</p>
         </div>
       )}
@@ -575,7 +575,7 @@ export default function LogicDocsPage() {
           .bg-slate-900\/50 { background: white !important; }
           .bg-white\/5 { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
           .border-white\/5, .border-white\/10, .border-white\/20 { border-color: #e2e8f0 !important; }
-          .bg-gradient-to-r, .bg-gradient-to-tr { background: none !important; -webkit-background-clip: unset !important; color: black !important; -webkit-text-fill-color: black !important; }
+          .bg-linear-to-r, .bg-linear-to-tr { background: none !important; -webkit-background-clip: unset !important; color: black !important; -webkit-text-fill-color: black !important; }
           .shadow-2xl, .shadow-lg, .shadow-inner { shadow: none !important; }
           .text-indigo-400, .text-indigo-500, .text-slate-400, .text-slate-500 { color: #475569 !important; }
           /* Ensure SVGs scale properly */

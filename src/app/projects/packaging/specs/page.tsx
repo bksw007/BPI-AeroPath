@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  ChevronRight, 
-  Search,
-  Zap,
-  Battery,
-  CircuitBoard,
-  Cpu
+import {
+    ChevronRight, 
+    Zap,
+    Battery,
+    CircuitBoard,
+    Cpu,
 } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
@@ -69,11 +68,11 @@ export default function PackagingSpecsPage() {
                         className="h-full flex flex-col gap-5 p-6 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-white/40"
                       >
                         {/* Hover Gradient Background */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                        <div className="absolute inset-0 bg-linear-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         
                         <div className="relative z-10 flex flex-col gap-4">
                           {/* Icon Container */}
-                          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                          <div className={`w-14 h-14 rounded-2xl bg-linear-to-br ${cat.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
                             <Icon className="w-7 h-7" />
                           </div>
                           

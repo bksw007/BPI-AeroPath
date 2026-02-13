@@ -48,21 +48,21 @@ export default function SignupPage() {
     <AuthContainer mode="signup" onToggleMode={handleToggleMode}>
       <div className="w-full">
         {error && (
-          <div className="mb-6 p-4 bg-red-50/50 backdrop-blur-md border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 text-sm animate-shake">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="font-medium">{error.message}</p>
+          <div className="mb-6 p-4 bg-[#FFD8A8] backdrop-blur-md border border-[#7E5C4A]/20 rounded-2xl flex items-start gap-3 text-red-700 text-sm animate-shake shadow-lg">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <p className="font-bold">{error.message}</p>
           </div>
         )}
 
         <div className="mb-8 md:hidden text-center">
-           <h1 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">Create Account</h1>
+           <h1 className="text-3xl font-black text-[#272727] uppercase italic tracking-tighter">Create Account</h1>
         </div>
 
         {/* Google Signup */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all flex items-center justify-center gap-3 mb-6 shadow-2xl active:scale-[0.98] text-[10px] uppercase tracking-[0.2em] border border-white/10"
+          className="w-full py-4 bg-[#272727] hover:bg-[#7E5C4A] text-[#EFD09E] rounded-2xl font-black transition-all flex items-center justify-center gap-3 mb-6 shadow-2xl active:scale-[0.98] text-[10px] uppercase tracking-[0.2em] border border-white/10"
         >
           <svg className="w-5 h-5 brightness-110" viewBox="0 0 24 24">
             <path
@@ -87,7 +87,7 @@ export default function SignupPage() {
 
         <div className="relative mb-8 flex items-center gap-4">
           <div className="flex-1 border-t-2 border-slate-100"></div>
-          <div className="text-[10px] font-black text-slate-950 uppercase tracking-[0.3em] italic">New Terminal</div>
+          <div className="text-[10px] font-black text-[#272727] uppercase tracking-[0.3em] italic">New Terminal</div>
           <div className="flex-1 border-t-2 border-slate-100"></div>
         </div>
 
@@ -103,7 +103,7 @@ export default function SignupPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                 placeholder="JOHN DOE"
                 required
               />
@@ -118,7 +118,7 @@ export default function SignupPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                 placeholder="USER@AEROPATH.SYS"
                 required
               />
@@ -134,7 +134,7 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -142,7 +142,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-900 transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#272727] transition-colors p-1"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -157,7 +157,7 @@ export default function SignupPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-slate-900 outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -165,7 +165,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-900 transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#272727] transition-colors p-1"
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -176,10 +176,10 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4.5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-4 text-[11px] uppercase tracking-[0.3em]"
+            className="w-full py-4.5 bg-[#272727] hover:bg-[#7E5C4A] text-[#EFD09E] rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-4 text-[11px] uppercase tracking-[0.3em]"
           >
             {loading ? (
-              <div className="w-5 h-5 border-3 border-white/30 border-t-green-400 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-3 border-[#EFD09E]/30 border-t-green-400 rounded-full animate-spin" />
             ) : (
               <>
                 Initialize Account <ArrowRight className="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" />

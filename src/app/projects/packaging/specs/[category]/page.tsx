@@ -865,7 +865,7 @@ export default function CategoryDetailPage() {
          isOpen={isSuccessModalOpen}
          onClose={() => setIsSuccessModalOpen(false)}
          title=""
-         className="max-w-[280px] text-center !bg-transparent !border-none !shadow-none"
+         className="max-w-[280px] text-center bg-transparent! border-none! shadow-none!"
          hideHeader
       >
         <div className="bg-white/90 backdrop-blur-xl border border-white/20 p-6 rounded-[2.5rem] shadow-2xl shadow-emerald-500/20 flex flex-col items-center justify-center space-y-3 animate-in fade-in zoom-in duration-300">
@@ -1136,7 +1136,7 @@ export default function CategoryDetailPage() {
                         }}
                         className={cn("w-10 h-5 rounded-full transition-colors relative", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-blue-500" : "bg-slate-300")}
                       >
-                        <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "left-6" : "left-1")} />
+                        <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all z-10", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "left-6" : "left-1")} />
                       </button>
                     </div>
                   </div>
@@ -1194,7 +1194,7 @@ export default function CategoryDetailPage() {
               {activeTab === "overview" ? (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {/* Product Header */}
-                  <div className="p-5 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 flex items-center gap-6 shadow-md">
+                  <div className="p-5 bg-linear-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 flex items-center gap-6 shadow-md">
                     <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-indigo-600">
                       <Zap className="w-10 h-10" />
                     </div>
@@ -1409,7 +1409,7 @@ export default function CategoryDetailPage() {
                       setIsBasicInfoModalOpen(true);
                     }
                   }}
-                  className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
                 >
                   Edit Basic Info
                 </button>
@@ -1426,7 +1426,7 @@ export default function CategoryDetailPage() {
                          setIsPackingStandardsModalOpen(true);
                       }
                    }}
-                   className="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
+                   className="flex-2 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
                 >
                    <Boxes className="w-4 h-4" /> Edit Packing Standards
                 </button>
@@ -1854,7 +1854,7 @@ export default function CategoryDetailPage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase tracking-widest">
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">
                       {importProgress.status === 'uploading' ? 'Uploading File...' : 'Parsing Specifications...'}
                     </h3>
                     <p className="text-sm text-slate-500 font-medium mt-1">

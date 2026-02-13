@@ -34,7 +34,7 @@ export function ModuleHeader({
         
         {/* Title */}
         <h1 className="text-3xl md:text-5xl font-bold">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer">
+          <span className="bg-clip-text text-transparent bg-linear-to-br from-blue-600 to-indigo-700 bg-size-[200%_100%] animate-shimmer">
             {title}
           </span>
         </h1>

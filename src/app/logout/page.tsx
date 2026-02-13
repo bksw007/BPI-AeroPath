@@ -57,7 +57,7 @@ export default function LogoutPage() {
         <ParallaxElement depth={0.03} speed="medium">
           <div className="bg-white/40 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] p-12 shadow-2xl relative overflow-hidden group">
             {/* Decorative accent */}
-            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-linear-to-br from-transparent via-indigo-500/40 to-transparent" />
             
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center animate-bounce-subtle">

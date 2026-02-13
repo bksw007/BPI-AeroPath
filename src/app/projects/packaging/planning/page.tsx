@@ -419,15 +419,15 @@ export default function PackagingBookingPage() {
                                  <h4 className="font-bold text-slate-800 mb-4">Tips</h4>
                                  <ul className="space-y-2 text-sm text-slate-600">
                                      <li className="flex gap-2">
-                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                                          <span>Copy directly from Excel/Sheets</span>
                                      </li>
                                      <li className="flex gap-2">
-                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                                          <span>Ensure columns are PO, SKU, Qty</span>
                                      </li>
                                      <li className="flex gap-2">
-                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                                          <span>System auto-fetches specs</span>
                                      </li>
                                  </ul>

@@ -52,10 +52,10 @@ export default function Home() {
             </div>
             {/* Headline */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tight animate-slide-up">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
                 Centralized Work Hub for
               </span>{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 animate-gradient">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 animate-gradient">
                 Warehouse &amp; Logistics
               </span>
             </h1>
@@ -89,7 +89,7 @@ export default function Home() {
         <div className="container-custom">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
                 Why Choose BPI AeroPath?
               </span>
             </h2>
@@ -103,7 +103,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Feature 1: Visibility */}
             <GlassCard hoverEffect className="flex flex-col gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
                 <Eye className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-slate-800">Visibility</h3>
@@ -115,7 +115,7 @@ export default function Home() {
 
             {/* Feature 2: Tracking */}
             <GlassCard hoverEffect className="flex flex-col gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <Target className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-slate-800">Tracking</h3>
@@ -127,7 +127,7 @@ export default function Home() {
 
             {/* Feature 3: Redundancy */}
             <GlassCard hoverEffect className="flex flex-col gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                 <Shield className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-slate-800">Redundancy</h3>
@@ -145,7 +145,7 @@ export default function Home() {
         <div className="container-custom">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
                 Explore Our Modules
               </span>
             </h2>

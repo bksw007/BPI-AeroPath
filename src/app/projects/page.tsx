@@ -19,7 +19,7 @@ export default function ProjectsPage() {
         <div className="container-custom">
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-4xl font-bold mb-3">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="bg-clip-text text-transparent bg-linear-to-br from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
                 Projects
               </span>
             </h1>

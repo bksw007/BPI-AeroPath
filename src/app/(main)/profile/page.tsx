@@ -512,7 +512,7 @@ export default function ProfilePage() {
                       Security Center
                     </h2>
 
-                    <div className="p-8 bg-indigo-600/[0.03] rounded-[2rem] border border-white/60 space-y-6 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="p-8 bg-indigo-600/3 rounded-4xl border border-white/60 space-y-6 backdrop-blur-sm relative overflow-hidden group">
                       <div className="absolute top-0 right-0 p-8 text-indigo-500/10 group-hover:scale-110 transition-transform">
                         <Shield className="w-24 h-24" />
                       </div>
@@ -532,7 +532,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="p-8 bg-slate-900/95 rounded-[2rem] border border-white/10 space-y-6 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
+                    <div className="p-8 bg-slate-900/95 rounded-4xl border border-white/10 space-y-6 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
                       <div className="absolute top-0 right-0 p-8 text-green-400/20 group-hover:scale-110 transition-transform">
                         <CheckCircle2 className="w-24 h-24 filter drop-shadow-[0_0_15px_rgba(74,222,128,0.2)]" />
                       </div>
@@ -560,7 +560,7 @@ export default function ProfilePage() {
       {/* User Action Modal (Admin Only) */}
       <AnimatePresence>
         {isActionModalOpen && selectedUserForAction && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-110 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -652,7 +652,7 @@ export default function ProfilePage() {
                     className={cn(
                       "w-full p-6 rounded-2xl border transition-all flex items-center justify-between group",
                       selectedUserForAction.status === "active"
-                        ? "bg-gradient-to-br from-[#f6edde] to-[#eaddc7] border-indigo-200 text-slate-800 shadow-sm"
+                        ? "bg-linear-to-br from-[#f6edde] to-[#eaddc7] border-indigo-200 text-slate-800 shadow-sm"
                         : "bg-white/30 border-white/60 text-slate-700 hover:bg-white/50"
                     )}
                   >
@@ -739,7 +739,7 @@ export default function ProfilePage() {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {isDeleteConfirmOpen && selectedUserForAction && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-120 flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -755,7 +755,7 @@ export default function ProfilePage() {
               className="relative w-full max-w-sm bg-[#f6edde] rounded-[2.5rem] overflow-hidden shadow-2xl border border-red-100"
             >
               <div className="p-8 text-center space-y-6">
-                <div className="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-white/10 shadow-xl">
+                <div className="w-20 h-20 bg-slate-900 rounded-4xl flex items-center justify-center mx-auto mb-4 border border-white/10 shadow-xl">
                   <AlertTriangle className="w-10 h-10 text-red-500" />
                 </div>
                 
@@ -804,7 +804,7 @@ export default function ProfilePage() {
       {/* Crop Modal */}
       <AnimatePresence>
         {isCropModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

@@ -9,8 +9,7 @@ import {
   X, 
   Save, 
   Trash2, 
-  ArrowLeft, 
-  Settings 
+  ArrowLeft 
 } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { CUSTOMER_PACK_TYPE_MAPPING, PACKAGE_MASTER_DATA, PackageDef } from "@/lib/config/packagingData";
@@ -149,7 +148,7 @@ export default function PackagingCustomersPage() {
             
             <div className="text-center space-y-4">
                 <h1 className="text-3xl md:text-5xl font-bold flex flex-col items-center leading-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-slate-600 to-slate-800 bg-[length:200%_100%] animate-shimmer">
+                <span className="bg-clip-text text-transparent bg-linear-to-br from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer">
                     Package Configuration
                 </span>
                 </h1>
@@ -243,7 +242,7 @@ export default function PackagingCustomersPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex flex-wrap gap-2 max-w-[200px]">
+                                            <div className="flex shrink-0 gap-2 max-w-[200px]">
                                                 {mappedCustomers.length > 0 ? (
                                                     mappedCustomers.map(c => (
                                                         <span key={c.code} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] rounded border border-slate-200">
@@ -341,7 +340,7 @@ export default function PackagingCustomersPage() {
 
       {/* Add/Edit Specific Customer Modal (Nested or independent) */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in zoom-in duration-200">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in zoom-in duration-200">
            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl relative border border-white/20">
               <button 
                   onClick={() => setIsCustomerModalOpen(false)}

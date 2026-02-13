@@ -28,7 +28,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
           layout
           layoutId="auth-overlay"
           className={cn(
-            "absolute top-0 bottom-0 w-full md:w-1/2 bg-gradient-to-br from-slate-900 via-slate-950 to-black z-20 hidden md:block shadow-[20px_0_50px_rgba(0,0,0,0.3)]",
+            "absolute top-0 bottom-0 w-full md:w-1/2 bg-linear-to-br from-[#272727] via-[#1e1e1e] to-black z-20 hidden md:block shadow-[20px_0_50px_rgba(0,0,0,0.3)]",
             isLogin ? "right-0 rounded-l-[3rem]" : "left-0 rounded-r-[3rem]"
           )}
           transition={{
@@ -42,7 +42,7 @@ export function AuthContainer({ mode, children, onToggleMode }: AuthContainerPro
           }}
         >
           {/* Content inside the overlay (Logo & Welcome) */}
-          <div className="relative h-full flex flex-col items-center justify-center p-8 md:p-10 text-center text-white">
+          <div className="relative h-full flex flex-col items-center justify-center p-8 md:p-10 text-center text-[#EFD09E]">
             <ParallaxElement depth={0.08} speed="fast" className="mb-6">
               <Image
                 src="/images/Logo no bg.svg"
