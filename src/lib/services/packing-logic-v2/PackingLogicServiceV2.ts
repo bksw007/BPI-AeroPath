@@ -23,8 +23,8 @@ interface SpecData {
   height: number;
   cbm: number;
   packingRules?: {
-    boxes?: Record<string, unknown>;
-    pallets?: Record<string, unknown>;
+    boxes?: Record<string, number>;
+    pallets?: Record<string, number>;
     warp?: boolean;
   };
 }
@@ -280,21 +280,22 @@ export class PackingLogicServiceV2 {
       try {
         const spec = await this.fetchSpecFromDB(sku);
         if (spec) {
-          const rules = this.normalizePackingRules(spec.packingRules);
+          const rawRules = this.normalizePackingRules(spec.packingRules);
+          const rules = this.toNumericPackingRules(rawRules);
 
           // Determine if valid for region
           let isValidForRegion = false;
-          if (rules) {
+          if (rawRules) {
             const hasBoxRule =
-              rules.boxes &&
-              Object.keys(rules.boxes).some((k) =>
+              rawRules.boxes &&
+              Object.keys(rawRules.boxes).some((k) =>
                 allowedPackageNameSet.has(
                   this.normalizePackageKey(this.extractPackageNameFromRuleKey(k))
                 )
               );
             const hasPalletRule =
-              rules.pallets &&
-              Object.keys(rules.pallets).some((k) =>
+              rawRules.pallets &&
+              Object.keys(rawRules.pallets).some((k) =>
                 allowedPackageNameSet.has(
                   this.normalizePackageKey(this.extractPackageNameFromRuleKey(k))
                 )
@@ -1256,6 +1257,42 @@ export class PackingLogicServiceV2 {
     }
 
     return normalized;
+  }
+
+  private toNumericPackingRules(rawRules: {
+    boxes?: Record<string, unknown>;
+    pallets?: Record<string, unknown>;
+    warp?: boolean;
+  }): {
+    boxes?: Record<string, number>;
+    pallets?: Record<string, number>;
+    warp?: boolean;
+  } {
+    const out: {
+      boxes?: Record<string, number>;
+      pallets?: Record<string, number>;
+      warp?: boolean;
+    } = { warp: rawRules.warp };
+
+    if (rawRules.boxes) {
+      const boxes: Record<string, number> = {};
+      Object.entries(rawRules.boxes).forEach(([k, v]) => {
+        const cap = this.extractCapacityFromRule(v);
+        if (cap > 0) boxes[k] = cap;
+      });
+      if (Object.keys(boxes).length > 0) out.boxes = boxes;
+    }
+
+    if (rawRules.pallets) {
+      const pallets: Record<string, number> = {};
+      Object.entries(rawRules.pallets).forEach(([k, v]) => {
+        const cap = this.extractCapacityFromRule(v);
+        if (cap > 0) pallets[k] = cap;
+      });
+      if (Object.keys(pallets).length > 0) out.pallets = pallets;
+    }
+
+    return out;
   }
 
   private extractCapacityFromRule(
