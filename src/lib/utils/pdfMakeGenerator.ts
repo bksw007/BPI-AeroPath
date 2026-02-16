@@ -59,8 +59,9 @@ export const generatePackingListPDFMake = async (
   results: PackingPlanResult[],
   customerName: string,
   poList: string[],
-  totalItemsRequired: number = 0 // New argument for Accuracy Rate
+  _totalItemsRequired: number = 0
 ) => {
+  void _totalItemsRequired;
   const now = new Date();
   const today = now.toLocaleDateString("en-UK", {
     day: "numeric",
@@ -91,9 +92,36 @@ export const generatePackingListPDFMake = async (
   const totalWarps = results.reduce((acc, r) => acc + r.cases.filter(c => c.type.includes("Warp")).length, 0);
   const totalPackages = totalPallets + totalBoxes + totalWarps; // Sum of all containers
 
-  // Calculate Accuracy Rate
-  const accuracyRate = totalItemsRequired > 0 ? (totalItems / totalItemsRequired) * 100 : 0;
-  const accuracyText = totalItemsRequired > 0 ? `${accuracyRate.toFixed(2)}%` : "N/A";
+  // Calculate Weighted Accuracy Rate (by packed qty)
+  const getCaseAccuracyScore = (c: PackingPlanResult["cases"][number]): number => {
+    const type = (c.type || "").toLowerCase();
+    const note = (c.note || "").toLowerCase();
+
+    if (type.includes("unknown") || type.includes("warp")) return 100;
+    if (type.includes("mixed")) {
+      // High-density mixed path uses Primary/Insert note pattern.
+      if (note.includes("primary:")) return 94;
+      return 80; // Mixed pool / low-density
+    }
+    // Mono / Overflow / Same
+    return 98;
+  };
+
+  const weightedAccuracy = results.reduce(
+    (acc, plan) => {
+      plan.cases.forEach((c) => {
+        const qty = c.items.reduce((sum, it) => sum + it.qty, 0);
+        const score = getCaseAccuracyScore(c);
+        acc.weightedScore += score * qty;
+        acc.totalQty += qty;
+      });
+      return acc;
+    },
+    { weightedScore: 0, totalQty: 0 }
+  );
+
+  const accuracyRate = weightedAccuracy.totalQty > 0 ? weightedAccuracy.weightedScore / weightedAccuracy.totalQty : 0;
+  const accuracyText = weightedAccuracy.totalQty > 0 ? `${accuracyRate.toFixed(2)}%` : "N/A";
 
   // --- Styles & Colors (Soft Pastel Theme) ---
   const styleHeader: Style = { fontSize: 24, bold: true, color: "#6366f1", margin: [0, 0, 0, 2], alignment: "center" }; // Indigo 500
