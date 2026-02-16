@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { AuthService, AuthError } from "@/lib/firebase/services";
 import { User } from "@/types/user";
@@ -42,8 +42,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthError | null>(null);
 
+  const toFallbackPendingUser = (fbUser: FirebaseUser): User => ({
+    uid: fbUser.uid,
+    email: fbUser.email || "",
+    displayName: fbUser.displayName || "",
+    role: "staff",
+    department: "Unassigned",
+    photoURL: fbUser.photoURL || undefined,
+    createdAt: new Date(),
+    lastLogin: new Date(),
+    status: "pending",
+  });
+
   // Listen for auth state changes
   useEffect(() => {
+    let unsubscribeDoc: Unsubscribe | undefined;
+
     // 1. Handle Redirect Result (If returning from Google Redirect)
     const handleRedirect = async () => {
       try {
@@ -61,46 +75,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleRedirect();
 
     // 2. Main Auth Listener
-    const unsubscribeAuth = AuthService.onAuthStateChange(async (fbUser) => {
+    const unsubscribeAuth = AuthService.onAuthStateChange((fbUser) => {
       setFirebaseUser(fbUser);
       
       if (fbUser) {
-        // Ensure Firestore document exists (especially for Google logins)
-        try {
-          await AuthService.checkAndCreateUserDoc(fbUser);
-        } catch (err) {
-          console.error("Failed to ensure user doc exists:", err);
-        }
+        setLoading(true);
 
-        // Get additional user data from Firestore with real-time updates
-        const userDocRef = doc(db, "users", fbUser.uid);
-        
-        const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            setUser({
-              uid: fbUser.uid,
-              email: fbUser.email || "",
-              displayName: userData.displayName || fbUser.displayName || "",
-              role: userData.role || "staff",
-              department: userData.department || "",
-              photoURL: userData.photoURL || fbUser.photoURL || undefined,
-              createdAt: userData.createdAt?.toDate() || new Date(),
-              lastLogin: userData.lastLogin?.toDate() || new Date(),
-              status: userData.status || "pending",
+        void (async () => {
+          // Ensure Firestore document exists (especially for first login / Google login).
+          try {
+            await AuthService.checkAndCreateUserDoc(fbUser);
+          } catch (err) {
+            console.error("Failed to ensure user doc exists:", err);
+            setError({
+              code: "firestore/user-doc-init-failed",
+              message: "Signed in, but user profile could not be created in Firestore.",
             });
           }
-          setLoading(false);
-        });
 
-        return () => unsubscribeDoc();
+          if (unsubscribeDoc) {
+            unsubscribeDoc();
+            unsubscribeDoc = undefined;
+          }
+
+          // Get additional user data from Firestore with real-time updates.
+          const userDocRef = doc(db, "users", fbUser.uid);
+          unsubscribeDoc = onSnapshot(
+            userDocRef,
+            (docSnap) => {
+              if (docSnap.exists()) {
+                const userData = docSnap.data();
+                setUser({
+                  uid: fbUser.uid,
+                  email: fbUser.email || "",
+                  displayName: userData.displayName || fbUser.displayName || "",
+                  role: userData.role || "staff",
+                  department: userData.department || "",
+                  photoURL: userData.photoURL || fbUser.photoURL || undefined,
+                  createdAt: userData.createdAt?.toDate() || new Date(),
+                  lastLogin: userData.lastLogin?.toDate() || new Date(),
+                  status: userData.status || "pending",
+                });
+              } else {
+                setUser(toFallbackPendingUser(fbUser));
+              }
+              setLoading(false);
+            },
+            (snapshotError) => {
+              console.error("Failed to subscribe user profile:", snapshotError);
+              setError({
+                code: "firestore/user-doc-read-failed",
+                message: "Signed in, but user profile could not be read from Firestore.",
+              });
+              setUser(toFallbackPendingUser(fbUser));
+              setLoading(false);
+            }
+          );
+        })();
       } else {
+        if (unsubscribeDoc) {
+          unsubscribeDoc();
+          unsubscribeDoc = undefined;
+        }
         setUser(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+      }
+      unsubscribeAuth();
+    };
   }, []);
 
   // ✅ Sign In (Email/Password)

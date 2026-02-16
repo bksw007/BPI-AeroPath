@@ -27,6 +27,8 @@ export const AuthService = {
   signIn: async (email: string, pass: string) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, pass);
+      // Ensure Firestore user doc exists for old/imported users.
+      await AuthService.checkAndCreateUserDoc(result.user);
       return { user: result.user, error: null };
     } catch (error) {
       return { user: null, error: mapAuthError(error) };
