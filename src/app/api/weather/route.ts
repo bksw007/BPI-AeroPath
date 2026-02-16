@@ -3,6 +3,10 @@ import { cacheService, type CacheEntry } from "@/lib/services/cacheService";
 import { TARGET_PROVINCES } from "@/lib/data/provinces";
 import { DISTRICT_MAPPING } from "@/lib/data/provinceMapping";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const runtime = "nodejs";
+
 // Type definitions
 interface WeatherData {
   main: { 
