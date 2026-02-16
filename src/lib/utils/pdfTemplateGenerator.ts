@@ -2,6 +2,12 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { PackingPlanResult } from '@/lib/services/packing-logic/packing.types';
 
+const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+};
+
 export const generatePackingDetailsPDF = async (
   results: PackingPlanResult[],
   customerName: string,
@@ -97,7 +103,7 @@ export const generatePackingDetailsPDF = async (
     const pdfBytes = await pdfDoc.save();
 
     // 6. Trigger Download
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const blob = new Blob([toArrayBuffer(pdfBytes)], { type: "application/pdf" });
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
     link.download = `PackingDetails_${customerName}_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -147,7 +153,7 @@ export const generateLayoutGridPDF = async () => {
     firstPage.drawLine({ start: { x: 0, y: height/2 }, end: { x: width, y: height/2 }, thickness: 1, color: rgb(0, 0, 1) });
 
     const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const blob = new Blob([toArrayBuffer(pdfBytes)], { type: "application/pdf" });
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
     link.download = `PackingDetails_LayoutGrid.pdf`;
