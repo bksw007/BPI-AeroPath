@@ -19,6 +19,7 @@ import * as motion from "motion/react-client";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
+import { PendingWidgetsGrid } from "@/components/home/PendingWidgetsGrid";
 
 /**
  * Home Page - BPI AeroPath
@@ -185,6 +186,9 @@ export default function Home() {
                 </div>
               </a>
             </div>
+
+            {/* Widgets from Pending page */}
+            <PendingWidgetsGrid />
           </div>
         </div>
       </section>
