@@ -38,7 +38,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-white/10 backdrop-blur-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#7E5C4A]/20 bg-[#F6EDDE]/82 backdrop-blur-lg">
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -83,7 +83,7 @@ export function Navbar() {
               </Link>
             ))}
 
-            <div className="h-6 w-px bg-slate-200 ml-2"></div>
+            <div className="h-6 w-px bg-[#7E5C4A]/30 ml-2"></div>
 
             {user && !loading ? (
               <div className="flex items-center gap-4">
@@ -113,7 +113,7 @@ export function Navbar() {
                       boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
                     }}
                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative group-hover/profile:border-[#9ACD32] transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-[#272727] flex items-center justify-center text-[#9ACD32] overflow-hidden border border-[#EFD09E]/40 relative group-hover/profile:border-[#9ACD32] transition-colors cursor-pointer"
                   >
                     {user.photoURL ? (
                       <Image
@@ -132,7 +132,7 @@ export function Navbar() {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-[#272727] rounded-lg transition-all duration-300"
+                  className="p-2 text-[#7E5C4A] hover:text-red-500 hover:bg-[#272727] rounded-lg transition-all duration-300"
                   title="Sign Out"
                 >
                   <LogOut className="w-5 h-5" />
@@ -168,7 +168,7 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            className="md:hidden p-2 text-[#272727] hover:bg-[#EFD09E]/60 rounded-lg transition-colors"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
@@ -198,7 +198,7 @@ export function Navbar() {
               </Link>
             ))}
 
-            <div className="border-t border-slate-100 pt-3 px-4">
+            <div className="border-t border-[#7E5C4A]/20 pt-3 px-4">
               {user && !loading ? (
                 <div className="flex items-center justify-between">
                   <Link
@@ -217,7 +217,7 @@ export function Navbar() {
                         stiffness: 450,
                         damping: 25,
                       }}
-                      className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-green-400 overflow-hidden border border-white/20 relative cursor-pointer"
+                      className="w-10 h-10 rounded-full bg-[#272727] flex items-center justify-center text-[#9ACD32] overflow-hidden border border-[#EFD09E]/40 relative cursor-pointer"
                     >
                       {user.photoURL ? (
                         <Image

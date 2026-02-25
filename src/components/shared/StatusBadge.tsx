@@ -28,11 +28,11 @@ export function StatusBadge({
 }: StatusBadgeProps) {
   // กำหนดสีและ style สำหรับแต่ละ status (Light Theme)
   const styles: Record<BadgeStatus, string> = {
-    normal: "bg-blue-100 text-blue-700 border-blue-300",
-    success: "bg-green-100 text-green-700 border-green-300",
-    warning: "bg-amber-100 text-amber-700 border-amber-300",
-    critical: "bg-red-100 text-red-700 border-red-300 animate-pulse",
-    info: "bg-cyan-100 text-cyan-700 border-cyan-300",
+    normal: "bg-[#EFD09E]/65 text-[#272727] border-[#7E5C4A]/30",
+    success: "bg-[#9ACD32]/20 text-[#272727] border-[#9ACD32]/70",
+    warning: "bg-[#D4AA7D]/35 text-[#272727] border-[#7E5C4A]/40",
+    critical: "bg-[#272727]/90 text-[#EFD09E] border-[#272727] animate-pulse",
+    info: "bg-[#7E5C4A]/18 text-[#272727] border-[#7E5C4A]/35",
   };
 
   return (

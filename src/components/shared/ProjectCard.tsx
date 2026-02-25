@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, LucideIcon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { StatusBadge } from "./StatusBadge";
 
@@ -10,7 +10,7 @@ import { StatusBadge } from "./StatusBadge";
  * - Icon และชื่อโปรเจค
  * - คำอธิบาย
  * - Status badge (optional)
- * - Hover effect พร้อม bg-linear-to-r glow
+ * - Hover effect พร้อมการเปลี่ยนสี
  */
 
 interface ProjectCardProps {
@@ -20,6 +20,7 @@ interface ProjectCardProps {
   href: string;
   status?: "active" | "coming-soon" | "beta";
   iconColor?: string;
+  tone?: "raisin" | "buff" | "sunset" | "creamy";
 }
 
 export function ProjectCard({
@@ -28,7 +29,8 @@ export function ProjectCard({
   icon: Icon,
   href,
   status,
-  iconColor = "from-blue-500 to-purple-600",
+  iconColor = "from-[#9ACD32] to-[#84B62B]",
+  tone = "creamy",
 }: ProjectCardProps) {
   const statusMap = {
     active: { label: "Active", type: "success" as const },
@@ -36,48 +38,77 @@ export function ProjectCard({
     beta: { label: "Beta", type: "warning" as const },
   };
 
+  const toneMap = {
+    raisin: {
+      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      title: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      badge:
+        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+    },
+    buff: {
+      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      title: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      badge:
+        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+    },
+    sunset: {
+      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      title: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      badge:
+        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+    },
+    creamy: {
+      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      title: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
+      badge:
+        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+    },
+  };
+
+  const cardTone = toneMap[tone];
+
   return (
     <Link href={href}>
       <GlassCard
         hoverEffect
-        className="h-full flex flex-col gap-4 group relative overflow-hidden border-white/70 bg-white/62"
+        className={`h-auto py-4 px-5 group relative overflow-hidden border-0 bg-opacity-100 hover:border-0 ${cardTone.card} !border-0 !outline-none`}
       >
-        {/* Gradient Glow Effect (แสดงเมื่อ hover) */}
-        <div className="absolute inset-0 bg-linear-to-br from-blue-500/0 to-purple-600/0 group-hover:from-blue-500/10 group-hover:to-purple-600/10 transition-all duration-500 rounded-2xl" />
+        <div className="absolute inset-0 bg-linear-to-br from-white/0 to-white/0 group-hover:from-white/8 group-hover:to-black/8 transition-all duration-500" />
 
         {/* Content */}
-        <div className="relative z-10 flex h-full flex-col gap-4">
+        <div className="relative z-10 flex items-center gap-4">
           {/* Icon */}
           <div
-            className={`w-14 h-14 rounded-xl bg-linear-to-br ${iconColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}
+            className={`w-16 h-16 rounded-xl bg-[#9ACD32] border-2 border-[#EFD09E] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0`}
           >
-            <Icon className="w-8 h-8 text-white" />
+            <Icon className="w-10 h-10 text-[#272727]" />
           </div>
 
-          {/* Title & Status */}
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-              {title}
-            </h3>
-            {status && (
-              <StatusBadge
-                status={statusMap[status].type}
-                label={statusMap[status].label}
-                showDot={false}
-              />
-            )}
-          </div>
+          {/* Text Content */}
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            {/* Title & Status */}
+            <div className="flex items-start justify-between gap-2">
+              <h3 className={`text-xl font-bold transition-colors ${cardTone.title}`}>
+                {title}
+              </h3>
+              {status && (
+                <StatusBadge
+                  status={statusMap[status].type}
+                  label={statusMap[status].label}
+                  showDot={false}
+                  className={cardTone.badge}
+                />
+              )}
+            </div>
 
-          {/* Description */}
-          <p className="text-slate-600 text-sm leading-relaxed">
-            {description}
-          </p>
-
-          <div className="mt-auto pt-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-slate-700/12 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-700 shadow-[0_8px_18px_rgba(39,39,39,0.12)] transition-all duration-300 group-hover:bg-slate-800 group-hover:text-[#EFD09E]">
-              Open Module
-              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </span>
+            {/* Description */}
+            <p className={`text-sm leading-relaxed ${cardTone.description}`}>
+              {description}
+            </p>
           </div>
         </div>
       </GlassCard>

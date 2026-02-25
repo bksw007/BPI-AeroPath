@@ -11,12 +11,14 @@ import {
   Target,
   Shield,
   ArrowRight,
+  ArrowDown,
   Boxes,
 } from "lucide-react";
 import Image from "next/image";
 import * as motion from "motion/react-client";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ProjectCard } from "@/components/shared/ProjectCard";
+import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
 
 /**
  * Home Page - BPI AeroPath
@@ -36,7 +38,8 @@ const modules = [
     icon: Package,
     href: "/projects/material-control",
     status: "active" as const,
-    iconColor: "from-blue-500 to-blue-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "creamy" as const,
   },
   {
     title: "Warehouse Management",
@@ -45,7 +48,8 @@ const modules = [
     icon: Warehouse,
     href: "/projects/warehouse",
     status: "active" as const,
-    iconColor: "from-purple-500 to-purple-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "creamy" as const,
   },
   {
     title: "Smart Packaging",
@@ -54,7 +58,8 @@ const modules = [
     icon: Boxes,
     href: "/projects/packaging",
     status: "active" as const,
-    iconColor: "from-green-500 to-green-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "creamy" as const,
   },
   {
     title: "Delivery Tracking",
@@ -63,7 +68,8 @@ const modules = [
     icon: Truck,
     href: "/projects/delivery",
     status: "active" as const,
-    iconColor: "from-indigo-500 to-blue-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "creamy" as const,
   },
   {
     title: "Document Center",
@@ -72,7 +78,8 @@ const modules = [
     icon: FileText,
     href: "/projects/documents",
     status: "beta" as const,
-    iconColor: "from-amber-500 to-amber-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "buff" as const,
   },
   {
     title: "Task Management",
@@ -81,7 +88,8 @@ const modules = [
     icon: ListTodo,
     href: "/projects/tasks",
     status: "beta" as const,
-    iconColor: "from-cyan-500 to-cyan-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "buff" as const,
   },
   {
     title: "Analytics Dashboard",
@@ -90,16 +98,18 @@ const modules = [
     icon: BarChart3,
     href: "/projects/analytics",
     status: "coming-soon" as const,
-    iconColor: "from-pink-500 to-pink-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "creamy" as const,
   },
   {
-    title: "Maintenance Log",
+    title: "Settings",
     description:
-      "Track equipment maintenance, repairs, and service schedules.",
+      "System configuration, user management, and administrative controls.",
     icon: Wrench,
-    href: "/projects/maintenance",
+    href: "/projects/settings",
     status: "coming-soon" as const,
-    iconColor: "from-red-500 to-red-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "creamy" as const,
   },
   {
     title: "Staff Schedule",
@@ -108,7 +118,8 @@ const modules = [
     icon: Users,
     href: "/projects/staff",
     status: "coming-soon" as const,
-    iconColor: "from-indigo-500 to-indigo-600",
+    iconColor: "from-[#9ACD32] to-[#84B62B]",
+    tone: "raisin" as const,
   },
 ];
 
@@ -131,22 +142,22 @@ export default function Home() {
                 alt="BPI AeroPath"
                 width={800}
                 height={192}
-                className="h-42 md:h-48 w-auto object-contain drop-shadow-[0_10px_40px_rgba(59,130,246,0.35)] animate-float"
+                className="h-42 md:h-48 w-auto object-contain drop-shadow-[0_10px_40px_rgba(39,39,39,0.28)] animate-float"
                 priority
               />
             </div>
             {/* Headline */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tight animate-slide-up">
-              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="text-[#272727] drop-shadow-[0_2px_4px_rgba(0,0,0,0.12)]">
                 Centralized Work Hub for
               </span>{" "}
-              <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 animate-gradient">
+              <span className="text-[#7E5C4A]">
                 Warehouse &amp; Logistics
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg md:text-xl lg:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed font-light tracking-wide animate-slide-up delay-200">
+            <p className="text-lg md:text-xl lg:text-2xl text-[#7E5C4A] max-w-4xl mx-auto leading-relaxed font-light tracking-wide animate-slide-up delay-200">
               Manage inventory, track deliveries, and enable team redundancy.
               <br className="hidden md:block" />
               All-in-one platform for visual operations.
@@ -156,29 +167,40 @@ export default function Home() {
             <div className="flex w-full flex-col sm:flex-row gap-4 justify-center items-center pt-4 animate-slide-up delay-300">
               <a 
                 href="#modules" 
-                className="group px-6 py-3 bg-white/60 backdrop-blur-sm border border-white/50 text-slate-700 font-medium text-base rounded-full hover:bg-white/80 transition-all duration-300 hover:shadow-md flex items-center gap-2 animate-wiggle"
+                className="cta-primary group px-6 py-3 font-semibold text-base rounded-full flex items-center gap-2 animate-wiggle"
               >
                 Get Started Now
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
-              <button className="px-6 py-3 text-slate-500 font-medium text-base rounded-full hover:text-slate-700 hover:bg-white/40 transition-all duration-300 hover-wiggle">
+              <button className="px-6 py-3 text-[#7E5C4A] border border-[#7E5C4A]/30 font-semibold text-base rounded-full hover:text-[#272727] hover:bg-[#EFD09E]/70 transition-all duration-300 hover-wiggle">
                 View Documentation
               </button>
+            </div>
+
+            {/* Scroll Down Arrow */}
+            <div className="flex justify-center pt-8 animate-bounce">
+              <a href="#features" className="group">
+                <div className="w-8 h-8 rounded-full border-2 border-[#7E5C4A]/40 flex items-center justify-center group-hover:border-[#7E5C4A]/60 transition-colors">
+                  <ArrowDown className="w-4 h-4 text-[#7E5C4A]/60 group-hover:text-[#7E5C4A] transition-colors" />
+                </div>
+              </a>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 md:py-24">
+      <section id="features" className="py-16 md:py-24 relative">
+        {/* Sticky Up Arrow Button */}
+        <ScrollToTopButton />
         <div className="container-custom">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="text-[#272727]">
                 Why Choose BPI AeroPath?
               </span>
             </h2>
-            <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
+            <p className="text-[#7E5C4A] text-base md:text-lg max-w-2xl mx-auto">
               Built for teams who need real-time visibility, seamless tracking,
               and operational redundancy
             </p>
@@ -187,36 +209,42 @@ export default function Home() {
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Feature 1: Visibility */}
-            <GlassCard hoverEffect className="flex flex-col gap-4">
-              <div className="w-14 h-14 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <Eye className="w-7 h-7 text-white" />
+            <GlassCard hoverEffect className="flex flex-col gap-4 border-[#7E5C4A]/28 bg-[#F6EDDE]/80">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] flex items-center justify-center shadow-[0_10px_20px_rgba(39,39,39,0.16)] flex-shrink-0">
+                  <Eye className="w-7 h-7 text-[#272727]" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#272727]">Visibility</h3>
               </div>
-              <h3 className="text-2xl font-bold text-slate-800">Visibility</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <p className="text-[#7E5C4A] leading-relaxed">
                 See all work movements in real-time. Track inventory, orders,
                 and deliveries from a single dashboard.
               </p>
             </GlassCard>
 
             {/* Feature 2: Tracking */}
-            <GlassCard hoverEffect className="flex flex-col gap-4">
-              <div className="w-14 h-14 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <Target className="w-7 h-7 text-white" />
+            <GlassCard hoverEffect className="flex flex-col gap-4 border-[#7E5C4A]/28 bg-[#F6EDDE]/80">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] flex items-center justify-center shadow-[0_10px_20px_rgba(39,39,39,0.16)] flex-shrink-0">
+                  <Target className="w-7 h-7 text-[#272727]" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#272727]">Tracking</h3>
               </div>
-              <h3 className="text-2xl font-bold text-slate-800">Tracking</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <p className="text-[#7E5C4A] leading-relaxed">
                 Monitor issues and progress across all departments. Get instant
                 alerts and detailed reports.
               </p>
             </GlassCard>
 
             {/* Feature 3: Redundancy */}
-            <GlassCard hoverEffect className="flex flex-col gap-4">
-              <div className="w-14 h-14 rounded-xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                <Shield className="w-7 h-7 text-white" />
+            <GlassCard hoverEffect className="flex flex-col gap-4 border-[#7E5C4A]/28 bg-[#F6EDDE]/80">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] flex items-center justify-center shadow-[0_10px_20px_rgba(39,39,39,0.16)] flex-shrink-0">
+                  <Shield className="w-7 h-7 text-[#272727]" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#272727]">Redundancy</h3>
               </div>
-              <h3 className="text-2xl font-bold text-slate-800">Redundancy</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <p className="text-[#7E5C4A] leading-relaxed">
                 Team members can seamlessly cover for each other. No single
                 point of failure in your operations.
               </p>
@@ -230,11 +258,11 @@ export default function Home() {
         <div className="container-custom">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              <span className="text-[#272727]">
                 Explore Our Modules
               </span>
             </h2>
-            <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
+            <p className="text-[#7E5C4A] text-base md:text-lg max-w-2xl mx-auto">
               Everything you need to manage your warehouse and logistics
               operations
             </p>
@@ -276,14 +304,16 @@ export default function Home() {
                   rotate: 0,
                   zIndex: 220,
                   boxShadow: "0 42px 70px rgba(39, 39, 39, 0.34)",
+                  borderRadius: "2rem",
                 }}
                 whileTap={{ scale: 0.94, rotate: 0 }}
-                className="transform-gpu will-change-transform"
+                className="transform-gpu will-change-transform rounded-[2rem]"
                 style={{
                   zIndex: modules.length - index,
-                  marginTop: index === 0 ? 0 : -42,
+                  marginTop: index === 0 ? 0 : -10,
                   alignSelf: index % 2 === 0 ? "flex-start" : "flex-end",
                   width: index % 2 === 0 ? "min(94%, 980px)" : "min(90%, 940px)",
+                  borderRadius: "2rem",
                 }}
               >
                 <ProjectCard
@@ -293,6 +323,7 @@ export default function Home() {
                   href={module.href}
                   status={module.status}
                   iconColor={module.iconColor}
+                  tone={module.tone}
                 />
               </motion.div>
             ))}
@@ -301,30 +332,33 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-300/50 py-10">
+      <footer
+        className="home-footer !bg-[#272727] border-t border-[#EFD09E]/20 py-10 !text-[#EFD09E]"
+        style={{ backgroundColor: "#272727", color: "#EFD09E" }}
+      >
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
             {/* Company Info */}
-            <div>
-              <h3 className="text-slate-800 font-bold text-lg mb-4">
+            <div className="md:col-span-4">
+              <h3 className="text-[#EFD09E] font-bold text-lg mb-4">
                 BPI AeroPath
               </h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
+              <p className="text-[#EFD09E]/80 text-sm leading-relaxed">
                 Centralized Work Hub for Warehouse & Logistics Management.
                 Built for teams who demand excellence.
               </p>
             </div>
 
             {/* Quick Links */}
-            <div>
-              <h3 className="text-slate-800 font-bold text-lg mb-4">
+            <div className="md:col-span-3 md:col-start-7">
+              <h3 className="text-[#EFD09E] font-bold text-lg mb-4">
                 Quick Links
               </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <a
                     href="/projects"
-                    className="text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-[#EFD09E]/80 hover:text-[#9ACD32] transition-colors"
                   >
                     All Projects
                   </a>
@@ -332,7 +366,7 @@ export default function Home() {
                 <li>
                   <a
                     href="/about"
-                    className="text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-[#EFD09E]/80 hover:text-[#9ACD32] transition-colors"
                   >
                     About Us
                   </a>
@@ -340,7 +374,7 @@ export default function Home() {
                 <li>
                   <a
                     href="/docs"
-                    className="text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-[#EFD09E]/80 hover:text-[#9ACD32] transition-colors"
                   >
                     Documentation
                   </a>
@@ -349,13 +383,13 @@ export default function Home() {
             </div>
 
             {/* Legal */}
-            <div>
-              <h3 className="text-slate-800 font-bold text-lg mb-4">Legal</h3>
+            <div className="md:col-span-3">
+              <h3 className="text-[#EFD09E] font-bold text-lg mb-4">Legal</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <a
                     href="/privacy"
-                    className="text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-[#EFD09E]/80 hover:text-[#9ACD32] transition-colors"
                   >
                     Privacy Policy
                   </a>
@@ -363,7 +397,7 @@ export default function Home() {
                 <li>
                   <a
                     href="/terms"
-                    className="text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-[#EFD09E]/80 hover:text-[#9ACD32] transition-colors"
                   >
                     Terms of Service
                   </a>
@@ -371,7 +405,7 @@ export default function Home() {
                 <li>
                   <a
                     href="/contact"
-                    className="text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-[#EFD09E]/80 hover:text-[#9ACD32] transition-colors"
                   >
                     Contact
                   </a>
@@ -381,8 +415,8 @@ export default function Home() {
           </div>
 
           {/* Copyright */}
-          <div className="pt-6 border-t border-slate-300/50 text-center">
-            <p className="text-slate-500 text-sm">
+          <div className="pt-6 border-t border-[#EFD09E]/20 text-center">
+            <p className="text-[#EFD09E]/70 text-sm">
               © {new Date().getFullYear()} BPI AeroPath. All rights reserved.
             </p>
           </div>

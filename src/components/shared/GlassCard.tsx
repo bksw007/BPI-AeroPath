@@ -26,10 +26,10 @@ export function GlassCard({
     <div
       className={cn(
         // Base glass styles (Light Theme)
-        "rounded-2xl border border-white/60 bg-white/50 backdrop-blur-lg shadow-lg p-6 text-slate-800",
+        "rounded-[2rem] bg-[#EFD09E]/70 backdrop-blur-sm shadow-[0_18px_34px_rgba(39,39,39,0.16)] p-6 text-[#272727] border-0 outline-none",
         // Hover effect (optional)
         hoverEffect &&
-          "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:bg-white/70 cursor-pointer",
+          "transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_40px_rgba(39,39,39,0.22)] hover:bg-[#EFD09E]/85 cursor-pointer hover:border-0 hover:outline-none",
         // Custom classes
         className
       )}
