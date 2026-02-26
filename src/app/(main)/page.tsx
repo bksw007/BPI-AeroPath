@@ -56,7 +56,7 @@ const modules = [
     tone: "creamy" as const,
   },
   {
-    title: "Smart Packaging",
+    title: "Packaging Console",
     description:
       "Intelligent packing plans based on customer specs. Manage pallets, box sizes, and automated lists.",
     icon: Boxes,

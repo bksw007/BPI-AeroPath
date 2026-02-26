@@ -144,8 +144,8 @@ export default function PackagingDashboard() {
                         isRight && "md:flex-row-reverse md:text-right"
                       )}
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-[#D4AA7D]/35 shadow-inner shadow-[#7E5C4A]/10 transition-all duration-300 group-hover:border-[#EFD09E]/40 group-hover:bg-[#9ACD32]">
-                        <Icon className="h-[22px] w-[22px] text-[#272727] transition-colors duration-300 group-hover:text-[#272727]" strokeWidth={2.3} />
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-[#D4AA7D]/35 shadow-inner shadow-[#7E5C4A]/10 transition-all duration-300 group-hover:border-[#EFD09E]/40 group-hover:bg-[#9ACD32] group-hover:scale-125 group-hover:shadow-[0_6px_18px_rgba(39,39,39,0.35)]">
+                        <Icon className="h-[22px] w-[22px] text-[#272727] transition-all duration-300 group-hover:text-[#272727] group-hover:scale-110" strokeWidth={2.3} />
                       </div>
 
                       <div className="space-y-2">

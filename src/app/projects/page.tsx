@@ -39,7 +39,7 @@ export default function ProjectsPage() {
             />
 
             <ProjectCard
-              title="Smart Packaging"
+              title="Packaging Console"
               description="Automated packaging planning and optimization system for efficient logistics and material handling."
               icon={Boxes}
               href="/projects/packaging"
