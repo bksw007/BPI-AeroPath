@@ -1,7 +1,13 @@
 import Link from "next/link";
-import { ClipboardList, Package, ReceiptText, Settings, TrendingUp, History } from "lucide-react";
-
-import { GlassCard } from "@/components/shared/GlassCard";
+import {
+  ArrowRight,
+  ClipboardList,
+  History,
+  Package,
+  ReceiptText,
+  Settings,
+  TrendingUp,
+} from "lucide-react";
 
 const sections = [
   {
@@ -50,18 +56,26 @@ const sections = [
 
 export default function MaterialControlPage() {
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 bg-[#F6EDDE] relative overflow-hidden">
+      <div className="absolute top-24 -left-16 w-72 h-72 bg-[#D4AA7D]/15 rounded-full blur-3xl" />
+      <div className="absolute bottom-16 -right-16 w-80 h-80 bg-[#EFD09E]/25 rounded-full blur-3xl" />
+
       <section className="py-12 md:py-16">
-        <div className="container-custom">
-
-
-          <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer">
-                Material Control
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-12 space-y-5">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#9ACD32]/15 border border-[#9ACD32]/30">
+              <div className="w-2 h-2 rounded-full bg-[#9ACD32] animate-pulse" />
+              <span className="text-[10px] font-black text-[#5a7a1a] uppercase tracking-[0.22em]">
+                Core Module
               </span>
+            </div>
+
+            <h1 className="text-3xl md:text-5xl font-black mb-2 tracking-tight">
+              <span className="text-[#272727]">Material </span>
+              <span className="text-[#7E5C4A]">Control</span>
             </h1>
-            <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+
+            <p className="text-[#7E5C4A] text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
               Inventory, requisitions, and receiving in one unified module.
             </p>
           </div>
@@ -71,35 +85,31 @@ export default function MaterialControlPage() {
               const Icon = s.icon;
               return (
                 <Link key={s.href} href={s.href} className="block group">
-                  <GlassCard
-                    className="h-full flex flex-col gap-5 p-6 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                  >
-                    {/* Hover Gradient Background */}
-                    <div className="absolute inset-0 bg-linear-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
+                  <div className="h-full flex flex-col gap-5 p-6 rounded-2xl relative overflow-hidden bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.3),-8px_-8px_18px_rgba(255,255,255,0.92)] transition-all duration-300 hover:-translate-y-1.5 hover:bg-[#272727] hover:shadow-[0_16px_34px_rgba(39,39,39,0.24)]">
+                    <div className="absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-white/5 group-hover:to-black/10 transition-all duration-500" />
+
                     <div className="relative z-10 flex flex-col gap-4">
-                      {/* Icon Container */}
                       <div
-                        className={`w-14 h-14 rounded-2xl bg-linear-to-br ${s.iconColor} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-lg`}
+                        className="w-14 h-14 rounded-xl bg-[#9ACD32] border-2 border-[#EFD09E] flex items-center justify-center transition-transform duration-300 shadow-[4px_4px_10px_rgba(166,180,200,0.22),-2px_-2px_6px_rgba(255,255,255,0.9)] group-hover:scale-105"
                       >
-                        <Icon className="w-7 h-7 text-white" />
+                        <Icon className="w-7 h-7 text-[#272727]" />
                       </div>
 
                       <div className="space-y-2">
-                        <h2 className="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                        <h2 className="text-xl font-black text-[#272727] group-hover:text-[#EFD09E] transition-colors tracking-tight">
                           {s.title}
                         </h2>
-                        <p className="text-slate-600 text-sm leading-relaxed">
+                        <p className="text-[#7E5C4A] text-sm leading-relaxed group-hover:text-[#EFD09E]/70 transition-colors">
                           {s.description}
                         </p>
                       </div>
                     </div>
-                    
-                    {/* Learn More Indicator */}
-                    <div className="mt-auto pt-2 flex items-center text-indigo-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                      Access Module <span className="ml-1">→</span>
+
+                    <div className="relative z-10 mt-auto pt-2 flex items-center justify-between text-xs font-black uppercase tracking-[0.18em] text-[#7E5C4A] group-hover:text-[#9ACD32] transition-colors">
+                      <span>Access Module</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
-                  </GlassCard>
+                  </div>
                 </Link>
               );
             })}

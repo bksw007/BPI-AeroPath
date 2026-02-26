@@ -26,17 +26,15 @@ export function ModuleHeader({
         {/* Back Link - Positioned Absolute Left */}
         <Link
           href={backHref}
-          className="absolute left-0 inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm md:text-base"
+          className="absolute left-0 inline-flex items-center gap-2 text-[#7E5C4A]/80 hover:text-[#272727] transition-colors text-sm md:text-base font-semibold"
         >
           <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           <span className="hidden sm:inline">{backLabel}</span>
         </Link>
         
         {/* Title */}
-        <h1 className="text-3xl md:text-5xl font-bold">
-          <span className="bg-clip-text text-transparent bg-linear-to-br from-blue-600 to-indigo-700 bg-size-[200%_100%] animate-shimmer">
-            {title}
-          </span>
+        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-center">
+          <span className="text-[#272727]">{title}</span>
         </h1>
 
         {/* Action Button - Positioned Absolute Right */}
@@ -48,14 +46,14 @@ export function ModuleHeader({
       </div>
 
       {description ? (
-        <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-center -mt-2">
+        <p className="text-[#7E5C4A] text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-center -mt-2">
           {description}
         </p>
       ) : null}
 
       {children ? children : (
-        <GlassCard className="text-center py-10">
-          <p className="text-slate-500 text-base">Module is under construction</p>
+        <GlassCard className="text-center py-10 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.3),-8px_-8px_18px_rgba(255,255,255,0.92)]">
+          <p className="text-[#7E5C4A] text-base">Module is under construction</p>
         </GlassCard>
       )}
     </div>

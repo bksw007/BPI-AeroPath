@@ -40,15 +40,15 @@ export default function ActivityPage() {
   const getActionStyle = (action: string) => {
     switch (action) {
       case "Create":
-        return { icon: <Plus className="w-3 h-3" />, color: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+        return { icon: <Plus className="w-3 h-3" />, color: "bg-[#9ACD32]/20 text-[#5a7a1a] border-[#9ACD32]/35" };
       case "Update":
-        return { icon: <Edit className="w-3 h-3" />, color: "bg-blue-50 text-blue-700 border-blue-100" };
+        return { icon: <Edit className="w-3 h-3" />, color: "bg-[#EEF2F6] text-[#7E5C4A] border-[#D4AA7D]/30" };
       case "Delete":
         return { icon: <Trash2 className="w-3 h-3" />, color: "bg-rose-50 text-rose-700 border-rose-100" };
       case "Export":
-        return { icon: <FileText className="w-3 h-3" />, color: "bg-amber-50 text-amber-700 border-amber-100" };
+        return { icon: <FileText className="w-3 h-3" />, color: "bg-[#EFD09E]/60 text-[#7E5C4A] border-[#D4AA7D]/35" };
       default:
-        return { icon: null, color: "bg-slate-50 text-slate-600 border-slate-200" };
+        return { icon: null, color: "bg-[#EEF2F6] text-[#7E5C4A] border-[#D4AA7D]/30" };
     }
   };
 
@@ -63,7 +63,7 @@ export default function ActivityPage() {
         return (
           <div>
             <p className="font-medium">{formatDate(date)}</p>
-            <p className="text-xs text-slate-400">{date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</p>
+            <p className="text-xs text-[#7E5C4A]/70">{date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</p>
           </div>
         );
       }
@@ -86,7 +86,7 @@ export default function ActivityPage() {
       header: "Module", 
       align: "center",
       render: (val) => (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#EFD09E]/70 text-[#272727] border border-[#D4AA7D]/35">
           {val}
         </span>
       )
@@ -120,9 +120,11 @@ export default function ActivityPage() {
   const monthCount = activities.filter(a => (a.timestamp as unknown as Date) >= thisMonthStart).length;
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 bg-[#F6EDDE] relative overflow-hidden">
+      <div className="absolute top-24 -left-16 w-72 h-72 bg-[#D4AA7D]/15 rounded-full blur-3xl" />
+      <div className="absolute bottom-16 -right-16 w-80 h-80 bg-[#EFD09E]/25 rounded-full blur-3xl" />
       <section className="py-12 md:py-16">
-        <div className="container-custom">
+        <div className="container-custom relative z-10">
           <ModuleHeader
             title="Activity Log"
             description="ประวัติการทำงานทั้งหมด - การเพิ่ม แก้ไข ลบ และส่งออกข้อมูล"
@@ -130,36 +132,36 @@ export default function ActivityPage() {
             <div className="space-y-6 mt-8">
               {/* Stats Dashboard */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Today</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">{todayCount}</h3>
-                    <p className="text-xs text-slate-400 mt-1">activities</p>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Today</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">{todayCount}</h3>
+                    <p className="text-xs text-[#7E5C4A]/70 mt-1 group-hover:text-[#EFD09E]/60">activities</p>
                   </div>
-                  <div className="p-3 bg-indigo-100 rounded-xl">
-                    <Clock className="w-6 h-6 text-indigo-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <Clock className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">This Week</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">{weekCount}</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">This Week</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">{weekCount}</h3>
                     <p className="text-xs text-emerald-600 mt-1 font-medium">Last 7 days</p>
                   </div>
-                  <div className="p-3 bg-emerald-100 rounded-xl">
-                    <CalendarDays className="w-6 h-6 text-emerald-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <CalendarDays className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">This Month</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">{monthCount}</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">This Month</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">{monthCount}</h3>
                     <p className="text-xs text-blue-500 mt-1 font-medium">All activities</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <TrendingUp className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
               </div>
@@ -199,57 +201,57 @@ export default function ActivityPage() {
             {selectedActivity && (
               <div className="space-y-6">
                 {/* Header Info */}
-                <div className="flex justify-between items-start bg-slate-50 p-4 rounded-lg border border-slate-100">
+                <div className="flex justify-between items-start bg-[#EEF2F6]/80 p-4 rounded-lg border border-white/80">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-1">Action</p>
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">Action</p>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-sm font-medium border ${getActionStyle(selectedActivity.action).color}`}>
                       {getActionStyle(selectedActivity.action).icon} {selectedActivity.action}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-500 uppercase mb-1">Date/Time</p>
-                    <p className="font-semibold text-slate-700">{formatDate(selectedActivity.timestamp as any)}</p> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
-                    <p className="text-xs text-slate-400">{new Date(selectedActivity.timestamp as any).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</p> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">Date/Time</p>
+                    <p className="font-semibold text-[#272727]">{formatDate(selectedActivity.timestamp as any)}</p> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
+                    <p className="text-xs text-[#7E5C4A]/70">{new Date(selectedActivity.timestamp as any).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}</p> {/* eslint-disable-line @typescript-eslint/no-explicit-any */}
                   </div>
                 </div>
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-1">Module</p>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">Module</p>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-[#EFD09E]/70 text-[#272727] border border-[#D4AA7D]/35">
                       {selectedActivity.module}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-1">User</p>
-                    <p className="font-medium text-slate-700">{selectedActivity.user}</p>
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">User</p>
+                    <p className="font-medium text-[#272727]">{selectedActivity.user}</p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500 uppercase mb-1">Target</p>
-                  <p className="font-medium text-slate-700">{selectedActivity.targetName}</p>
-                  <p className="text-xs text-slate-400">ID: {selectedActivity.targetId}</p>
+                  <p className="text-xs text-[#7E5C4A] uppercase mb-1">Target</p>
+                  <p className="font-medium text-[#272727]">{selectedActivity.targetName}</p>
+                  <p className="text-xs text-[#7E5C4A]/70">ID: {selectedActivity.targetId}</p>
                 </div>
 
                 {/* Changes (for Update action) */}
                 {selectedActivity.changes && selectedActivity.changes.length > 0 && (
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-2">Changes</p>
-                    <div className="bg-slate-50 rounded-lg border border-slate-100 overflow-hidden">
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-2">Changes</p>
+                    <div className="bg-[#EEF2F6]/70 rounded-lg border border-white/80 overflow-hidden">
                       <table className="w-full text-sm">
-                        <thead className="bg-slate-100">
+                        <thead className="bg-[#EEF2F6]">
                           <tr>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">Field</th>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">Before</th>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">After</th>
+                            <th className="px-3 py-2 text-left font-semibold text-[#7E5C4A]">Field</th>
+                            <th className="px-3 py-2 text-left font-semibold text-[#7E5C4A]">Before</th>
+                            <th className="px-3 py-2 text-left font-semibold text-[#7E5C4A]">After</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedActivity.changes?.map((change: any, idx: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
-                            <tr key={idx} className="border-t border-slate-100">
-                              <td className="px-3 py-2 font-medium text-slate-700">{change.field}</td>
+                            <tr key={idx} className="border-t border-[#D4AA7D]/20">
+                              <td className="px-3 py-2 font-medium text-[#272727]">{change.field}</td>
                               <td className="px-3 py-2 text-rose-600 line-through">{change.before}</td>
                               <td className="px-3 py-2 text-emerald-600 font-medium">{change.after}</td>
                             </tr>
@@ -261,10 +263,10 @@ export default function ActivityPage() {
                 )}
 
                 {/* Footer */}
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-[#D4AA7D]/25">
                   <button 
                     onClick={() => setSelectedActivity(null)}
-                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/30"
+                    className="w-full py-2.5 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg font-medium transition-colors shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20"
                   >
                     Close
                   </button>

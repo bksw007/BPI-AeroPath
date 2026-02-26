@@ -57,9 +57,9 @@ export default function ReceivingPage() {
       align: "center",
       render: (val) => {
         const styles: Record<string, string> = {
-          Pending: "bg-amber-50 text-amber-700 border-amber-100",
-          Verified: "bg-blue-50 text-blue-700 border-blue-100",
-          Completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
+          Pending: "bg-[#EFD09E]/60 text-[#7E5C4A] border-[#D4AA7D]/35",
+          Verified: "bg-[#EEF2F6] text-[#7E5C4A] border-[#D4AA7D]/30",
+          Completed: "bg-[#9ACD32]/20 text-[#5a7a1a] border-[#9ACD32]/35",
         };
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[val] || ""}`}>
@@ -82,9 +82,11 @@ export default function ReceivingPage() {
   });
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 bg-[#F6EDDE] relative overflow-hidden">
+      <div className="absolute top-24 -left-16 w-72 h-72 bg-[#D4AA7D]/15 rounded-full blur-3xl" />
+      <div className="absolute bottom-16 -right-16 w-80 h-80 bg-[#EFD09E]/25 rounded-full blur-3xl" />
       <section className="py-12 md:py-16">
-        <div className="container-custom">
+        <div className="container-custom relative z-10">
           <ModuleHeader
             title="Receiving"
             description="Receive materials, attach documents, and create receiving notes."
@@ -92,36 +94,36 @@ export default function ReceivingPage() {
             <div className="space-y-6 mt-8">
               {/* Stats Dashboard */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Pending Verification</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">3</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Pending Verification</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">3</h3>
                     <p className="text-xs text-amber-500 mt-1 font-medium">Awaiting check</p>
                   </div>
-                  <div className="p-3 bg-amber-100 rounded-xl">
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
                     <Clock className="w-6 h-6 text-amber-600" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Received Today</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">8</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Received Today</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">8</h3>
                     <p className="text-xs text-emerald-600 mt-1 font-medium">Items checked in</p>
                   </div>
-                  <div className="p-3 bg-emerald-100 rounded-xl">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <CheckCircle2 className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Expected Deliveries</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">5</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Expected Deliveries</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">5</h3>
                     <p className="text-xs text-blue-500 mt-1 font-medium">This week</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <Truck className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <Truck className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
               </div>
@@ -168,8 +170,8 @@ export default function ReceivingPage() {
                     onChange={setReceiveDate}
                   />
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase">PO Number</label>
-                    <input type="text" placeholder="Enter PO number..." className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                    <label className="text-xs font-semibold text-[#7E5C4A] uppercase">PO Number</label>
+                    <input type="text" placeholder="Enter PO number..." className="w-full px-3 py-2 bg-[#EEF2F6]/70 border border-white/80 rounded-lg text-sm text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/20" />
                   </div>
                 </div>
 
@@ -186,15 +188,15 @@ export default function ReceivingPage() {
                 {/* Items List */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <label className="text-xs font-semibold text-slate-500 uppercase">Items Received</label>
-                    <button className="text-xs text-indigo-600 font-medium hover:underline flex items-center gap-1">
+                    <label className="text-xs font-semibold text-[#7E5C4A] uppercase">Items Received</label>
+                    <button className="text-xs text-[#7E5C4A] font-medium hover:underline flex items-center gap-1">
                       <Plus className="w-3 h-3" /> Add Item
                     </button>
                   </div>
                   
-                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <div className="border border-[#D4AA7D]/25 rounded-lg overflow-hidden bg-white/60">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+                      <thead className="bg-[#EEF2F6] text-[#7E5C4A] text-xs uppercase border-b border-[#D4AA7D]/25">
                         <tr>
                           <th className="px-3 py-2">Material</th>
                           <th className="px-3 py-2 w-20 text-center">Qty</th>
@@ -202,44 +204,44 @@ export default function ReceivingPage() {
                           <th className="px-3 py-2 w-10"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-[#D4AA7D]/15">
                         <tr>
                           <td className="p-2">
-                            <select className="w-full bg-transparent text-sm text-slate-700 focus:outline-none">
+                            <select className="w-full bg-transparent text-sm text-[#272727] focus:outline-none">
                               <option>Select Material...</option>
                               <option>Aluminum Sheet Grade 1000</option>
                               <option>Steel Rod 10mm</option>
                             </select>
                           </td>
                           <td className="p-2">
-                            <input type="number" defaultValue={1} className="w-full text-center bg-slate-50 rounded border border-slate-200 py-1 text-sm" />
+                            <input type="number" defaultValue={1} className="w-full text-center bg-[#EEF2F6] rounded border border-white/80 py-1 text-sm text-[#272727]" />
                           </td>
-                          <td className="p-2 text-slate-500 text-xs">Sheet</td>
-                          <td className="p-2 text-center text-slate-400 hover:text-red-500 cursor-pointer">×</td>
+                          <td className="p-2 text-[#7E5C4A] text-xs">Sheet</td>
+                          <td className="p-2 text-center text-[#7E5C4A]/50 hover:text-red-500 cursor-pointer">×</td>
                         </tr>
                       </tbody>
                     </table>
-                    <div className="p-2 bg-slate-50 text-center">
-                      <p className="text-xs text-slate-400 italic">Add items received</p>
+                    <div className="p-2 bg-[#EEF2F6] text-center">
+                      <p className="text-xs text-[#7E5C4A]/70 italic">Add items received</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase">Notes</label>
-                  <textarea className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-20 resize-none" placeholder="Additional notes..."></textarea>
+                  <label className="text-xs font-semibold text-[#7E5C4A] uppercase">Notes</label>
+                  <textarea className="w-full px-3 py-2 bg-[#EEF2F6]/70 border border-white/80 rounded-lg text-sm text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/20 h-20 resize-none" placeholder="Additional notes..."></textarea>
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div className="pt-4 border-t border-slate-100 mt-auto flex gap-3">
+              <div className="pt-4 border-t border-[#D4AA7D]/25 mt-auto flex gap-3">
                 <button 
                   onClick={() => setIsNewReceivingModalOpen(false)}
-                  className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors"
+                  className="flex-1 py-2.5 bg-[#EEF2F6] border border-white/80 text-[#7E5C4A] hover:bg-white rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
-                <button className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/30">
+                <button className="flex-1 py-2.5 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg font-medium transition-colors shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20">
                   Create Note
                 </button>
               </div>
@@ -256,57 +258,57 @@ export default function ReceivingPage() {
             <div className="h-[480px] flex flex-col">
               <div className="flex-1 overflow-y-auto pr-2 space-y-6">
                 {/* Header Info */}
-                <div className="flex justify-between items-start bg-slate-50 p-4 rounded-lg border border-slate-100">
+                <div className="flex justify-between items-start bg-[#EEF2F6]/80 p-4 rounded-lg border border-white/80">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-1">Status</p>
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">Status</p>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium border ${
-                      selectedReceiving?.status === "Pending" ? "bg-amber-50 text-amber-700 border-amber-100" :
-                      selectedReceiving?.status === "Verified" ? "bg-blue-50 text-blue-700 border-blue-100" :
-                      "bg-emerald-50 text-emerald-700 border-emerald-100"
+                      selectedReceiving?.status === "Pending" ? "bg-[#EFD09E]/60 text-[#7E5C4A] border-[#D4AA7D]/35" :
+                      selectedReceiving?.status === "Verified" ? "bg-[#EEF2F6] text-[#7E5C4A] border-[#D4AA7D]/30" :
+                      "bg-[#9ACD32]/20 text-[#5a7a1a] border-[#9ACD32]/35"
                     }`}>
                       {selectedReceiving?.status}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-500 uppercase mb-1">Date</p>
-                    <p className="font-semibold text-slate-700">{selectedReceiving ? formatDate(selectedReceiving.date) : ""}</p>
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">Date</p>
+                    <p className="font-semibold text-[#272727]">{selectedReceiving ? formatDate(selectedReceiving.date) : ""}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-1">PO Number</p>
-                    <p className="font-medium text-indigo-600">{selectedReceiving?.poNumber}</p>
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">PO Number</p>
+                    <p className="font-medium text-[#272727]">{selectedReceiving?.poNumber}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-1">Supplier</p>
-                    <p className="font-medium text-slate-700">{selectedReceiving?.supplier}</p>
+                    <p className="text-xs text-[#7E5C4A] uppercase mb-1">Supplier</p>
+                    <p className="font-medium text-[#272727]">{selectedReceiving?.supplier}</p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500 uppercase mb-1">Received By</p>
-                  <p className="font-medium text-slate-700">{selectedReceiving?.receivedBy}</p>
+                  <p className="text-xs text-[#7E5C4A] uppercase mb-1">Received By</p>
+                  <p className="font-medium text-[#272727]">{selectedReceiving?.receivedBy}</p>
                 </div>
 
                 {/* Mock Items List */}
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-700 mb-3">Items Received</h4>
-                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <h4 className="text-sm font-semibold text-[#272727] mb-3">Items Received</h4>
+                  <div className="border border-[#D4AA7D]/25 rounded-lg overflow-hidden bg-white/60">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+                      <thead className="bg-[#EEF2F6] text-[#7E5C4A] text-xs uppercase border-b border-[#D4AA7D]/25">
                         <tr>
                           <th className="px-4 py-2">Item</th>
                           <th className="px-4 py-2 text-right">Qty</th>
                           <th className="px-4 py-2">Unit</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-[#D4AA7D]/15">
                         {[1, 2, 3].map((i) => (
                           <tr key={i}>
-                            <td className="px-4 py-2 text-slate-700">Material Item #{i}</td>
+                            <td className="px-4 py-2 text-[#272727]">Material Item #{i}</td>
                             <td className="px-4 py-2 text-right font-medium">{i * 10}</td>
-                            <td className="px-4 py-2 text-slate-500 text-xs">Pcs</td>
+                            <td className="px-4 py-2 text-[#7E5C4A] text-xs">Pcs</td>
                           </tr>
                         ))}
                       </tbody>
@@ -316,19 +318,19 @@ export default function ReceivingPage() {
               </div>
 
               {/* Footer Actions */}
-              <div className="pt-4 border-t border-slate-100 mt-auto flex gap-3">
+              <div className="pt-4 border-t border-[#D4AA7D]/25 mt-auto flex gap-3">
                 {selectedReceiving?.status === "Pending" && (
-                  <button className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/30">
+                  <button className="flex-1 py-2.5 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg font-medium transition-colors shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20">
                     Verify Items
                   </button>
                 )}
                 {selectedReceiving?.status === "Verified" && (
-                  <button className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-emerald-500/30">
+                  <button className="flex-1 py-2.5 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg font-medium transition-colors shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20">
                     Complete Receiving
                   </button>
                 )}
                 {selectedReceiving?.status === "Completed" && (
-                  <button className="flex-1 py-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                  <button className="flex-1 py-2.5 bg-[#EEF2F6] text-[#7E5C4A] hover:bg-white rounded-lg font-medium transition-colors border border-white/80">
                     Print / Export
                   </button>
                 )}

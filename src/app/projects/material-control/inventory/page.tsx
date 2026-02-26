@@ -48,7 +48,7 @@ export default function InventoryPage() {
       header: "Category", 
       align: "center",
       render: (val) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EFD09E]/70 text-[#272727] border border-[#D4AA7D]/40">
           {val}
         </span>
       )
@@ -68,9 +68,11 @@ export default function InventoryPage() {
   });
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 bg-[#F6EDDE] relative overflow-hidden">
+      <div className="absolute top-24 -left-16 w-72 h-72 bg-[#D4AA7D]/15 rounded-full blur-3xl" />
+      <div className="absolute bottom-16 -right-16 w-80 h-80 bg-[#EFD09E]/25 rounded-full blur-3xl" />
       <section className="py-12 md:py-16">
-        <div className="container-custom">
+        <div className="container-custom relative z-10">
           <ModuleHeader
             title="Inventory"
             description="Materials master data, stock levels, and movements."
@@ -78,47 +80,47 @@ export default function InventoryPage() {
             <div className="space-y-6 mt-8">
               {/* Summary Dashboard */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Total Items</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">1,248</h3>
-                    <p className="text-xs text-slate-400 mt-1">In 12 categories</p>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Total Items</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">1,248</h3>
+                    <p className="text-xs text-[#7E5C4A]/70 mt-1 group-hover:text-[#EFD09E]/60">In 12 categories</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <Package className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <Package className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Low Stock</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">15</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Low Stock</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">15</h3>
                     <p className="text-xs text-red-500 mt-1 font-medium">Reorder needed</p>
                   </div>
-                  <div className="p-3 bg-red-100 rounded-xl">
+                  <div className="p-3 bg-red-100 rounded-xl border border-red-200/60">
                     <AlertTriangle className="w-6 h-6 text-red-600 animate-pulse" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Recent Activity</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">24</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Recent Activity</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">24</h3>
                     <p className="text-xs text-emerald-600 mt-1 font-medium">+12 from yesterday</p>
                   </div>
-                  <div className="p-3 bg-emerald-100 rounded-xl">
-                    <ArrowRightLeft className="w-6 h-6 text-emerald-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <ArrowRightLeft className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Total Value</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">฿2.4M</h3>
-                    <p className="text-xs text-slate-400 mt-1">Estimated cost</p>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Total Value</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">฿2.4M</h3>
+                    <p className="text-xs text-[#7E5C4A]/70 mt-1 group-hover:text-[#EFD09E]/60">Estimated cost</p>
                   </div>
-                  <div className="p-3 bg-amber-100 rounded-xl">
-                    <ReceiptText className="w-6 h-6 text-amber-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <ReceiptText className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
               </div>
@@ -161,13 +163,13 @@ export default function InventoryPage() {
             {selectedItem && (
               <div className="space-y-6">
                 {/* Tabs */}
-                <div className="grid grid-cols-2 border-b border-slate-200 -mx-6 -mt-6 mb-6">
+                <div className="grid grid-cols-2 border-b border-[#D4AA7D]/25 -mx-6 -mt-6 mb-6">
                   <button 
                     onClick={() => setActiveTab("overview")}
                     className={`py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center ${
                       activeTab === 'overview' 
-                      ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' 
-                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                      ? 'border-[#9ACD32] text-[#272727] bg-[#EFD09E]/45' 
+                      : 'border-transparent text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EEF2F6]/60'
                     }`}
                   >
                     Overview
@@ -176,8 +178,8 @@ export default function InventoryPage() {
                     onClick={() => setActiveTab("history")}
                     className={`py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center ${
                       activeTab === 'history' 
-                      ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' 
-                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                      ? 'border-[#9ACD32] text-[#272727] bg-[#EFD09E]/45' 
+                      : 'border-transparent text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EEF2F6]/60'
                     }`}
                   >
                     History
@@ -190,47 +192,47 @@ export default function InventoryPage() {
                       <div className="flex-1 overflow-y-auto pr-2 space-y-6">
                         {/* Info Grid */}
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-3 bg-slate-50 rounded-lg">
-                            <p className="text-xs text-slate-500 uppercase">Part Number</p>
-                            <p className="font-bold text-slate-800 text-lg">{selectedItem.partNo}</p>
+                          <div className="p-3 bg-[#EEF2F6]/80 rounded-lg border border-white/80">
+                            <p className="text-xs text-[#7E5C4A] uppercase">Part Number</p>
+                            <p className="font-bold text-[#272727] text-lg">{selectedItem.partNo}</p>
                           </div>
-                          <div className="p-3 bg-slate-50 rounded-lg">
-                            <p className="text-xs text-slate-500 uppercase">Category</p>
-                            <p className="font-medium text-blue-600">{selectedItem.category}</p>
+                          <div className="p-3 bg-[#EEF2F6]/80 rounded-lg border border-white/80">
+                            <p className="text-xs text-[#7E5C4A] uppercase">Category</p>
+                            <p className="font-medium text-[#7E5C4A]">{selectedItem.category}</p>
                           </div>
                         </div>
 
                         <div>
-                          <p className="text-xs text-slate-500 uppercase mb-1">Description</p>
-                          <p className="text-slate-700 bg-white p-3 rounded-lg border border-slate-100">
+                          <p className="text-xs text-[#7E5C4A] uppercase mb-1">Description</p>
+                          <p className="text-[#272727] bg-[#EEF2F6]/60 p-3 rounded-lg border border-white/80">
                             {selectedItem.description}
                           </p>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
-                          <div className="text-center p-3 border border-slate-100 rounded-lg">
-                            <p className="text-xs text-slate-500">Stock</p>
+                          <div className="text-center p-3 border border-[#D4AA7D]/25 rounded-lg bg-white/50">
+                            <p className="text-xs text-[#7E5C4A]">Stock</p>
                             <p className="font-bold text-emerald-600 text-xl">{selectedItem.stock}</p>
                           </div>
-                          <div className="text-center p-3 border border-slate-100 rounded-lg">
-                            <p className="text-xs text-slate-500">Unit</p>
-                            <p className="font-medium text-slate-700">{selectedItem.unit}</p>
+                          <div className="text-center p-3 border border-[#D4AA7D]/25 rounded-lg bg-white/50">
+                            <p className="text-xs text-[#7E5C4A]">Unit</p>
+                            <p className="font-medium text-[#272727]">{selectedItem.unit}</p>
                           </div>
-                          <div className="text-center p-3 border border-slate-100 rounded-lg">
-                            <p className="text-xs text-slate-500">Location</p>
-                            <p className="font-medium text-slate-700">{selectedItem.location}</p>
+                          <div className="text-center p-3 border border-[#D4AA7D]/25 rounded-lg bg-white/50">
+                            <p className="text-xs text-[#7E5C4A]">Location</p>
+                            <p className="font-medium text-[#272727]">{selectedItem.location}</p>
                           </div>
                         </div>
 
-                        <div className="p-3 bg-slate-50 rounded-lg">
-                          <p className="text-xs text-slate-500 uppercase">Last Updated</p>
-                          <p className="font-medium text-slate-700">{formatDate(selectedItem.lastUpdated)}</p>
+                        <div className="p-3 bg-[#EEF2F6]/80 rounded-lg border border-white/80">
+                          <p className="text-xs text-[#7E5C4A] uppercase">Last Updated</p>
+                          <p className="font-medium text-[#272727]">{formatDate(selectedItem.lastUpdated)}</p>
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="pt-4 border-t border-slate-100 flex gap-3 mt-auto">
-                        <button className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
+                      <div className="pt-4 border-t border-[#D4AA7D]/25 flex gap-3 mt-auto">
+                        <button className="flex-1 py-2.5 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg font-medium transition-colors border border-[#EFD09E]/20">
                           Edit Material
                         </button>
                       </div>
@@ -238,12 +240,12 @@ export default function InventoryPage() {
                   ) : (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300 flex flex-col h-full">
                       <div className="flex justify-between items-center shrink-0">
-                        <h4 className="text-sm font-semibold text-slate-700">Recent Movements</h4>
-                        <button className="text-xs text-indigo-600 hover:underline">View All</button>
+                        <h4 className="text-sm font-semibold text-[#272727]">Recent Movements</h4>
+                        <button className="text-xs text-[#7E5C4A] hover:underline">View All</button>
                       </div>
-                      <div className="border border-slate-100 rounded-lg overflow-hidden flex-1 overflow-y-auto">
+                      <div className="border border-[#D4AA7D]/20 rounded-lg overflow-hidden flex-1 overflow-y-auto bg-white/60">
                         <table className="w-full text-sm text-left relative">
-                          <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 sticky top-0 z-10">
+                          <thead className="bg-[#EEF2F6] text-[#7E5C4A] border-b border-[#D4AA7D]/20 sticky top-0 z-10">
                             <tr>
                               <th className="px-4 py-2 font-medium">Date</th>
                               <th className="px-4 py-2 font-medium">Type</th>
@@ -251,10 +253,10 @@ export default function InventoryPage() {
                               <th className="px-4 py-2 font-medium">By</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-[#D4AA7D]/15">
                             {[1,2,3,4,5,6,7,8].map((j) => (
-                              <tr key={j} className="hover:bg-slate-50/50">
-                                <td className="px-4 py-2 text-slate-600">{formatDate("2026-01-30")}</td>
+                              <tr key={j} className="hover:bg-[#EFD09E]/15">
+                                <td className="px-4 py-2 text-[#7E5C4A]">{formatDate("2026-01-30")}</td>
                                 <td className="px-4 py-2">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${j % 2 === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                     {j % 2 === 0 ? 'IN' : 'OUT'}
@@ -263,14 +265,14 @@ export default function InventoryPage() {
                                 <td className={`px-4 py-2 text-right font-medium ${j % 2 === 0 ? 'text-green-600' : 'text-red-600'}`}>
                                   {j % 2 === 0 ? '+' : '-'}{10 * j}
                                 </td>
-                                <td className="px-4 py-2 text-slate-500 text-xs">Admin</td>
+                                <td className="px-4 py-2 text-[#7E5C4A]/70 text-xs">Admin</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                      <div className="pt-4 border-t border-slate-100 mt-auto shrink-0">
-                        <button className="w-full py-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                      <div className="pt-4 border-t border-[#D4AA7D]/25 mt-auto shrink-0">
+                        <button className="w-full py-2.5 bg-[#EEF2F6] text-[#7E5C4A] hover:bg-white rounded-lg font-medium transition-colors border border-white/80">
                           Export History
                         </button>
                       </div>

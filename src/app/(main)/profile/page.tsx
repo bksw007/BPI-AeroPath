@@ -207,10 +207,10 @@ export default function ProfilePage() {
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   <motion.div 
-                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#EFD09E]/50 shadow-[4px_4px_12px_rgba(166,180,200,0.3),-4px_-4px_12px_rgba(255,255,255,0.9)] relative bg-[#272727]"
+                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#9ACD32]/60 shadow-[4px_4px_12px_rgba(166,180,200,0.3),-4px_-4px_12px_rgba(255,255,255,0.9)] relative bg-[#272727]"
                     whileHover={{ 
                       boxShadow: "0 0 35px rgba(154, 205, 50, 0.3)",
-                      borderColor: "rgba(239, 208, 158, 0.9)"
+                      borderColor: "rgba(154, 205, 50, 0.95)"
                     }}
                   >
                     {user.photoURL ? (

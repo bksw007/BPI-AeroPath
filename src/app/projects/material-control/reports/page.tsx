@@ -48,7 +48,7 @@ export default function ReportsPage() {
       header: "Type", 
       align: "center",
       render: (val) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EFD09E]/70 text-[#272727] border border-[#D4AA7D]/35">
           {val}
         </span>
       )
@@ -61,9 +61,9 @@ export default function ReportsPage() {
       align: "center",
       render: (val) => {
         const styles: Record<string, string> = {
-          Ready: "bg-emerald-50 text-emerald-700 border-emerald-100",
-          Generating: "bg-blue-50 text-blue-700 border-blue-100 animate-pulse",
-          Scheduled: "bg-amber-50 text-amber-700 border-amber-100",
+          Ready: "bg-[#9ACD32]/20 text-[#5a7a1a] border-[#9ACD32]/35",
+          Generating: "bg-[#EEF2F6] text-[#7E5C4A] border-[#D4AA7D]/30 animate-pulse",
+          Scheduled: "bg-[#EFD09E]/60 text-[#7E5C4A] border-[#D4AA7D]/35",
         };
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[val] || ""}`}>
@@ -82,9 +82,11 @@ export default function ReportsPage() {
   });
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 bg-[#F6EDDE] relative overflow-hidden">
+      <div className="absolute top-24 -left-16 w-72 h-72 bg-[#D4AA7D]/15 rounded-full blur-3xl" />
+      <div className="absolute bottom-16 -right-16 w-80 h-80 bg-[#EFD09E]/25 rounded-full blur-3xl" />
       <section className="py-12 md:py-16">
-        <div className="container-custom">
+        <div className="container-custom relative z-10">
           <ModuleHeader
             title="Reports"
             description="Stock, movements, requisitions, and operational analytics."
@@ -92,43 +94,43 @@ export default function ReportsPage() {
             <div className="space-y-6 mt-8">
               {/* Stats Dashboard */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Available Reports</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">12</h3>
-                    <p className="text-xs text-slate-400 mt-1">Pre-configured</p>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Available Reports</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">12</h3>
+                    <p className="text-xs text-[#7E5C4A]/70 mt-1 group-hover:text-[#EFD09E]/60">Pre-configured</p>
                   </div>
-                  <div className="p-3 bg-indigo-100 rounded-xl">
-                    <FileText className="w-6 h-6 text-indigo-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <FileText className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Generated Today</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">5</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Generated Today</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">5</h3>
                     <p className="text-xs text-emerald-600 mt-1 font-medium">All successful</p>
                   </div>
-                  <div className="p-3 bg-emerald-100 rounded-xl">
-                    <BarChart3 className="w-6 h-6 text-emerald-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <BarChart3 className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-4 flex items-center justify-between hover:bg-white/20 transition-colors">
+                <GlassCard className="p-4 flex items-center justify-between bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] hover:bg-[#272727] group transition-all duration-300">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium">Scheduled</p>
-                    <h3 className="text-2xl font-bold text-slate-800 mt-1">3</h3>
+                    <p className="text-[#7E5C4A] text-sm font-medium group-hover:text-[#EFD09E]/80">Scheduled</p>
+                    <h3 className="text-2xl font-bold text-[#272727] mt-1 group-hover:text-[#EFD09E]">3</h3>
                     <p className="text-xs text-blue-500 mt-1 font-medium">Daily/Weekly</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-[#9ACD32] rounded-xl border border-[#EFD09E]/50">
+                    <Calendar className="w-6 h-6 text-[#272727]" />
                   </div>
                 </GlassCard>
               </div>
 
               {/* Date Range Filter */}
-              <GlassCard className="p-4 relative z-30">
-                <h4 className="text-sm font-semibold text-slate-700 mb-4">Quick Report Generator</h4>
+              <GlassCard className="p-4 relative z-30 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)]">
+                <h4 className="text-sm font-semibold text-[#272727] mb-4">Quick Report Generator</h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <SelectField
                     label="Report Type"
@@ -148,7 +150,7 @@ export default function ReportsPage() {
                     onChange={setDateTo}
                   />
                   <div className="flex items-end">
-                    <button className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <button className="w-full px-4 py-2 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg text-sm font-semibold transition-colors shadow-md shadow-[#272727]/20 border border-[#EFD09E]/20 flex items-center justify-center gap-2">
                       <TrendingUp className="w-4 h-4" />
                       Generate Report
                     </button>
