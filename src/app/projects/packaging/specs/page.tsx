@@ -54,9 +54,9 @@ export default function PackagingSpecsPage() {
           
           <ModuleHeader
             title="Data Specifications"
-            description="Select a product category to manage dimensions, weights, and packing standards."
+            description="Select a product category to manage dimensions, weights, and packing standards in Packaging Console."
             backHref="/projects/packaging"
-            backLabel="Smart Packaging"
+            backLabel="Packaging Console"
           >
             <div className="mt-12">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1158,7 +1158,7 @@ export default function LogicProcessPage() {
             className="absolute left-0 top-1.5 inline-flex items-center gap-2 text-[#7E5C4A]/80 hover:text-[#272727] transition-colors text-sm md:text-base group"
           >
             <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden sm:inline">Smart Packaging</span>
+            <span className="hidden sm:inline">Packaging Console</span>
           </Link>
 
           <motion.h1 

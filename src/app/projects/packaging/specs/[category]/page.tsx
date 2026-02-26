@@ -193,7 +193,7 @@ export default function CategoryDetailPage() {
 
     // Activity Log
     PackagingService.logActivity({
-      project: 'Smart Packaging',
+      project: 'Packaging Console',
       action: 'Export',
       category: categoryId ? (categoryId.charAt(0).toUpperCase() + categoryId.slice(1)) : 'Inverters',
       targetId: 'Filtered Data',
@@ -266,7 +266,7 @@ export default function CategoryDetailPage() {
 
       if (changes.length > 0) {
         PackagingService.logActivity({
-          project: 'Smart Packaging',
+          project: 'Packaging Console',
           action: 'Update',
           category: categoryName,
           targetId: product.sku,
@@ -277,7 +277,7 @@ export default function CategoryDetailPage() {
       }
     } else {
       PackagingService.logActivity({
-        project: 'Smart Packaging',
+        project: 'Packaging Console',
         action: 'Create',
         category: categoryName,
         targetId: product.sku,
@@ -338,7 +338,7 @@ export default function CategoryDetailPage() {
 
     // Log Activity (Create)
     PackagingService.logActivity({
-      project: 'Smart Packaging',
+      project: 'Packaging Console',
       action: 'Create',
       category: categoryName,
       targetId: product.sku,
@@ -410,7 +410,7 @@ export default function CategoryDetailPage() {
 
     // Activity Log (Simplified for now, focusing on the action)
     PackagingService.logActivity({
-        project: 'Smart Packaging',
+        project: 'Packaging Console',
         action: 'Update',
         category: categoryTitle,
         targetId: selectedItem.sku,
@@ -569,7 +569,7 @@ export default function CategoryDetailPage() {
 
         // Activity Log
         PackagingService.logActivity({
-          project: 'Smart Packaging',
+          project: 'Packaging Console',
           action: 'Import',
           category: categoryId ? (categoryId.charAt(0).toUpperCase() + categoryId.slice(1)) : 'Inverters',
           targetId: file.name,

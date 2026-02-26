@@ -274,7 +274,7 @@ export default function PackagingBookingPage() {
 
   // --- 4. Steps Navigation ---
   const steps = [
-    { id: 1, label: "Select Customer", icon: UsersIcon },
+    { id: 1, label: "Select Customer", icon: Users },
     { id: 2, label: "Input Data", icon: FileText },
     { id: 3, label: "Review Plan", icon: CheckCircle2 },
     { id: 4, label: "Save Plan", icon: Save },
@@ -289,7 +289,7 @@ export default function PackagingBookingPage() {
              title="Pack Planning"
              description="Generate packing plans from raw PO data."
              backHref="/projects/packaging"
-             backLabel="Smart Packaging"
+             backLabel="Packaging Console"
              action={
                  activeStep === 3 && (
                       <button 

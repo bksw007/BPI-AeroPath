@@ -143,7 +143,7 @@ export default function PackagingCustomersPage() {
               className="absolute left-0 inline-flex items-center gap-2 text-[#7E5C4A] hover:text-[#272727] transition-colors text-sm md:text-base group"
             >
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="hidden sm:inline font-medium">Smart Packaging</span>
+              <span className="hidden sm:inline font-medium">Packaging Console</span>
             </button>
             
             <div className="text-center space-y-4">

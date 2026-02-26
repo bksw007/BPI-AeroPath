@@ -185,7 +185,7 @@ export default function PackagingPlanningV2Page() {
           title="Packing Planning V2"
           description="Deterministic flow for warehouse-safe packing with strict unknown filtering."
           backHref="/projects/packaging"
-          backLabel="Smart Packaging"
+          backLabel="Packaging Console"
         />
 
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">

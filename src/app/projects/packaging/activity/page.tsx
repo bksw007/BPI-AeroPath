@@ -159,9 +159,9 @@ export default function PackagingActivityPage() {
       <div className="container-custom">
         <ModuleHeader
           title="Activity Log"
-          description="Monitoring all changes and operations in Smart Packaging module."
+          description="Monitoring all changes and operations in Packaging Console module."
           backHref="/projects/packaging"
-          backLabel="Smart Packaging"
+          backLabel="Packaging Console"
         >
           <div className="mt-8 space-y-6">
             {/* Stats Dashboard */}
@@ -217,7 +217,7 @@ export default function PackagingActivityPage() {
                   "Export",
                 ]}
                 primaryButton={{
-                  label: "Refesh Log",
+                  label: "Refresh Log",
                   icon: <History className="w-4 h-4" />,
                   onClick: () => window.location.reload(),
                 }}
