@@ -133,14 +133,14 @@ export default function PackagingCustomersPage() {
   };
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen bg-[#F6EDDE] pt-20">
       <section className="py-12">
         <div className="container-custom">
           
           <div className="relative flex items-center justify-center pt-2 mb-12">
             <button 
               onClick={() => router.back()} 
-              className="absolute left-0 inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm md:text-base group"
+              className="absolute left-0 inline-flex items-center gap-2 text-[#7E5C4A] hover:text-[#272727] transition-colors text-sm md:text-base group"
             >
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
               <span className="hidden sm:inline font-medium">Smart Packaging</span>
@@ -148,11 +148,11 @@ export default function PackagingCustomersPage() {
             
             <div className="text-center space-y-4">
                 <h1 className="text-3xl md:text-5xl font-bold flex flex-col items-center leading-tight">
-                <span className="bg-clip-text text-transparent bg-linear-to-br from-slate-800 via-slate-600 to-slate-800 bg-size-[200%_100%] animate-shimmer">
+                <span className="text-[#272727]">
                     Package Configuration
                 </span>
                 </h1>
-                <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                <p className="text-[#7E5C4A] text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
                 Manage package dimensions and their allowed customer mappings.
                 </p>
             </div>
@@ -160,9 +160,9 @@ export default function PackagingCustomersPage() {
             {/* Manage Customers Button */}
             <button
                 onClick={() => setIsCustomerManageOpen(true)}
-                className="absolute right-0 flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-indigo-200 transition-all shadow-sm group"
+                className="absolute right-0 flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/55 border border-[#D4AA7D]/35 text-[#7E5C4A] rounded-xl hover:bg-[#EFD09E]/75 hover:border-[#9ACD32]/35 transition-all shadow-sm group"
             >
-                <div className="p-1 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="p-1 bg-[#272727]/10 text-[#272727] rounded-lg group-hover:bg-[#9ACD32] group-hover:text-[#272727] transition-colors">
                     <Users className="w-4 h-4" />
                 </div>
                 <span className="font-bold text-sm">Manage Customers</span>
@@ -173,24 +173,24 @@ export default function PackagingCustomersPage() {
           <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                     <div className="p-2 bg-[#9ACD32]/18 text-[#5a7a1a] rounded-lg">
                         <Package className="w-5 h-5"/>
                     </div>
-                    <h3 className="font-bold text-slate-800 text-lg">Defined Packages</h3>
+                    <h3 className="font-bold text-[#272727] text-lg">Defined Packages</h3>
                 </div>
                 <button 
                     onClick={() => openPackageModal()}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-[#EFD09E] font-bold rounded-lg hover:bg-[#1f1f1f] transition shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20"
                 >
                     <Plus className="w-4 h-4" />
                     <span>New Package</span>
                 </button>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-[#EFD09E]/60 border border-[#D4AA7D]/35 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase">
+                        <thead className="bg-[#D4AA7D] border-b border-[#7E5C4A]/25 text-xs font-bold text-[#272727] uppercase">
                             <tr>
                                 <th className="px-6 py-4">Package Name / Outer</th>
                                 <th className="px-6 py-4">Category</th>
@@ -200,41 +200,41 @@ export default function PackagingCustomersPage() {
                                 <th className="px-6 py-4">Assigned Customers</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-[#D4AA7D]/35 bg-[#EFD09E]">
                             {packages.map((pkg, idx) => {
                                 const mappedCustomers = getMappedCustomers(pkg.types);
                                 return (
                                     <tr 
                                         key={idx} 
                                         onClick={() => openPackageModal(pkg)}
-                                        className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                                        className="hover:bg-[#F6EDDE] transition-colors group cursor-pointer"
                                     >
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-slate-800">{pkg.name}</div>
-                                            <div className="text-xs text-slate-500 font-mono">
+                                            <div className="font-bold text-[#272727]">{pkg.name}</div>
+                                            <div className="text-xs text-[#7E5C4A] font-mono">
                                                 Outer: {pkg.outer.w}x{pkg.outer.l}x{pkg.outer.h} cm
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wide ${
-                                                pkg.category === 'Pallet' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                                                pkg.category === 'Pallet' ? 'bg-[#D4AA7D]/35 text-[#7E5C4A]' : 'bg-[#EEF2F6] text-[#7E5C4A]'
                                             }`}>
                                                 {pkg.category}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-mono text-xs text-emerald-600 font-bold">
-                                            {pkg.inner.w}x{pkg.inner.l}x{pkg.inner.h} <span className="text-emerald-400">cm</span>
+                                        <td className="px-6 py-4 font-mono text-xs text-[#5a7a1a] font-bold">
+                                            {pkg.inner.w}x{pkg.inner.l}x{pkg.inner.h} <span className="text-[#9ACD32]">cm</span>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-mono text-emerald-600 font-bold">
+                                        <td className="px-6 py-4 text-right font-mono text-[#5a7a1a] font-bold">
                                             {pkg.m3}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-1">
                                                 {pkg.types.map(t => (
                                                     <span key={t} className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold ${
-                                                        t === 'A' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                                        t === 'E' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
-                                                        'bg-amber-50 text-amber-600 border border-amber-100'
+                                                        t === 'A' ? 'bg-[#9ACD32]/20 text-[#5a7a1a] border border-[#9ACD32]/35' :
+                                                        t === 'E' ? 'bg-[#272727]/10 text-[#272727] border border-[#272727]/20' :
+                                                        'bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45'
                                                     }`}>
                                                         {t}
                                                     </span>
@@ -245,12 +245,12 @@ export default function PackagingCustomersPage() {
                                             <div className="flex shrink-0 gap-2 max-w-[200px]">
                                                 {mappedCustomers.length > 0 ? (
                                                     mappedCustomers.map(c => (
-                                                        <span key={c.code} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] rounded border border-slate-200">
+                                                        <span key={c.code} className="px-1.5 py-0.5 bg-[#EEF2F6] text-[#7E5C4A] text-[10px] rounded border border-[#D4AA7D]/35">
                                                             {c.code}
                                                         </span>
                                                     ))
                                                 ) : (
-                                                    <span className="text-slate-300 italic text-xs">None</span>
+                                                    <span className="text-[#7E5C4A]/60 italic text-xs">None</span>
                                                 )}
                                             </div>
                                         </td>
@@ -270,21 +270,21 @@ export default function PackagingCustomersPage() {
 
       {/* Customer Management Hub Modal */}
       {isCustomerManageOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-             <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
-                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/50 backdrop-blur-sm animate-fade-in">
+             <div className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
+                  <div className="p-6 border-b border-[#D4AA7D]/25 flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                          <div className="p-2 bg-[#272727]/10 text-[#272727] rounded-lg">
                               <Users className="w-5 h-5"/>
                           </div>
                           <div>
-                              <h3 className="text-xl font-bold text-slate-900">Manage Customers</h3>
-                              <p className="text-sm text-slate-500">Add or edit customer codes and their region types.</p>
+                              <h3 className="text-xl font-bold text-[#272727]">Manage Customers</h3>
+                              <p className="text-sm text-[#7E5C4A]">Add or edit customer codes and their region types.</p>
                           </div>
                       </div>
                       <button 
                           onClick={() => setIsCustomerManageOpen(false)}
-                          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                          className="p-2 text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/60 rounded-lg transition"
                       >
                           <X className="w-5 h-5" />
                       </button>
@@ -292,22 +292,22 @@ export default function PackagingCustomersPage() {
 
                   <div className="flex-1 overflow-y-auto p-0">
                       <table className="w-full text-sm text-left">
-                          <thead className="bg-slate-50 text-xs font-bold text-slate-500 uppercase sticky top-0">
+                          <thead className="bg-[#D4AA7D] text-xs font-bold text-[#272727] uppercase sticky top-0">
                               <tr>
                                   <th className="px-6 py-3">Code</th>
                                   <th className="px-6 py-3 text-center">Region Type</th>
                                   <th className="px-6 py-3 text-right">Action</th>
                               </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-[#D4AA7D]/30">
                                {customers.map((c) => (
-                                   <tr key={c.code} className="hover:bg-indigo-50/30">
-                                       <td className="px-6 py-3 font-bold text-slate-700">{c.code}</td>
+                                   <tr key={c.code} className="hover:bg-[#EFD09E]/35">
+                                       <td className="px-6 py-3 font-bold text-[#272727]">{c.code}</td>
                                        <td className="px-6 py-3 text-center">
                                             <span className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold ${
-                                                c.type === 'A' ? 'bg-blue-50 text-blue-600' :
-                                                c.type === 'E' ? 'bg-purple-50 text-purple-600' :
-                                                'bg-amber-50 text-amber-600'
+                                                c.type === 'A' ? 'bg-[#9ACD32]/20 text-[#5a7a1a]' :
+                                                c.type === 'E' ? 'bg-[#272727]/10 text-[#272727]' :
+                                                'bg-[#D4AA7D]/30 text-[#7E5C4A]'
                                             }`}>
                                                 {c.type}
                                             </span>
@@ -315,7 +315,7 @@ export default function PackagingCustomersPage() {
                                        <td className="px-6 py-3 text-right">
                                            <button 
                                               onClick={() => openCustomerModal(c)}
-                                              className="text-indigo-600 font-bold hover:underline text-xs"
+                                              className="text-[#7E5C4A] font-bold hover:underline text-xs"
                                            >
                                                Edit
                                            </button>
@@ -326,10 +326,10 @@ export default function PackagingCustomersPage() {
                       </table>
                   </div>
 
-                  <div className="p-4 border-t border-slate-100 text-center">
+                  <div className="p-4 border-t border-[#D4AA7D]/25 text-center">
                       <button 
                           onClick={() => openCustomerModal()}
-                          className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                          className="w-full py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] transition shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
                       >
                           <Plus className="w-4 h-4" /> Add New Customer
                       </button>
@@ -340,34 +340,34 @@ export default function PackagingCustomersPage() {
 
       {/* Add/Edit Specific Customer Modal (Nested or independent) */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in zoom-in duration-200">
-           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl relative border border-white/20">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm animate-in zoom-in duration-200">
+           <div className="bg-[#EEF2F6]/95 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative border border-white/80">
               <button 
                   onClick={() => setIsCustomerModalOpen(false)}
-                  className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-4 text-[#7E5C4A] hover:text-[#272727]"
               >
                   <X className="w-5 h-5" />
               </button>
               
-              <h3 className="text-xl font-bold text-slate-900 mb-6">
+              <h3 className="text-xl font-bold text-[#272727] mb-6">
                   {editingCustomer ? 'Edit Customer' : 'New Customer'}
               </h3>
 
               <div className="space-y-4">
                   <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Customer Code</label>
+                      <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Customer Code</label>
                       <input 
                           type="text" 
                           value={custForm.code}
                           onChange={e => setCustForm({...custForm, code: e.target.value})}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-3 py-2 border border-[#D4AA7D]/40 bg-[#EFD09E]/45 rounded-xl text-[#272727] outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                           placeholder="e.g. FAP"
                           autoFocus
                           disabled={!!editingCustomer} // Disable code edit if updating
                       />
                   </div>
                   <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Region Type</label>
+                      <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Region Type</label>
                       <div className="flex gap-2">
                           {['A', 'E', 'R'].map(type => (
                               <button
@@ -375,8 +375,8 @@ export default function PackagingCustomersPage() {
                                   onClick={() => setCustForm({...custForm, type})}
                                   className={`flex-1 py-2 rounded-lg font-bold border transition-all ${
                                       custForm.type === type 
-                                      ? 'bg-indigo-600 text-white border-indigo-600' 
-                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                      ? 'bg-[#272727] text-[#EFD09E] border-[#272727]' 
+                                      : 'bg-[#EFD09E]/45 text-[#7E5C4A] border-[#D4AA7D]/35 hover:bg-[#EFD09E]/70'
                                   }`}
                               >
                                   {type}
@@ -396,7 +396,7 @@ export default function PackagingCustomersPage() {
                       )}
                       <button 
                           onClick={saveCustomer}
-                          className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                          className="flex-1 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
                       >
                           <Save className="w-4 h-4" /> Save Customer
                       </button>
@@ -408,17 +408,17 @@ export default function PackagingCustomersPage() {
 
       {/* Package Modal (Detail / Edit / New) */}
       {isPackageModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm animate-fade-in">
+           <div className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
               <button 
                   onClick={() => setIsPackageModalOpen(false)}
-                  className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-4 text-[#7E5C4A] hover:text-[#272727]"
               >
                   <X className="w-5 h-5" />
               </button>
               
               <div className="flex items-center justify-between mb-6 pr-8">
-                  <h3 className="text-xl font-bold text-slate-900">
+                  <h3 className="text-xl font-bold text-[#272727]">
                       {editingPackage ? 'Package Details' : 'New Package'}
                   </h3>
                   {editingPackage && (
@@ -436,12 +436,12 @@ export default function PackagingCustomersPage() {
 
               <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
                   <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Package Name</label>
+                      <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Package Name</label>
                       <input 
                           type="text" 
                           value={pkgForm.name}
                           onChange={e => setPkgForm({...pkgForm, name: e.target.value})}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                          className="w-full px-3 py-2 border border-[#D4AA7D]/40 bg-[#EFD09E]/45 rounded-xl text-[#272727] outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                           placeholder="e.g. 110x110x110"
                           disabled={!!editingPackage} // Name is ID, usually immutable or requires special handling. Let's keep it editable only for New for now, or use a separate ID. 
                                                      // Actually user asked to "Edit" form to be usable. If they edit name, it's like a new package or rename.
@@ -452,56 +452,56 @@ export default function PackagingCustomersPage() {
                       />
                   </div>
                   
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                      <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Outer Dimensions (cm)</div>
+                  <div className="p-3 bg-[#EFD09E]/45 rounded-lg border border-[#D4AA7D]/35">
+                      <div className="text-xs font-bold text-[#7E5C4A] mb-2 uppercase">Outer Dimensions (cm)</div>
                       <div className="grid grid-cols-3 gap-3">
                           <div>
-                             <label className="block text-xs font-bold text-slate-400 mb-1">Width</label>
-                             <input type="number" value={pkgForm.outer.w} onChange={e => setPkgForm({ ...pkgForm, outer: { ...pkgForm.outer, w: Number(e.target.value) } })} className="w-full px-2 py-1 border border-slate-200 rounded text-center" />
+                             <label className="block text-xs font-bold text-[#7E5C4A]/80 mb-1">Width</label>
+                             <input type="number" value={pkgForm.outer.w} onChange={e => setPkgForm({ ...pkgForm, outer: { ...pkgForm.outer, w: Number(e.target.value) } })} className="w-full px-2 py-1 border border-[#D4AA7D]/40 rounded text-center bg-[#F6EDDE]" />
                           </div>
                           <div>
-                             <label className="block text-xs font-bold text-slate-400 mb-1">Length</label>
-                             <input type="number" value={pkgForm.outer.l} onChange={e => setPkgForm({ ...pkgForm, outer: { ...pkgForm.outer, l: Number(e.target.value) } })} className="w-full px-2 py-1 border border-slate-200 rounded text-center" />
+                             <label className="block text-xs font-bold text-[#7E5C4A]/80 mb-1">Length</label>
+                             <input type="number" value={pkgForm.outer.l} onChange={e => setPkgForm({ ...pkgForm, outer: { ...pkgForm.outer, l: Number(e.target.value) } })} className="w-full px-2 py-1 border border-[#D4AA7D]/40 rounded text-center bg-[#F6EDDE]" />
                           </div>
                           <div>
-                             <label className="block text-xs font-bold text-slate-400 mb-1">Height</label>
-                             <input type="number" value={pkgForm.outer.h} onChange={e => setPkgForm({ ...pkgForm, outer: { ...pkgForm.outer, h: Number(e.target.value) } })} className="w-full px-2 py-1 border border-slate-200 rounded text-center" />
+                             <label className="block text-xs font-bold text-[#7E5C4A]/80 mb-1">Height</label>
+                             <input type="number" value={pkgForm.outer.h} onChange={e => setPkgForm({ ...pkgForm, outer: { ...pkgForm.outer, h: Number(e.target.value) } })} className="w-full px-2 py-1 border border-[#D4AA7D]/40 rounded text-center bg-[#F6EDDE]" />
                           </div>
                       </div>
                   </div>
 
-                  <div className="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100">
-                      <div className="text-xs font-bold text-emerald-600 mb-2 uppercase flex justify-between">
+                  <div className="p-3 bg-[#9ACD32]/10 rounded-lg border border-[#9ACD32]/30">
+                      <div className="text-xs font-bold text-[#5a7a1a] mb-2 uppercase flex justify-between">
                           <span>Inner Dimensions (cm)</span>
                           <span>Uses for Calcs</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                           <div>
-                             <label className="block text-xs font-bold text-emerald-500/70 mb-1">Width</label>
-                             <input type="number" value={pkgForm.inner.w} onChange={e => setPkgForm({ ...pkgForm, inner: { ...pkgForm.inner, w: Number(e.target.value) } })} className="w-full px-2 py-1 border border-emerald-200 rounded text-center focus:ring-emerald-500" />
+                             <label className="block text-xs font-bold text-[#5a7a1a]/80 mb-1">Width</label>
+                             <input type="number" value={pkgForm.inner.w} onChange={e => setPkgForm({ ...pkgForm, inner: { ...pkgForm.inner, w: Number(e.target.value) } })} className="w-full px-2 py-1 border border-[#9ACD32]/35 rounded text-center bg-[#F6EDDE] focus:ring-[#9ACD32]" />
                           </div>
                           <div>
-                             <label className="block text-xs font-bold text-emerald-500/70 mb-1">Length</label>
-                             <input type="number" value={pkgForm.inner.l} onChange={e => setPkgForm({ ...pkgForm, inner: { ...pkgForm.inner, l: Number(e.target.value) } })} className="w-full px-2 py-1 border border-emerald-200 rounded text-center focus:ring-emerald-500" />
+                             <label className="block text-xs font-bold text-[#5a7a1a]/80 mb-1">Length</label>
+                             <input type="number" value={pkgForm.inner.l} onChange={e => setPkgForm({ ...pkgForm, inner: { ...pkgForm.inner, l: Number(e.target.value) } })} className="w-full px-2 py-1 border border-[#9ACD32]/35 rounded text-center bg-[#F6EDDE] focus:ring-[#9ACD32]" />
                           </div>
                           <div>
-                             <label className="block text-xs font-bold text-emerald-500/70 mb-1">Height</label>
-                             <input type="number" value={pkgForm.inner.h} onChange={e => setPkgForm({ ...pkgForm, inner: { ...pkgForm.inner, h: Number(e.target.value) } })} className="w-full px-2 py-1 border border-emerald-200 rounded text-center focus:ring-emerald-500" />
+                             <label className="block text-xs font-bold text-[#5a7a1a]/80 mb-1">Height</label>
+                             <input type="number" value={pkgForm.inner.h} onChange={e => setPkgForm({ ...pkgForm, inner: { ...pkgForm.inner, h: Number(e.target.value) } })} className="w-full px-2 py-1 border border-[#9ACD32]/35 rounded text-center bg-[#F6EDDE] focus:ring-[#9ACD32]" />
                           </div>
                       </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                        <div>
-                          <label className="block text-sm font-bold text-slate-700 mb-1">M3 Capacity</label>
-                          <input type="number" step="0.0001" value={pkgForm.m3} onChange={e => setPkgForm({...pkgForm, m3: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+                          <label className="block text-sm font-bold text-[#7E5C4A] mb-1">M3 Capacity</label>
+                          <input type="number" step="0.0001" value={pkgForm.m3} onChange={e => setPkgForm({...pkgForm, m3: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border border-[#D4AA7D]/40 bg-[#EFD09E]/45 rounded-xl outline-none focus:ring-2 focus:ring-[#9ACD32]/30" />
                        </div>
                        <div>
-                          <label className="block text-sm font-bold text-slate-700 mb-1">Category</label>
+                          <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Category</label>
                           <select 
                               value={pkgForm.category}
                               onChange={e => setPkgForm({...pkgForm, category: e.target.value as 'Box' | 'Pallet'})}
-                              className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                              className="w-full px-3 py-2 border border-[#D4AA7D]/40 bg-[#EFD09E]/45 rounded-xl outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                           >
                               <option value="Box">Box</option>
                               <option value="Pallet">Pallet</option>
@@ -510,7 +510,7 @@ export default function PackagingCustomersPage() {
                   </div>
 
                   <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Allowed Types</label>
+                      <label className="block text-sm font-bold text-[#7E5C4A] mb-2">Allowed Types</label>
                       <div className="flex gap-3">
                           {['A', 'E', 'R'].map(type => (
                                <label key={type} className="flex items-center gap-2 cursor-pointer">
@@ -518,9 +518,9 @@ export default function PackagingCustomersPage() {
                                      type="checkbox" 
                                      checked={pkgForm.types.includes(type)}
                                      onChange={() => togglePkgType(type)}
-                                     className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500" 
-                                   />
-                                   <span className="font-bold text-slate-600">{type}</span>
+                                     className="w-5 h-5 text-[#9ACD32] rounded focus:ring-[#9ACD32]" 
+                                  />
+                                  <span className="font-bold text-[#7E5C4A]">{type}</span>
                                </label>
                           ))}
                       </div>
@@ -529,7 +529,7 @@ export default function PackagingCustomersPage() {
                   <div className="pt-4 flex gap-3">
                       <button 
                           onClick={savePackage}
-                          className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
+                          className="flex-1 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
                       >
                           <Save className="w-4 h-4" /> Save
                       </button>

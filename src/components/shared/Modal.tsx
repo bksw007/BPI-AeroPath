@@ -45,23 +45,23 @@ export function Modal({ isOpen, onClose, title, children, className, hideHeader 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-[#272727]/35 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Content */}
       <div 
         className={cn(
-          "relative w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl transform transition-all animate-slide-up",
+          "relative w-full max-w-lg bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-[14px_14px_30px_rgba(166,180,200,0.32),-10px_-10px_24px_rgba(255,255,255,0.92)] transform transition-all animate-slide-up",
           className
         )}
       >
         {!hideHeader && (
-          <div className="flex items-center justify-between p-6 border-b border-indigo-100">
-            <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+          <div className="flex items-center justify-between p-6 border-b border-[#D4AA7D]/25">
+            <h3 className="text-xl font-bold text-[#272727]">{title}</h3>
             <button 
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100/50 text-slate-500 hover:text-red-500 transition-colors"
+              className="p-2 rounded-lg hover:bg-[#EFD09E]/60 text-[#7E5C4A] hover:text-rose-600 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>

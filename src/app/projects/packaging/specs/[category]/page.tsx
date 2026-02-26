@@ -57,23 +57,23 @@ export interface PackagingProduct {
 
 // Helper Component for Packing Standards
 const PackingCard = ({ title, layers, perLayer, totalQty, className }: { title: string, layers: number | string, perLayer: number | string, totalQty: number | string, className?: string }) => (
-  <div className={cn("bg-white/50 backdrop-blur-md border border-white/40 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all", className)}>
-    <div className="bg-slate-50/50 px-4 py-2 border-b border-slate-100/50 flex justify-center items-center">
-      <span className="text-xs font-black text-slate-600 uppercase tracking-wider">{title}</span>
+  <div className={cn("bg-[#EEF2F6]/95 border border-white/80 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all", className)}>
+    <div className="bg-[#EFD09E]/45 px-4 py-2 border-b border-[#D4AA7D]/35 flex justify-center items-center">
+      <span className="text-xs font-black text-[#7E5C4A] uppercase tracking-wider">{title}</span>
     </div>
     <div className="p-4 grid grid-cols-2 gap-4 text-center">
       <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Layers</p>
-        <p className="text-xl font-black text-slate-700">{layers}</p>
+        <p className="text-[10px] font-bold text-[#7E5C4A]/80 uppercase mb-1">Layers</p>
+        <p className="text-xl font-black text-[#272727]">{layers}</p>
       </div>
       <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Per Layer</p>
-        <p className="text-xl font-black text-slate-700">{perLayer}</p>
+        <p className="text-[10px] font-bold text-[#7E5C4A]/80 uppercase mb-1">Per Layer</p>
+        <p className="text-xl font-black text-[#272727]">{perLayer}</p>
       </div>
     </div>
-    <div className="bg-indigo-50/50 px-4 py-3 border-t border-indigo-100 flex justify-between items-center">
-      <span className="text-[10px] font-bold text-indigo-400 uppercase">Total Qty</span>
-      <span className="text-lg font-black text-indigo-600">{totalQty}</span>
+    <div className="bg-[#D4AA7D]/20 px-4 py-3 border-t border-[#D4AA7D]/35 flex justify-between items-center">
+      <span className="text-[10px] font-bold text-[#7E5C4A] uppercase">Total Qty</span>
+      <span className="text-lg font-black text-[#272727]">{totalQty}</span>
     </div>
   </div>
 );
@@ -589,10 +589,10 @@ export default function CategoryDetailPage() {
       header: "Item / SKU",
       render: (val) => (
         <div className="flex items-center gap-3 whitespace-nowrap">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-8 h-8 rounded-lg bg-[#272727]/10 flex items-center justify-center text-[#272727]">
             <Zap className="w-4 h-4" />
           </div>
-          <div className="font-bold text-slate-800">{val}</div>
+          <div className="font-bold text-[#272727]">{val}</div>
         </div>
       )
     },
@@ -603,7 +603,7 @@ export default function CategoryDetailPage() {
       header: "W x L x H (cm)", 
       align: "center",
       render: (_, row) => (
-        <span className="font-medium text-slate-600 whitespace-nowrap">
+        <span className="font-medium text-[#7E5C4A] whitespace-nowrap">
           {row.width} x {row.length} x {row.height}
         </span>
       )
@@ -612,21 +612,21 @@ export default function CategoryDetailPage() {
       key: "nw", 
       header: "Net Weight (kg)", 
       align: "center",
-      render: (val) => <span className="font-bold text-slate-700">{val}</span>
+      render: (val) => <span className="font-bold text-[#272727]">{val}</span>
     },
     { 
       key: "gw", 
       header: "Gross Weight (kg)", 
       align: "center",
-      render: (val) => <span className="font-bold text-slate-700">{val}</span>
+      render: (val) => <span className="font-bold text-[#272727]">{val}</span>
     },
-    { key: "cbm", header: "CBM", align: "center", className: "font-bold text-indigo-600" },
+    { key: "cbm", header: "CBM", align: "center", className: "font-bold text-[#7E5C4A]" },
     { key: "productType", header: "Product Type", align: "center", render: (val) => (
         <span className={cn(
           "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider",
-          val === "Carton" ? "bg-blue-50 text-blue-600" :
-          val === "Carton Case" ? "bg-purple-50 text-purple-600" :
-          "bg-amber-50 text-amber-600" 
+          val === "Carton" ? "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45" :
+          val === "Carton Case" ? "bg-[#272727]/10 text-[#272727] border border-[#272727]/20" :
+          "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45" 
         )}>
           {val}
         </span>
@@ -639,7 +639,7 @@ export default function CategoryDetailPage() {
 
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen bg-[#F6EDDE] pt-20">
       <section className="py-12 md:py-16">
         <div className="container-custom">
           
@@ -666,7 +666,7 @@ export default function CategoryDetailPage() {
                     <>
                       <button
                         onClick={handleExportCSV}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center gap-2"
+                        className="px-4 py-2 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg text-sm font-semibold transition-colors shadow-md shadow-[#272727]/20 border border-[#EFD09E]/20 flex items-center gap-2"
                         title="Export CSV"
                       >
                         <FileSpreadsheet className="w-4 h-4" />
@@ -682,7 +682,7 @@ export default function CategoryDetailPage() {
                            });
                            setIsAddNewModalOpen(true);
                         }}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center gap-2"
+                        className="px-4 py-2 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg text-sm font-semibold transition-colors shadow-md shadow-[#272727]/20 border border-[#EFD09E]/20 flex items-center gap-2"
                         title="Add New Item"
                       >
                         <Zap className="w-4 h-4" />
@@ -696,19 +696,19 @@ export default function CategoryDetailPage() {
                       placeholder="W" 
                       value={filters.width}
                       onChange={e => setFilters({...filters, width: e.target.value})}
-                      className="w-16 px-3 py-2 rounded-lg bg-white/50 border border-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-700 placeholder-slate-400"
+                      className="w-16 px-3 py-2 rounded-lg bg-[#EFD09E]/45 border border-[#D4AA7D]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30 text-[#272727] placeholder-[#7E5C4A]/70"
                     />
                     <input 
                       placeholder="L" 
                       value={filters.length}
                       onChange={e => setFilters({...filters, length: e.target.value})}
-                      className="w-16 px-3 py-2 rounded-lg bg-white/50 border border-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-700 placeholder-slate-400"
+                      className="w-16 px-3 py-2 rounded-lg bg-[#EFD09E]/45 border border-[#D4AA7D]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30 text-[#272727] placeholder-[#7E5C4A]/70"
                     />
                     <input 
                       placeholder="H" 
                       value={filters.height}
                       onChange={e => setFilters({...filters, height: e.target.value})}
-                      className="w-16 px-3 py-2 rounded-lg bg-white/50 border border-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-700 placeholder-slate-400"
+                      className="w-16 px-3 py-2 rounded-lg bg-[#EFD09E]/45 border border-[#D4AA7D]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30 text-[#272727] placeholder-[#7E5C4A]/70"
                     />
                   </div>
                 </SearchToolbar>
@@ -726,7 +726,7 @@ export default function CategoryDetailPage() {
               />
 
               <div className="mt-6 flex justify-center">
-                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest bg-white/40 px-4 py-1.5 rounded-full border border-white/40 backdrop-blur-sm">
+                <p className="text-[#7E5C4A] text-[11px] font-bold uppercase tracking-widest bg-[#EFD09E]/55 px-4 py-1.5 rounded-full border border-[#D4AA7D]/35 backdrop-blur-sm">
                   Showing {filteredData.length} of {products.length} items (Total in DB)
                 </p>
               </div>
@@ -748,21 +748,21 @@ export default function CategoryDetailPage() {
                {/* Row 1: SKU & Name */}
                <div className="grid grid-cols-2 gap-4">
                   <div>
-                     <label className="block text-sm font-bold text-slate-700 mb-1">SKU / Item Code <span className="text-red-500">*</span></label>
+                     <label className="block text-sm font-bold text-[#7E5C4A] mb-1">SKU / Item Code <span className="text-red-500">*</span></label>
                      <input 
                         required
                         value={newItem.sku}
                         onChange={e => setNewItem({...newItem, sku: e.target.value})}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                         placeholder="e.g. INV-001"
                      />
                   </div>
                   <div>
-                     <label className="block text-sm font-bold text-slate-700 mb-1">Product Name</label>
+                     <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Product Name</label>
                      <input 
                         value={newItem.name}
                         onChange={e => setNewItem({...newItem, name: e.target.value})}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                         placeholder="e.g. Inverter Model X"
                      />
                   </div>
@@ -771,27 +771,27 @@ export default function CategoryDetailPage() {
                {/* Row 2: Dimensions */}
                <div className="grid grid-cols-3 gap-4">
                   <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Width (cm)</label>
+                     <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Width (cm)</label>
                      <input type="number" step="0.01"
                         value={newItem.width}
                         onChange={e => setNewItem({...newItem, width: parseFloat(e.target.value)})}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                      />
                   </div>
                   <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Length (cm)</label>
+                     <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Length (cm)</label>
                      <input type="number" step="0.01"
                         value={newItem.length}
                         onChange={e => setNewItem({...newItem, length: parseFloat(e.target.value)})}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                      />
                   </div>
                   <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Height (cm)</label>
+                     <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Height (cm)</label>
                      <input type="number" step="0.01"
                         value={newItem.height}
                         onChange={e => setNewItem({...newItem, height: parseFloat(e.target.value)})}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                      />
                   </div>
                </div>
@@ -799,19 +799,19 @@ export default function CategoryDetailPage() {
                {/* Row 3: Weights */}
                <div className="grid grid-cols-2 gap-4">
                   <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Net Weight (kg)</label>
+                     <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Net Weight (kg)</label>
                      <input type="number" step="0.001"
                         value={newItem.nw}
                         onChange={e => setNewItem({...newItem, nw: parseFloat(e.target.value)})}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                      />
                   </div>
                   <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Gross Weight (kg)</label>
+                     <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Gross Weight (kg)</label>
                      <input type="number" step="0.001"
                         value={newItem.gw}
                         onChange={e => setNewItem({...newItem, gw: parseFloat(e.target.value)})}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                      />
                   </div>
                </div>
@@ -819,11 +819,11 @@ export default function CategoryDetailPage() {
                {/* Row 4: Type, Stack, Side Box */}
                <div className="grid grid-cols-3 gap-4">
                   <div>
-                     <label className="block text-sm font-bold text-slate-700 mb-1">Product Type</label>
+                     <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Product Type</label>
                      <select 
                         value={newItem.productType}
                         onChange={e => setNewItem({...newItem, productType: e.target.value as 'Carton' | 'Carton Case' | 'Wooden Case'})}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                      >
                         <option value="Carton">Carton</option>
                         <option value="Carton Case">Carton Case</option>
@@ -831,20 +831,20 @@ export default function CategoryDetailPage() {
                      </select>
                   </div>
                   <div>
-                     <label className="block text-sm font-bold text-slate-700 mb-1">Stack Limit</label>
+                     <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Stack Limit</label>
                      <input type="number"
                         value={newItem.stackingLimit}
                         onChange={e => setNewItem({...newItem, stackingLimit: parseInt(e.target.value) || 0})}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                         placeholder="e.g. 5"
                      />
                   </div>
                   <div>
-                     <label className="block text-sm font-bold text-slate-700 mb-1">Side Box Weight</label>
+                     <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Side Box Weight</label>
                      <input 
                         value={newItem.sideBoxWeight || ''}
                         onChange={e => setNewItem({...newItem, sideBoxWeight: e.target.value})}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                         placeholder="e.g. Max 15kg"
                      />
                   </div>
@@ -854,7 +854,7 @@ export default function CategoryDetailPage() {
 
                 {/* Row 4.5: Special Packaging (Removed from Basic Info, moved to Packing Standards Modal) */}
 
-            <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/30">
+            <button type="submit" className="w-full py-3 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] font-bold rounded-xl transition-colors shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20">
               {isEditing ? "Update Item" : "Create Item"}
            </button>
         </form>
@@ -868,15 +868,15 @@ export default function CategoryDetailPage() {
          className="max-w-[280px] text-center bg-transparent! border-none! shadow-none!"
          hideHeader
       >
-        <div className="bg-white/90 backdrop-blur-xl border border-white/20 p-6 rounded-[2.5rem] shadow-2xl shadow-emerald-500/20 flex flex-col items-center justify-center space-y-3 animate-in fade-in zoom-in duration-300">
-          <div className="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/40 animate-bounce">
+        <div className="bg-[#EEF2F6]/95 border border-white/80 p-6 rounded-[2.5rem] shadow-2xl shadow-[#272727]/15 flex flex-col items-center justify-center space-y-3 animate-in fade-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-[#9ACD32] text-[#272727] rounded-full flex items-center justify-center shadow-lg shadow-[#9ACD32]/35 animate-bounce">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-xl font-black text-slate-800 leading-tight tracking-tight">
+            <h3 className="text-xl font-black text-[#272727] leading-tight tracking-tight">
               {isEditing ? "Updated!" : "Created!"}
             </h3>
-            <p className="text-slate-500 text-sm font-bold opacity-70">
+            <p className="text-[#7E5C4A] text-sm font-bold opacity-70">
               Database Sync OK
             </p>
           </div>
@@ -895,29 +895,29 @@ export default function CategoryDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-h-[75vh] overflow-y-auto pr-2">
             
             {/* Left Column: Basic Info */}
-            <div className="space-y-6 border-r border-slate-100 pr-4">
-              <h4 className="text-sm font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg inline-block">
+            <div className="space-y-6 border-r border-[#D4AA7D]/30 pr-4">
+              <h4 className="text-sm font-black text-[#7E5C4A] uppercase tracking-widest bg-[#EFD09E]/60 px-3 py-1.5 rounded-lg inline-block border border-[#D4AA7D]/35">
                 1. Basic Info & Dimensions
               </h4>
               
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">SKU / Item Code <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-[#7E5C4A] mb-1">SKU / Item Code <span className="text-red-500">*</span></label>
                     <input 
                       required
                       value={newItem.sku}
                       onChange={e => setNewItem({...newItem, sku: e.target.value})}
-                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                       placeholder="e.g. INV-001"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Product Name</label>
+                    <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Product Name</label>
                     <input 
                       value={newItem.name}
                       onChange={e => setNewItem({...newItem, name: e.target.value})}
-                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                       placeholder="e.g. Inverter Model X"
                     />
                   </div>
@@ -925,57 +925,57 @@ export default function CategoryDetailPage() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Width (cm)</label>
+                    <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Width (cm)</label>
                     <input type="number" step="0.01"
                       value={newItem.width}
                       onChange={e => setNewItem({...newItem, width: parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Length (cm)</label>
+                    <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Length (cm)</label>
                     <input type="number" step="0.01"
                       value={newItem.length}
                       onChange={e => setNewItem({...newItem, length: parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Height (cm)</label>
+                    <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Height (cm)</label>
                     <input type="number" step="0.01"
                       value={newItem.height}
                       onChange={e => setNewItem({...newItem, height: parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Net Weight (kg)</label>
+                    <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Net Weight (kg)</label>
                     <input type="number" step="0.001"
                       value={newItem.nw}
                       onChange={e => setNewItem({...newItem, nw: parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Gross Weight (kg)</label>
+                    <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Gross Weight (kg)</label>
                     <input type="number" step="0.001"
                       value={newItem.gw}
                       onChange={e => setNewItem({...newItem, gw: parseFloat(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Product Type</label>
+                    <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Product Type</label>
                     <select 
                       value={newItem.productType}
                       onChange={e => setNewItem({...newItem, productType: e.target.value})}
-                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     >
                       <option value="Carton">Carton</option>
                       <option value="Carton Case">Carton Case</option>
@@ -983,21 +983,21 @@ export default function CategoryDetailPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Stack Limit</label>
+                    <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Stack Limit</label>
                     <input type="number"
                       value={newItem.stackingLimit}
                       onChange={e => setNewItem({...newItem, stackingLimit: parseInt(e.target.value) || 0})}
-                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Side Box Weight</label>
+                  <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Side Box Weight</label>
                   <input 
                     value={newItem.sideBoxWeight || ''}
                     onChange={e => setNewItem({...newItem, sideBoxWeight: e.target.value})}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-4 py-2 rounded-lg border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#272727] focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
                     placeholder="e.g. Max 15kg"
                   />
                 </div>
@@ -1006,21 +1006,21 @@ export default function CategoryDetailPage() {
 
             {/* Right Column: Packing Standards */}
             <div className="space-y-6">
-              <h4 className="text-sm font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1.5 rounded-lg inline-block">
+              <h4 className="text-sm font-black text-[#7E5C4A] uppercase tracking-widest bg-[#EFD09E]/60 px-3 py-1.5 rounded-lg inline-block border border-[#D4AA7D]/35">
                 2. Packing Standards
               </h4>
 
               <div className="space-y-6">
                 {/* Standard Boxes */}
                 <div className="space-y-3">
-                  <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Standard Boxes</h5>
+                  <h5 className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest">Standard Boxes</h5>
                   {[
                     "42x46x68", "47x66x68", "57x64x84", "68x74x86", "70x100x90"
                   ].map((size) => {
                     const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.boxes?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
                     return (
-                      <div key={size} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                        <span className="w-24 text-xs font-bold text-slate-600">{size.replace(/x/g, ' x ')}</span>
+                      <div key={size} className="flex items-center gap-3 p-2 bg-[#EFD09E]/45 rounded-lg border border-[#D4AA7D]/35">
+                        <span className="w-24 text-xs font-bold text-[#7E5C4A]">{size.replace(/x/g, ' x ')}</span>
                         <div className="flex-1 grid grid-cols-3 gap-2">
                           <input 
                             type="number" placeholder="Lyr"
@@ -1030,7 +1030,7 @@ export default function CategoryDetailPage() {
                               rules.boxes = { ...rules.boxes, [size]: { ...rule, layers: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-slate-300 text-[10px]"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727]"
                           />
                           <input 
                             type="number" placeholder="P/L"
@@ -1040,7 +1040,7 @@ export default function CategoryDetailPage() {
                               rules.boxes = { ...rules.boxes, [size]: { ...rule, perLayer: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-slate-300 text-[10px]"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727]"
                           />
                           <input 
                             type="number" placeholder="Tot"
@@ -1050,7 +1050,7 @@ export default function CategoryDetailPage() {
                               rules.boxes = { ...rules.boxes, [size]: { ...rule, totalQty: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-slate-300 text-[10px] font-bold text-indigo-600 bg-white"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-[10px] font-bold text-[#7E5C4A] bg-[#EFD09E]/55"
                           />
                         </div>
                       </div>
@@ -1060,14 +1060,14 @@ export default function CategoryDetailPage() {
 
                 {/* Standard Pallets */}
                 <div className="space-y-3">
-                  <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Standard Pallets</h5>
+                  <h5 className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest">Standard Pallets</h5>
                   {[
                     "80x120x65", "80x120x90", "80x120x115", "110x110x65", "110x110x90", "110x110x115"
                   ].map((size) => {
                     const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.pallets?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
                     return (
-                      <div key={size} className="flex items-center gap-3 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
-                        <span className="w-24 text-[10px] font-bold text-emerald-700">{size.replace(/x/g, ' x ')}</span>
+                      <div key={size} className="flex items-center gap-3 p-2 bg-[#9ACD32]/10 rounded-lg border border-[#9ACD32]/30">
+                        <span className="w-24 text-[10px] font-bold text-[#5a7a1a]">{size.replace(/x/g, ' x ')}</span>
                         <div className="flex-1 grid grid-cols-3 gap-2">
                           <input 
                             type="number" placeholder="Lyr"
@@ -1077,7 +1077,7 @@ export default function CategoryDetailPage() {
                               rules.pallets = { ...rules.pallets, [size]: { ...rule, layers: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-emerald-200 text-[10px]"
+                            className="px-2 py-1 rounded border border-[#9ACD32]/35 bg-[#F6EDDE] text-[10px] text-[#272727]"
                           />
                           <input 
                             type="number" placeholder="P/L"
@@ -1087,7 +1087,7 @@ export default function CategoryDetailPage() {
                               rules.pallets = { ...rules.pallets, [size]: { ...rule, perLayer: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-emerald-200 text-[10px]"
+                            className="px-2 py-1 rounded border border-[#9ACD32]/35 bg-[#F6EDDE] text-[10px] text-[#272727]"
                           />
                           <input 
                             type="number" placeholder="Tot"
@@ -1097,7 +1097,7 @@ export default function CategoryDetailPage() {
                               rules.pallets = { ...rules.pallets, [size]: { ...rule, totalQty: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-emerald-200 text-[10px] font-bold text-emerald-600 bg-white"
+                            className="px-2 py-1 rounded border border-[#9ACD32]/35 text-[10px] font-bold text-[#5a7a1a] bg-[#EFD09E]/55"
                           />
                         </div>
                       </div>
@@ -1107,8 +1107,8 @@ export default function CategoryDetailPage() {
 
                 {/* RTN & Warp */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 space-y-2">
-                    <h5 className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                  <div className="p-3 bg-[#EFD09E]/55 rounded-lg border border-[#D4AA7D]/35 space-y-2">
+                    <h5 className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest flex items-center gap-1">
                       <HistoryIcon className="w-3 h-3" /> RTN (Returnable)
                     </h5>
                     <div className="grid grid-cols-1 gap-2">
@@ -1120,13 +1120,13 @@ export default function CategoryDetailPage() {
                             rules.rtn = { ...rules.rtn, totalQty: Number(e.target.value) };
                             setNewItem({ ...newItem, packingRules: rules });
                           }}
-                          className="w-full px-3 py-1.5 rounded border border-amber-200 text-xs font-bold text-amber-600 bg-white"
+                          className="w-full px-3 py-1.5 rounded border border-[#D4AA7D]/40 text-xs font-bold text-[#7E5C4A] bg-[#F6EDDE]"
                        />
                     </div>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 space-y-2 flex flex-col justify-center">
+                  <div className="p-3 bg-[#EEF2F6]/85 rounded-lg border border-[#D4AA7D]/35 space-y-2 flex flex-col justify-center">
                     <div className="flex items-center justify-between">
-                      <h5 className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Warp Required</h5>
+                      <h5 className="text-[10px] font-black text-[#272727] uppercase tracking-widest">Warp Required</h5>
                       <button 
                         type="button"
                         onClick={() => {
@@ -1134,7 +1134,7 @@ export default function CategoryDetailPage() {
                           rules.warp = !rules.warp;
                           setNewItem({ ...newItem, packingRules: rules });
                         }}
-                        className={cn("w-10 h-5 rounded-full transition-colors relative", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-blue-500" : "bg-slate-300")}
+                        className={cn("w-10 h-5 rounded-full transition-colors relative", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-[#9ACD32]" : "bg-[#D4AA7D]/55")}
                       >
                         <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all z-10", (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "left-6" : "left-1")} />
                       </button>
@@ -1146,11 +1146,11 @@ export default function CategoryDetailPage() {
 
           </div>
 
-          <div className="pt-6 border-t border-slate-100 flex gap-4">
-             <button type="button" onClick={() => setIsAddNewModalOpen(false)} className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold transition-all">
+          <div className="pt-6 border-t border-[#D4AA7D]/30 flex gap-4">
+             <button type="button" onClick={() => setIsAddNewModalOpen(false)} className="px-6 py-3 bg-[#EFD09E]/70 hover:bg-[#EFD09E] text-[#7E5C4A] rounded-xl font-bold transition-all border border-[#D4AA7D]/40">
                 Cancel
              </button>
-             <button type="submit" className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl transition-all shadow-lg shadow-indigo-500/30 uppercase tracking-widest">
+             <button type="submit" className="flex-1 py-3 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] font-black rounded-xl transition-all shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 uppercase tracking-widest">
                 Create Specification
              </button>
           </div>
@@ -1167,13 +1167,13 @@ export default function CategoryDetailPage() {
         {selectedItem && (
           <div className="space-y-6">
             {/* Tabs */}
-            <div className="grid grid-cols-2 border-b border-slate-200 -mx-6 -mt-6 mb-6">
+            <div className="grid grid-cols-2 border-b border-[#D4AA7D]/30 -mx-6 -mt-6 mb-6">
               <button 
                 onClick={() => setActiveTab("overview")}
                 className={`py-4 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${
                   activeTab === 'overview' 
-                  ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' 
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'border-[#272727] text-[#272727] bg-[#EFD09E]/55' 
+                  : 'border-transparent text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/35'
                 }`}
               >
                 <Info className="w-4 h-4" /> Dimension & Basic Info
@@ -1182,8 +1182,8 @@ export default function CategoryDetailPage() {
                 onClick={() => setActiveTab("history")}
                 className={`py-4 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${
                   activeTab === 'history' 
-                  ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' 
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'border-[#272727] text-[#272727] bg-[#EFD09E]/55' 
+                  : 'border-transparent text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/35'
                 }`}
               >
                 <Boxes className="w-4 h-4" /> Packing Standards
@@ -1194,15 +1194,15 @@ export default function CategoryDetailPage() {
               {activeTab === "overview" ? (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {/* Product Header */}
-                  <div className="p-5 bg-linear-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 flex items-center gap-6 shadow-md">
-                    <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-indigo-600">
+                  <div className="p-5 bg-[#EEF2F6]/95 rounded-2xl border border-white/80 flex items-center gap-6 shadow-md">
+                    <div className="w-20 h-20 bg-[#EFD09E]/55 rounded-2xl shadow-sm border border-[#D4AA7D]/35 flex items-center justify-center text-[#272727]">
                       <Zap className="w-10 h-10" />
                     </div>
                     <div>
-                      <p className="text-xs font-black text-indigo-500 uppercase tracking-[0.2em] mb-1">{selectedItem.name}</p>
-                      <h3 className="text-2xl font-black text-slate-800 tracking-tight">{selectedItem.sku}</h3>
+                      <p className="text-xs font-black text-[#7E5C4A] uppercase tracking-[0.2em] mb-1">{selectedItem.name}</p>
+                      <h3 className="text-2xl font-black text-[#272727] tracking-tight">{selectedItem.sku}</h3>
                       <div className="flex gap-4 mt-2">
-                        <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                        <span className="flex items-center gap-1.5 text-xs font-bold text-[#7E5C4A]">
                           <HistoryIcon className="w-3.5 h-3.5" /> Updated: {selectedItem.lastUpdated}
                         </span>
                       </div>
@@ -1211,54 +1211,54 @@ export default function CategoryDetailPage() {
 
                   {/* Dimension Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Physical Specs</p>
+                    <div className="p-4 bg-[#EFD09E]/55 rounded-xl border border-[#D4AA7D]/35 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest mb-2">Physical Specs</p>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-slate-500">WxLxH</span>
-                          <span className="text-lg font-black text-slate-800">{selectedItem.width}x{selectedItem.length}x{selectedItem.height} <small className="text-[10px] font-medium text-slate-400">cm</small></span>
+                          <span className="text-sm font-bold text-[#7E5C4A]">WxLxH</span>
+                          <span className="text-lg font-black text-[#272727]">{selectedItem.width}x{selectedItem.length}x{selectedItem.height} <small className="text-[10px] font-medium text-[#7E5C4A]/70">cm</small></span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-slate-500">CBM</span>
-                          <span className="text-lg font-black text-indigo-600">{selectedItem.cbm}</span>
+                          <span className="text-sm font-bold text-[#7E5C4A]">CBM</span>
+                          <span className="text-lg font-black text-[#272727]">{selectedItem.cbm}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Weight Data</p>
+                    <div className="p-4 bg-[#EFD09E]/55 rounded-xl border border-[#D4AA7D]/35 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest mb-2">Weight Data</p>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-slate-500">NW</span>
-                          <span className="text-lg font-black text-slate-800">{selectedItem.nw} <small className="text-[10px] font-medium text-slate-400">kg</small></span>
+                          <span className="text-sm font-bold text-[#7E5C4A]">NW</span>
+                          <span className="text-lg font-black text-[#272727]">{selectedItem.nw} <small className="text-[10px] font-medium text-[#7E5C4A]/70">kg</small></span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-slate-500">GW</span>
-                          <span className="text-lg font-black text-slate-800">{selectedItem.gw} <small className="text-[10px] font-medium text-slate-400">kg</small></span>
+                          <span className="text-sm font-bold text-[#7E5C4A]">GW</span>
+                          <span className="text-lg font-black text-[#272727]">{selectedItem.gw} <small className="text-[10px] font-medium text-[#7E5C4A]/70">kg</small></span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Handling</p>
+                    <div className="p-4 bg-[#EFD09E]/55 rounded-xl border border-[#D4AA7D]/35 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest mb-2">Handling</p>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-slate-500">Product Type</span>
-                          <span className="text-lg font-black text-slate-800">{selectedItem.productType}</span>
+                          <span className="text-sm font-bold text-[#7E5C4A]">Product Type</span>
+                          <span className="text-lg font-black text-[#272727]">{selectedItem.productType}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-slate-500">Stack Limit</span>
-                          <span className="text-lg font-black text-orange-600">{selectedItem.stackingLimit} <small className="text-[10px] font-medium text-slate-400">Layers</small></span>
+                          <span className="text-sm font-bold text-[#7E5C4A]">Stack Limit</span>
+                          <span className="text-lg font-black text-[#7E5C4A]">{selectedItem.stackingLimit} <small className="text-[10px] font-medium text-[#7E5C4A]/70">Layers</small></span>
                         </div>
                       </div>
                     </div>
 
                     {/* Side Notes */}
-                    <div className="p-4 bg-amber-50/50 border border-amber-100 rounded-xl flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
-                      <Info className="w-5 h-5 text-amber-500 mt-0.5" />
+                    <div className="p-4 bg-[#EFD09E]/55 border border-[#D4AA7D]/35 rounded-xl flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
+                      <Info className="w-5 h-5 text-[#7E5C4A] mt-0.5" />
                       <div>
-                        <h4 className="text-sm font-black text-amber-800 uppercase tracking-wide">Side Box Weight</h4>
-                        <p className="text-sm text-amber-700 font-medium">{selectedItem.sideBoxWeight || "No special handling notes recorded for this item's side packaging."}</p>
+                        <h4 className="text-sm font-black text-[#7E5C4A] uppercase tracking-wide">Side Box Weight</h4>
+                        <p className="text-sm text-[#7E5C4A] font-medium">{selectedItem.sideBoxWeight || "No special handling notes recorded for this item's side packaging."}</p>
                       </div>
                     </div>
                   </div>
@@ -1268,8 +1268,8 @@ export default function CategoryDetailPage() {
                   
                   {/* Standard Boxes */}
                   <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-widest mb-4">
-                      <Boxes className="w-4 h-4 text-indigo-500" /> Standard Boxes
+                    <h4 className="flex items-center gap-2 text-sm font-black text-[#272727] uppercase tracking-widest mb-4">
+                      <Boxes className="w-4 h-4 text-[#7E5C4A]" /> Standard Boxes
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {Object.entries(selectedItem.packingRules.boxes)
@@ -1289,9 +1289,9 @@ export default function CategoryDetailPage() {
 
                   {/* Pallet Configuration */}
                   <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-widest mb-4">
-                      <div className="w-4 h-4 rounded bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                    <h4 className="flex items-center gap-2 text-sm font-black text-[#272727] uppercase tracking-widest mb-4">
+                      <div className="w-4 h-4 rounded bg-[#9ACD32]/20 text-[#5a7a1a] flex items-center justify-center">
+                        <div className="w-2 h-2 bg-[#9ACD32] rounded-full" />
                       </div>
                       Pallet Configuration
                     </h4>
@@ -1310,7 +1310,7 @@ export default function CategoryDetailPage() {
                           layers={rule.layers}
                           perLayer={rule.perLayer}
                           totalQty={rule.totalQty}
-                          className="border-emerald-100/50"
+                          className="border-[#9ACD32]/35"
                         />
                       ))}
                     </div>
@@ -1330,7 +1330,7 @@ export default function CategoryDetailPage() {
                           layers={rule.layers}
                           perLayer={rule.perLayer}
                           totalQty={rule.totalQty}
-                          className="border-emerald-100/50"
+                          className="border-[#9ACD32]/35"
                         />
                       ))}
                     </div>
@@ -1338,8 +1338,8 @@ export default function CategoryDetailPage() {
 
                   {/* Special Packaging (RTN & Warp) */}
                   <div>
-                     <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-widest mb-4">
-                      <HistoryIcon className="w-4 h-4 text-amber-500" /> Special Packaging
+                     <h4 className="flex items-center gap-2 text-sm font-black text-[#272727] uppercase tracking-widest mb-4">
+                      <HistoryIcon className="w-4 h-4 text-[#7E5C4A]" /> Special Packaging
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                        {/* RTN */}
@@ -1349,23 +1349,23 @@ export default function CategoryDetailPage() {
                              layers={selectedItem.packingRules.rtn.layers}
                              perLayer={selectedItem.packingRules.rtn.perLayer}
                              totalQty={selectedItem.packingRules.rtn.totalQty}
-                             className="border-amber-200 ring-2 ring-amber-50"
+                             className="border-[#F2C464]/40 ring-2 ring-[#F7DC6F]/40"
                           />
                        )}
                        
                        {/* Warp */}
-                       <div className="bg-white/50 backdrop-blur-md border border-white/40 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all flex flex-col">
-                          <div className="bg-slate-50/50 px-4 py-2 border-b border-slate-100/50 flex justify-center">
-                             <span className="text-xs font-black text-slate-600 uppercase tracking-wider">Warp Packaging</span>
+                       <div className="bg-[#F7DC6F]/95 border border-white/80 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all flex flex-col">
+                          <div className="bg-[#F7DC6F]/45 px-4 py-2 border-b border-[#F2C464]/35 flex justify-center">
+                             <span className="text-xs font-black text-[#7E5C4A] uppercase tracking-wider">Warp Packaging</span>
                           </div>
                           <div className="flex-1 flex flex-col items-center justify-center p-6 gap-2">
                              <div className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-colors", 
-                                selectedItem.packingRules.warp ? "bg-emerald-100 text-emerald-600" : "bg-orange-100 text-orange-600"
+                                selectedItem.packingRules.warp ? "bg-[#9ACD32]/25 text-[#5a7a1a]" : "bg-[#F2C464]/30 text-[#7E5C4A]"
                              )}>
                                 <CheckCircle2 className="w-6 h-6" />
                              </div>
                              <p className={cn("text-sm font-bold uppercase tracking-tight", 
-                                selectedItem.packingRules.warp ? "text-emerald-600" : "text-orange-600"
+                                selectedItem.packingRules.warp ? "text-[#5a7a1a]" : "text-[#7E5C4A]"
                              )}>
                                 {selectedItem.packingRules.warp ? "Required" : "Not Required"}
                              </p>
@@ -1379,10 +1379,10 @@ export default function CategoryDetailPage() {
             </div>
 
             {/* Footer Actions */}
-            <div className="pt-6 border-t border-slate-100 flex gap-4">
+            <div className="pt-6 border-t border-[#F2C464]/30 flex gap-4">
               <button 
                 onClick={() => selectedItem && generatePackagingSpecPDF(selectedItem as PackagingProduct)}
-                className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black text-sm transition-all uppercase tracking-widest hover:shadow-md flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-[#F7DC6F]/70 hover:bg-[#F7DC6F] text-[#7E5C4A] rounded-2xl border border-[#F2C464]/40 font-black text-sm transition-all uppercase tracking-widest hover:shadow-md flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" /> Download PDF Spec
               </button>
@@ -1409,7 +1409,7 @@ export default function CategoryDetailPage() {
                       setIsBasicInfoModalOpen(true);
                     }
                   }}
-                  className="flex-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-2 py-4 bg-[#272727] hover:bg-[#1f1f1f] text-[#F7DC6F] rounded-2xl border border-[#F7DC6F]/20 font-black text-sm transition-all shadow-lg shadow-[#272727]/25 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
                 >
                   Edit Basic Info
                 </button>
@@ -1426,7 +1426,7 @@ export default function CategoryDetailPage() {
                          setIsPackingStandardsModalOpen(true);
                       }
                    }}
-                   className="flex-2 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
+                   className="flex-2 py-4 bg-[#7E5C4A] hover:bg-[#6b4d3f] text-[#F7DC6F] rounded-2xl border border-[#F7DC6F]/20 font-black text-sm transition-all shadow-lg shadow-[#7E5C4A]/25 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
                 >
                    <Boxes className="w-4 h-4" /> Edit Packing Standards
                 </button>
@@ -1451,7 +1451,7 @@ export default function CategoryDetailPage() {
 
                {/* Standard Boxes (ALL Sizes) */}
                <div className="space-y-4">
-                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                  <h4 className="text-sm font-black text-[#272727] uppercase tracking-wide flex items-center gap-2">
                      <Boxes className="w-4 h-4" /> Standard Boxes
                   </h4>
                    {[
@@ -1467,18 +1467,18 @@ export default function CategoryDetailPage() {
 
                      return (
                      <div key={size} className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
-                        isHidden ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"
+                        isHidden ? "bg-[#F7DC6F]/35 border-[#F2C464]/25 opacity-60" : "bg-[#F7DC6F]/85 border-[#F2C464]/35"
                      )}>
                         <div className="flex items-center gap-3 w-32">
                            <button
                               type="button"
                               onClick={() => setHiddenFields(prev => ({ ...prev, [uiKey]: !prev[uiKey] }))}
-                              className="text-slate-400 hover:text-indigo-600 transition-colors"
+                              className="text-[#7E5C4A]/80 hover:text-[#272727] transition-colors"
                               title={isHidden ? "Unhide" : "Hide"}
                            >
                               {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                            </button>
-                           <span className="font-bold text-slate-700 text-sm whitespace-normal leading-tight">
+                           <span className="font-bold text-[#272727] text-sm whitespace-normal leading-tight">
                               {size.replace(/x/g, ' x ')}
                            </span>
                         </div>
@@ -1495,7 +1495,7 @@ export default function CategoryDetailPage() {
                                  newBoxes[size] = { ...rule, layers: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
                               }}
-                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                              className="px-2 py-1 rounded border border-[#F2C464]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#F7DC6F]/35 disabled:text-[#7E5C4A]/60"
                            />
                            <input 
                               type="number" 
@@ -1508,7 +1508,7 @@ export default function CategoryDetailPage() {
                                  newBoxes[size] = { ...rule, perLayer: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
                               }}
-                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                              className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                            />
                            <input 
                               type="number" 
@@ -1521,7 +1521,7 @@ export default function CategoryDetailPage() {
                                  newBoxes[size] = { ...rule, totalQty: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
                               }}
-                              className="px-2 py-1 rounded border border-slate-300 text-xs font-bold text-indigo-600 bg-indigo-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                              className="px-2 py-1 rounded border border-[#F2C464]/40 text-xs font-bold text-[#7E5C4A] bg-[#F7DC6F]/55 disabled:bg-[#F7DC6F]/35 disabled:text-[#7E5C4A]/60 disabled:border-[#F2C464]/30"
                            />
                         </div>
                      </div>
@@ -1531,8 +1531,8 @@ export default function CategoryDetailPage() {
 
                {/* Standard Pallets (ALL Sizes) */}
                <div className="space-y-4">
-                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
-                     <div className="w-4 h-4 bg-emerald-500 rounded-sm" /> Standard Pallets
+                  <h4 className="text-sm font-black text-[#272727] uppercase tracking-wide flex items-center gap-2">
+                     <div className="w-4 h-4 bg-[#9ACD32] rounded-sm" /> Standard Pallets
                   </h4>
                    {[
                      "80x120x65",
@@ -1548,18 +1548,18 @@ export default function CategoryDetailPage() {
 
                      return (
                      <div key={size} className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
-                        isHidden ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"
+                        isHidden ? "bg-[#EFD09E]/35 border-[#D4AA7D]/25 opacity-60" : "bg-[#EEF2F6]/85 border-[#D4AA7D]/35"
                      )}>
                         <div className="flex items-center gap-3 w-40">
                            <button
                               type="button"
                               onClick={() => setHiddenFields(prev => ({ ...prev, [uiKey]: !prev[uiKey] }))}
-                              className="text-slate-400 hover:text-indigo-600 transition-colors"
+                              className="text-[#7E5C4A]/80 hover:text-[#272727] transition-colors"
                               title={isHidden ? "Unhide" : "Hide"}
                            >
                               {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                            </button>
-                           <span className="font-bold text-slate-700 text-xs whitespace-normal leading-tight">
+                           <span className="font-bold text-[#272727] text-xs whitespace-normal leading-tight">
                               {size.replace(/x/g, ' x ')}
                            </span>
                         </div>
@@ -1576,7 +1576,7 @@ export default function CategoryDetailPage() {
                                  newPallets[size] = { ...rule, layers: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, pallets: newPallets } });
                               }}
-                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                              className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                            />
                            <input 
                               type="number" 
@@ -1589,7 +1589,7 @@ export default function CategoryDetailPage() {
                                  newPallets[size] = { ...rule, perLayer: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, pallets: newPallets } });
                               }}
-                              className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                              className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                            />
                            <input 
                               type="number" 
@@ -1602,7 +1602,7 @@ export default function CategoryDetailPage() {
                                  newPallets[size] = { ...rule, totalQty: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, pallets: newPallets } });
                               }}
-                              className="px-2 py-1 rounded border border-slate-300 text-xs font-bold text-indigo-600 bg-indigo-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                              className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-xs font-bold text-[#7E5C4A] bg-[#EFD09E]/55 disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60 disabled:border-[#D4AA7D]/30"
                            />
                         </div>
                      </div>
@@ -1612,25 +1612,25 @@ export default function CategoryDetailPage() {
 
                 {/* RTN Section - Reconfigured to match Box/Pallet style */}
                <div className="space-y-4">
-                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
-                     <HistoryIcon className="w-4 h-4 text-amber-500" /> RTN (Returnable)
+                  <h4 className="text-sm font-black text-[#272727] uppercase tracking-wide flex items-center gap-2">
+                    <HistoryIcon className="w-4 h-4 text-[#7E5C4A]" /> RTN (Returnable)
                   </h4>
                   {(() => {
                      const isHidden = hiddenFields['RTN_Standard'];
                      return (
                         <div className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
-                           isHidden ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"
+                           isHidden ? "bg-[#F7DC6F]/35 border-[#F2C464]/25 opacity-60" : "bg-[#F7DC6F]/85 border-[#F2C464]/35"
                         )}>
                            <div className="flex items-center gap-3 w-32">
                               <button
                                  type="button"
                                  onClick={() => setHiddenFields(prev => ({ ...prev, 'RTN_Standard': !prev['RTN_Standard'] }))}
-                                 className="text-slate-400 hover:text-indigo-600 transition-colors"
+                                 className="text-[#7E5C4A]/80 hover:text-[#272727] transition-colors"
                                  title={isHidden ? "Unhide" : "Hide"}
                               >
                                  {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
-                               <span className="font-bold text-slate-700 text-sm whitespace-normal leading-tight">
+                               <span className="font-bold text-[#272727] text-sm whitespace-normal leading-tight">
                                  Standard RTN
                                </span>
                            </div>
@@ -1645,7 +1645,7 @@ export default function CategoryDetailPage() {
                                     const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
                                     setNewItem({ ...newItem, packingRules: { ...currentRules, rtn: { ...(currentRules.rtn || { layers: 0, perLayer: 0, totalQty: 0 }), layers: Number(e.target.value) } } });
                                  }}
-                                 className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                                 className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                               />
                               <input 
                                  type="number" 
@@ -1656,7 +1656,7 @@ export default function CategoryDetailPage() {
                                     const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
                                     setNewItem({ ...newItem, packingRules: { ...currentRules, rtn: { ...(currentRules.rtn || { layers: 0, perLayer: 0, totalQty: 0 }), perLayer: Number(e.target.value) } } });
                                  }}
-                                 className="px-2 py-1 rounded border border-slate-300 text-xs disabled:bg-slate-100 disabled:text-slate-400"
+                                 className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                               />
                               <input 
                                  type="number" 
@@ -1667,7 +1667,7 @@ export default function CategoryDetailPage() {
                                     const currentRules = newItem.packingRules as unknown as PackagingProduct['packingRules'];
                                     setNewItem({ ...newItem, packingRules: { ...currentRules, rtn: { ...(currentRules.rtn || { layers: 0, perLayer: 0, totalQty: 0 }), totalQty: Number(e.target.value) } } });
                                  }}
-                                 className="px-2 py-1 rounded border border-slate-300 text-xs font-bold text-indigo-600 bg-indigo-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200"
+                                 className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-xs font-bold text-[#7E5C4A] bg-[#EFD09E]/55 disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60 disabled:border-[#D4AA7D]/30"
                               />
                            </div>
                         </div>
@@ -1676,14 +1676,14 @@ export default function CategoryDetailPage() {
                </div>
 
                 {/* Special Packaging Section - Moved to Bottom */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                   <h4 className="text-sm font-black text-amber-800 uppercase tracking-wide flex items-center gap-2">
+                <div className="pt-4 border-t border-[#D4AA7D]/30 flex items-center justify-between">
+                   <h4 className="text-sm font-black text-[#7E5C4A] uppercase tracking-wide flex items-center gap-2">
                      <HistoryIcon className="w-4 h-4" /> Special Packaging
                    </h4>
                    
                      {/* Warp Toggle */}
                      <div className="flex items-center gap-3">
-                        <label className="text-sm font-bold text-slate-700">Warp Required?</label>
+                        <label className="text-sm font-bold text-[#7E5C4A]">Warp Required?</label>
                         <button
                            type="button"
                            onClick={() => {
@@ -1697,7 +1697,7 @@ export default function CategoryDetailPage() {
                               });
                            }}
                            className={cn("w-12 h-6 rounded-full transition-colors relative", 
-                              (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-emerald-500" : "bg-slate-300"
+                              (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.warp ? "bg-[#9ACD32]" : "bg-[#D4AA7D]/60"
                            )}
                         >
                            <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 transition-all", 
@@ -1709,7 +1709,7 @@ export default function CategoryDetailPage() {
 
              </div>
             
-            <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/30">
+            <button type="submit" className="w-full py-3 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] font-bold rounded-xl transition-colors shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20">
                Update Packing Standards
             </button>
          </form>
@@ -1731,11 +1731,11 @@ export default function CategoryDetailPage() {
           {importProgress.status === 'idle' ? (
             <div className="space-y-6">
               {/* Info Box */}
-              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-start gap-4">
-                <Info className="w-6 h-6 text-indigo-500 mt-1" />
+              <div className="p-4 bg-[#EFD09E]/60 border border-[#D4AA7D]/35 rounded-2xl flex items-start gap-4">
+                <Info className="w-6 h-6 text-[#7E5C4A] mt-1" />
                 <div>
-                  <h4 className="text-sm font-black text-indigo-800 uppercase tracking-wide">Import Instructions</h4>
-                  <p className="text-xs text-indigo-700 font-medium leading-relaxed mt-1">
+                  <h4 className="text-sm font-black text-[#7E5C4A] uppercase tracking-wide">Import Instructions</h4>
+                  <p className="text-xs text-[#7E5C4A] font-medium leading-relaxed mt-1">
                     Please use the official CSV template to ensure all 1,800+ items are mapped correctly to our new W/L/H separate storage structure.
                   </p>
                 </div>
@@ -1743,7 +1743,7 @@ export default function CategoryDetailPage() {
 
               {/* Upload Area */}
               <div 
-                className="border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center hover:border-indigo-400 hover:bg-slate-50 transition-all cursor-pointer group relative"
+                className="border-2 border-dashed border-[#D4AA7D]/45 rounded-3xl p-8 text-center hover:border-[#9ACD32]/45 hover:bg-[#EFD09E]/45 transition-all cursor-pointer group relative"
               >
                 <input 
                   type="file" 
@@ -1751,23 +1751,23 @@ export default function CategoryDetailPage() {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   onChange={handleFileUpload}
                 />
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 group-hover:bg-indigo-50 transition-all">
-                  <FileSpreadsheet className="w-8 h-8 text-slate-400 group-hover:text-indigo-500" />
+                <div className="w-16 h-16 bg-[#EFD09E]/60 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 group-hover:bg-[#9ACD32]/20 transition-all">
+                  <FileSpreadsheet className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#5a7a1a]" />
                 </div>
-                <h3 className="text-base font-black text-slate-800 tracking-tight">Drop your CSV file here</h3>
-                <p className="text-xs text-slate-500 font-medium mt-1">or click to browse from your computer</p>
-                <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors uppercase tracking-widest pointer-events-none">
+                <h3 className="text-base font-black text-[#272727] tracking-tight">Drop your CSV file here</h3>
+                <p className="text-xs text-[#7E5C4A] font-medium mt-1">or click to browse from your computer</p>
+                <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#272727] text-[#EFD09E] rounded-xl text-xs font-bold transition-colors uppercase tracking-widest pointer-events-none border border-[#EFD09E]/20">
                   Select File
                 </div>
               </div>
 
               {/* Download Template */}
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex items-center justify-between p-4 bg-[#EFD09E]/50 rounded-2xl border border-[#D4AA7D]/35">
                 <div className="flex items-center gap-3">
-                  <Download className="w-5 h-5 text-slate-400" />
+                  <Download className="w-5 h-5 text-[#7E5C4A]" />
                   <div>
-                    <p className="text-sm font-black text-slate-800 tracking-tight">Don&apos;t have the template?</p>
-                    <p className="text-[10px] text-slate-500 font-medium">Download the schema-compatible CSV template</p>
+                    <p className="text-sm font-black text-[#272727] tracking-tight">Don&apos;t have the template?</p>
+                    <p className="text-[10px] text-[#7E5C4A] font-medium">Download the schema-compatible CSV template</p>
                   </div>
                 </div>
                 <button 
@@ -1804,7 +1804,7 @@ export default function CategoryDetailPage() {
                     link.click();
                     document.body.removeChild(link);
                   }}
-                  className="px-4 py-2 text-indigo-600 bg-white border border-indigo-100 rounded-xl text-xs font-black hover:bg-indigo-50 transition-colors uppercase tracking-widest"
+                  className="px-4 py-2 text-[#272727] bg-[#EEF2F6]/95 border border-[#D4AA7D]/35 rounded-xl text-xs font-black hover:bg-[#EFD09E]/70 transition-colors uppercase tracking-widest"
                 >
                   Download
                 </button>
@@ -1814,21 +1814,21 @@ export default function CategoryDetailPage() {
             <div className="py-12 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
               {importProgress.status === 'complete' ? (
                 <>
-                  <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                    <CheckCircle2 className="w-12 h-12 text-emerald-600" />
+                  <div className="w-24 h-24 bg-[#9ACD32]/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                    <CheckCircle2 className="w-12 h-12 text-[#5a7a1a]" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Import Successful!</h3>
-                    <p className="text-slate-500 font-medium mt-1">Processed {importStats.success} items.</p>
+                    <h3 className="text-2xl font-black text-[#272727] tracking-tight">Import Successful!</h3>
+                    <p className="text-[#7E5C4A] font-medium mt-1">Processed {importStats.success} items.</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">New Items</p>
-                      <p className="text-2xl font-black text-indigo-600">{importStats.success}</p>
+                    <div className="p-4 bg-[#EFD09E]/55 rounded-2xl border border-[#D4AA7D]/35">
+                      <p className="text-[10px] text-[#7E5C4A] font-black uppercase tracking-widest mb-1">New Items</p>
+                      <p className="text-2xl font-black text-[#7E5C4A]">{importStats.success}</p>
                     </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Updated</p>
-                      <p className="text-2xl font-black text-slate-800">{importStats.updated || '-'}</p>
+                    <div className="p-4 bg-[#EFD09E]/55 rounded-2xl border border-[#D4AA7D]/35">
+                      <p className="text-[10px] text-[#7E5C4A] font-black uppercase tracking-widest mb-1">Updated</p>
+                      <p className="text-2xl font-black text-[#272727]">{importStats.updated || '-'}</p>
                     </div>
                   </div>
                   <button 
@@ -1836,7 +1836,7 @@ export default function CategoryDetailPage() {
                         setIsImportModalOpen(false);
                         setImportProgress({status: 'idle', percent: 0});
                     }}
-                    className="w-full py-4 bg-slate-800 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-700 transition-all shadow-lg"
+                    className="w-full py-4 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20"
                   >
                     Return to Table
                   </button>
@@ -1844,28 +1844,28 @@ export default function CategoryDetailPage() {
               ) : (
                 <>
                   <div className="relative w-32 h-32 mx-auto mb-8">
-                    <div className="absolute inset-0 rounded-full border-4 border-slate-100" />
+                    <div className="absolute inset-0 rounded-full border-4 border-[#D4AA7D]/40" />
                     <div 
-                      className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" 
+                      className="absolute inset-0 rounded-full border-4 border-[#9ACD32] border-t-transparent animate-spin" 
                       style={{ animationDuration: '0.8s' }}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center font-black text-2xl text-slate-800">
+                    <div className="absolute inset-0 flex items-center justify-center font-black text-2xl text-[#272727]">
                       {importProgress.percent}%
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">
+                    <h3 className="text-xl font-black text-[#272727] uppercase tracking-widest">
                       {importProgress.status === 'uploading' ? 'Uploading File...' : 'Parsing Specifications...'}
                     </h3>
-                    <p className="text-sm text-slate-500 font-medium mt-1">
+                    <p className="text-sm text-[#7E5C4A] font-medium mt-1">
                       {importProgress.status === 'uploading' 
                         ? 'Transferring data to our secure servers' 
                         : 'Mapping CSV data to smart packing structure'}
                     </p>
                   </div>
-                  <div className="max-w-md mx-auto h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="max-w-md mx-auto h-2 bg-[#D4AA7D]/40 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-indigo-500 transition-all duration-300"
+                      className="h-full bg-[#9ACD32] transition-all duration-300"
                       style={{ width: `${importProgress.percent}%` }}
                     />
                   </div>

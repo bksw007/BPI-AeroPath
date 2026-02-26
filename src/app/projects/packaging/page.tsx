@@ -65,33 +65,6 @@ const sections = [
   },
 ] as const;
 
-const retroPalette = [
-  {
-    surface: "#8F6F5E",
-    text: "#F8EFD9",
-    border: "#E9D8BA88",
-    pattern: "/images/retro-groovy.svg",
-  },
-  {
-    surface: "#A9846E",
-    text: "#F9F1DF",
-    border: "#E9D8BA88",
-    pattern: "/images/retro-groovy.svg",
-  },
-  {
-    surface: "#D8BA95",
-    text: "#4C3B31",
-    border: "#8E725F66",
-    pattern: "/images/retro-groovy.svg",
-  },
-  {
-    surface: "#EFE1C5",
-    text: "#5B473B",
-    border: "#8E725F55",
-    pattern: "/images/retro-groovy.svg",
-  },
-] as const;
-
 const tiltClasses = [
   "md:-rotate-[0.9deg]",
   "md:rotate-[0.7deg]",
@@ -105,24 +78,18 @@ const tiltClasses = [
 
 export default function PackagingDashboard() {
   return (
-    <div className="relative min-h-screen overflow-hidden pt-20" style={{ backgroundColor: "#D4AA7D" }}>
-      <div
-        className="pointer-events-none absolute inset-0 opacity-14"
-        style={{
-          backgroundImage: "url('/images/retro-groovy.svg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[#F6EDDE]/14" />
+    <div className="relative min-h-screen overflow-hidden bg-[#F6EDDE] pt-20">
+      <div className="pointer-events-none absolute -top-20 -left-16 h-72 w-72 rounded-full bg-[#D4AA7D]/35 blur-3xl" />
+      <div className="pointer-events-none absolute top-16 right-0 h-80 w-80 rounded-full bg-[#9ACD32]/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#7E5C4A]/15 blur-3xl" />
 
       <section className="relative py-10 md:py-16">
         <div className="container-custom space-y-10 md:space-y-14">
           <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
-            <h1 className="inline-block -rotate-1 rounded-md bg-[#DEC3A2] px-6 py-2 text-balance text-3xl font-black uppercase tracking-[0.14em] text-[#4C3B31] shadow-[0_8px_13px_rgba(76,59,49,0.18)] md:text-5xl">
+            <h1 className="inline-block rounded-2xl bg-[#EEF2F6]/95 px-6 py-3 text-balance text-3xl font-black uppercase tracking-[0.14em] text-[#272727] shadow-[8px_8px_20px_rgba(166,180,200,0.28),-8px_-8px_20px_rgba(255,255,255,0.92)] md:text-5xl">
               Packaging Console
             </h1>
-            <p className="max-w-2xl text-sm font-semibold leading-relaxed text-[#6E5648] md:text-base">
+            <p className="max-w-2xl text-sm font-semibold leading-relaxed text-[#7E5C4A] md:text-base">
               ศูนย์รวมเมนูสำหรับวางแผน ตรวจสอบ และติดตามงานแพ็กกิ้งแบบครบจบในหน้าเดียว
               พร้อมลำดับเมนูสลับฝั่งให้ไล่อ่านง่าย.
             </p>
@@ -132,7 +99,6 @@ export default function PackagingDashboard() {
             {sections.map((section, index) => {
               const Icon = section.icon;
               const isRight = index % 2 !== 0;
-              const tone = retroPalette[index % retroPalette.length];
 
               return (
                 <Link
@@ -156,25 +122,16 @@ export default function PackagingDashboard() {
                     viewport={{ once: true, amount: 0.35 }}
                     transition={{ type: "spring", stiffness: 340, damping: 12, mass: 0.7, delay: index * 0.04 }}
                     className={cn(
-                      "relative overflow-hidden rounded-[2rem] border-2 px-5 py-5 shadow-[0_14px_24px_rgba(88,67,54,0.18)] transition-all duration-300 group-hover:-translate-y-1 group-hover:rotate-0 group-hover:shadow-[0_18px_28px_rgba(88,67,54,0.22)] md:px-7 md:py-5",
+                      "relative overflow-hidden rounded-[2rem] border border-white/80 bg-[#EEF2F6]/95 px-5 py-5 shadow-[10px_10px_22px_rgba(166,180,200,0.3),-10px_-10px_22px_rgba(255,255,255,0.93)] transition-all duration-300 group-hover:-translate-y-1 group-hover:rotate-0 group-hover:bg-[#272727] group-hover:shadow-[0_22px_40px_rgba(39,39,39,0.26)] md:px-7 md:py-5",
                       tiltClasses[index % tiltClasses.length],
                       isRight ? "md:pr-24" : "md:pl-24"
                     )}
-                    style={{ backgroundColor: tone.surface, color: tone.text, borderColor: tone.border }}
                   >
-                    <div
-                      className="pointer-events-none absolute inset-0 opacity-18 mix-blend-multiply"
-                      style={{
-                        backgroundImage: `url('${tone.pattern}')`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
-                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0)_36%,rgba(0,0,0,0.06)_100%)]" />
+                    <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-transparent to-transparent group-hover:from-white/5 group-hover:to-black/10 transition-all duration-500" />
 
                     <div
                       className={cn(
-                        "absolute top-1/2 z-20 hidden h-[4.6rem] w-[4.6rem] -translate-y-1/2 items-center justify-center rounded-full border-[5px] bg-[#FBF2E3] text-[2rem] font-black text-[#5B473B] shadow-[0_10px_18px_rgba(76,59,49,0.2)] md:flex",
+                        "absolute top-1/2 z-20 hidden h-[4.6rem] w-[4.6rem] -translate-y-1/2 items-center justify-center rounded-full border-[5px] border-[#EFD09E]/45 bg-[#272727] text-[2rem] font-black text-[#EFD09E] shadow-[0_10px_18px_rgba(39,39,39,0.2)] md:flex",
                         isRight ? "-right-4" : "-left-4"
                       )}
                     >
@@ -187,22 +144,22 @@ export default function PackagingDashboard() {
                         isRight && "md:flex-row-reverse md:text-right"
                       )}
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#A6BE67]/45 bg-[#FFF8EA33] shadow-inner shadow-[#6E56483A] transition-all duration-300 group-hover:border-[#272727] group-hover:bg-[#272727]">
-                        <Icon className="h-[22px] w-[22px] text-[#A6BE67] transition-colors duration-300 group-hover:text-[#EFD09E]" strokeWidth={2.3} />
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/70 bg-[#D4AA7D]/35 shadow-inner shadow-[#7E5C4A]/10 transition-all duration-300 group-hover:border-[#EFD09E]/40 group-hover:bg-[#9ACD32]">
+                        <Icon className="h-[22px] w-[22px] text-[#272727] transition-colors duration-300 group-hover:text-[#272727]" strokeWidth={2.3} />
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 md:hidden">
-                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#F8F0E2] text-xs font-black text-[#5B473B]">
+                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#272727] text-xs font-black text-[#EFD09E]">
                             {index + 1}
                           </span>
-                          <span className="text-xs font-bold uppercase tracking-[0.2em] opacity-80">Module</span>
+                          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#7E5C4A] group-hover:text-[#EFD09E]/70">Module</span>
                         </div>
-                        <h2 className="text-2xl font-black uppercase tracking-[0.06em]">{section.title}</h2>
-                        <p className="text-sm font-medium leading-relaxed opacity-90 md:text-[15px]">
+                        <h2 className="text-2xl font-black uppercase tracking-[0.06em] text-[#272727] group-hover:text-[#EFD09E]">{section.title}</h2>
+                        <p className="text-sm font-medium leading-relaxed text-[#7E5C4A] group-hover:text-[#EFD09E]/70 md:text-[15px]">
                           {section.description}
                         </p>
-                        <p className="pt-1 text-xs font-bold uppercase tracking-[0.24em] text-[#B6C97D] md:text-sm">
+                        <p className="pt-1 text-xs font-bold uppercase tracking-[0.24em] text-[#7E5C4A] group-hover:text-[#9ACD32] md:text-sm">
                           Open Module
                         </p>
                       </div>

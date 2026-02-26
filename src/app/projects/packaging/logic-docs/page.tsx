@@ -30,11 +30,11 @@ mermaid.initialize({
     curve: 'basis'
   },
   themeVariables: {
-    primaryColor: '#eef2ff',
-    primaryBorderColor: '#6366f1',
-    primaryTextColor: '#1e1b4b',
-    lineColor: '#6366f1',
-    tertiaryColor: '#f8fafc'
+    primaryColor: '#EFD09E',
+    primaryBorderColor: '#7E5C4A',
+    primaryTextColor: '#272727',
+    lineColor: '#7E5C4A',
+    tertiaryColor: '#F6EDDE'
   }
 });
 
@@ -49,7 +49,7 @@ const MermaidDiagram = ({ chart }: { chart: string }) => {
     }
   }, [chart]);
 
-  return <div ref={ref} className="w-full flex justify-center bg-white/50 p-6 rounded-xl border border-white/20 select-none" />;
+  return <div ref={ref} className="w-full flex justify-center bg-[#EFD09E]/55 p-6 rounded-xl border border-[#D4AA7D]/35 select-none" />;
 };
 
 interface StepItem {
@@ -254,7 +254,7 @@ const SectionProgressRing = ({ targetRef, label }: { targetRef: React.RefObject<
     <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => targetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
       <div className="relative w-12 h-12 flex items-center justify-center">
         <svg width="40" height="40" viewBox="0 0 100 100" className="-rotate-90">
-          <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" fill="none" className="text-slate-200/40" />
+          <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" fill="none" className="text-[#D4AA7D]/40" />
           <motion.circle
             cx="50"
             cy="50"
@@ -263,11 +263,11 @@ const SectionProgressRing = ({ targetRef, label }: { targetRef: React.RefObject<
             strokeWidth="8"
             strokeLinecap="round"
             fill="none"
-            className="text-indigo-600"
+            className="text-[#7E5C4A]"
             style={{ pathLength: scrollYProgress }}
           />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-800 group-hover:text-indigo-700 transition-colors uppercase">
+        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#272727] group-hover:text-[#7E5C4A] transition-colors uppercase">
           {label}
         </span>
       </div>
@@ -309,13 +309,13 @@ const LogicStepSection = ({ step, idx, sectionRef }: { step: StepItem, idx: numb
     >
       <div className="flex items-start gap-4">
         {/* Step Badge - Simplified now that progress is global */}
-        <div className="min-w-[48px] h-12 rounded-xl bg-white/80 border border-slate-900/10 flex items-center justify-center text-indigo-700 font-bold text-lg shadow-md backdrop-blur-sm whitespace-nowrap mt-1">
+        <div className="min-w-[48px] h-12 rounded-xl bg-[#EEF2F6]/95 border border-white/80 flex items-center justify-center text-[#7E5C4A] font-bold text-lg shadow-md backdrop-blur-sm whitespace-nowrap mt-1">
           {step.step}
         </div>
 
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight drop-shadow-sm">{step.title}</h2>
-          <p className="text-slate-600 font-medium">{step.desc}</p>
+          <h2 className="text-2xl font-bold text-[#272727] tracking-tight drop-shadow-sm">{step.title}</h2>
+          <p className="text-[#7E5C4A] font-medium">{step.desc}</p>
         </div>
       </div>
 
@@ -328,16 +328,16 @@ const LogicStepSection = ({ step, idx, sectionRef }: { step: StepItem, idx: numb
             {/* Left Column: Objectives & Context */}
             <div className="flex flex-col gap-8 justify-center h-full">
               {/* Key Objectives Card */}
-              <div className="bg-white/40 rounded-2xl p-8 border border-white/20 backdrop-blur-md shadow-xl relative overflow-hidden group hover:border-white/40 transition-colors">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+              <div className="bg-[#EEF2F6]/90 rounded-2xl p-8 border border-white/80 backdrop-blur-md shadow-xl relative overflow-hidden group hover:border-[#D4AA7D]/35 transition-colors">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#9ACD32]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                 
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 flex items-center gap-2 mb-6 pb-4 border-b border-slate-900/10">
-                   <FileText size={16} className="text-indigo-700" /> Key Objectives
+                <h3 className="text-sm font-bold uppercase tracking-widest text-[#272727] flex items-center gap-2 mb-6 pb-4 border-b border-[#D4AA7D]/35">
+                   <FileText size={16} className="text-[#7E5C4A]" /> Key Objectives
                 </h3>
                 <ul className="space-y-4 relative z-10">
                   {step.objectives.map((obj: string, i: number) => (
-                    <li key={i} className="flex gap-3 text-slate-700 font-medium">
-                      <CheckCircle2 size={18} className="text-indigo-600 shrink-0 mt-0.5" />
+                    <li key={i} className="flex gap-3 text-[#7E5C4A] font-medium">
+                      <CheckCircle2 size={18} className="text-[#9ACD32] shrink-0 mt-0.5" />
                       <span className="text-base leading-relaxed">{obj}</span>
                     </li>
                   ))}
@@ -345,28 +345,28 @@ const LogicStepSection = ({ step, idx, sectionRef }: { step: StepItem, idx: numb
               </div>
 
               {/* Logic Context Card */}
-              <div className="bg-white/40 rounded-2xl p-8 border border-white/20 backdrop-blur-md shadow-xl group hover:bg-white/50 transition-colors">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2 border-b border-slate-900/10 pb-4">
-                  <Zap size={14} className="text-slate-600" /> Logic Context
+              <div className="bg-[#EEF2F6]/90 rounded-2xl p-8 border border-white/80 backdrop-blur-md shadow-xl group hover:bg-[#EFD09E]/55 transition-colors">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-[#7E5C4A] mb-4 flex items-center gap-2 border-b border-[#D4AA7D]/35 pb-4">
+                  <Zap size={14} className="text-[#7E5C4A]" /> Logic Context
                 </h3>
-                <p className="text-slate-800 text-base leading-relaxed font-medium">
+                <p className="text-[#272727] text-base leading-relaxed font-medium">
                   {step.context}
                 </p>
               </div>
             </div>
 
             {/* Right Column: Logic Process Details */}
-            <div className="bg-white/40 rounded-2xl p-8 border border-white/20 backdrop-blur-md shadow-xl h-full flex flex-col flex-1">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-800 flex items-center gap-2 mb-6 pb-4 border-b border-slate-900/10">
+            <div className="bg-[#EEF2F6]/90 rounded-2xl p-8 border border-white/80 backdrop-blur-md shadow-xl h-full flex flex-col flex-1">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[#5a7a1a] flex items-center gap-2 mb-6 pb-4 border-b border-[#D4AA7D]/35">
                  <Layers size={16} /> Logic Process Detail
               </h3>
               <div className="space-y-4 flex-1">
                 {step.detail.map((d: string, i: number) => (
-                  <div key={i} className="flex gap-4 items-center p-4 rounded-xl hover:bg-white/40 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
+                  <div key={i} className="flex gap-4 items-center p-4 rounded-xl hover:bg-[#EFD09E]/40 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-[#9ACD32]/20 text-[#5a7a1a] flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
                       {i + 1}
                     </div>
-                    <span className="text-slate-800 text-base leading-relaxed font-medium">{d}</span>
+                    <span className="text-[#272727] text-base leading-relaxed font-medium">{d}</span>
                   </div>
                 ))}
               </div>
@@ -398,13 +398,12 @@ export default function LogicDocsPage() {
 
   return (
     <div 
-      className="min-h-screen text-slate-900 pt-16 md:pt-20 px-4 md:px-8 pb-8 font-outfit overflow-x-hidden bg-cover bg-center bg-fixed relative"
-      style={{ backgroundImage: "url('/images/gradient-1770707056041.svg')" }}
+      className="min-h-screen text-[#272727] pt-16 md:pt-20 px-4 md:px-8 pb-8 font-outfit overflow-x-hidden bg-[#F6EDDE] relative"
     >
       {/* Sticky Navigation Dashboard */}
       <LogicNavbar sectionRefs={sectionRefs} />
       {/* Background Glass Overlay */}
-      <div className="fixed inset-0 bg-white/30 backdrop-blur-2xl pointer-events-none" />
+      <div className="fixed inset-0 bg-[#F6EDDE]/60 backdrop-blur-2xl pointer-events-none" />
       
       {/* Content wrapper to stay above overlay */}
       <div className="relative z-10">
@@ -414,13 +413,13 @@ export default function LogicDocsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-6xl mx-auto mb-4 flex items-center justify-between print:hidden"
       >
-        <Link href="/projects/packaging/logic-process" className="flex items-center gap-2 text-slate-600 hover:text-indigo-900 transition-colors">
+        <Link href="/projects/packaging/logic-process" className="flex items-center gap-2 text-[#7E5C4A] hover:text-[#272727] transition-colors">
           <ArrowLeft size={20} />
           <span>Back to Process</span>
         </Link>
         <button 
           onClick={handlePrint}
-          className="bg-white/40 hover:bg-white/60 backdrop-blur-md border border-white/60 text-indigo-900 px-6 py-2 rounded-full flex items-center gap-2 transition-all shadow-sm hover:shadow-md active:scale-95 font-medium"
+          className="bg-[#EEF2F6]/95 hover:bg-[#EFD09E]/55 backdrop-blur-md border border-white/80 text-[#272727] px-6 py-2 rounded-full flex items-center gap-2 transition-all shadow-sm hover:shadow-md active:scale-95 font-medium"
         >
           <Printer size={18} />
           <span>Export Report (PDF)</span>
@@ -434,7 +433,7 @@ export default function LogicDocsPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center space-y-4 pt-4 pb-16 border-b border-slate-900/10 print:pt-0 print:pb-10"
+          className="text-center space-y-4 pt-4 pb-16 border-b border-[#D4AA7D]/30 print:pt-0 print:pb-10"
         >
           <motion.div 
             whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
@@ -453,23 +452,23 @@ export default function LogicDocsPage() {
           <motion.h1 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="text-5xl font-bold bg-linear-to-r from-indigo-900 via-purple-900 to-slate-900 bg-clip-text text-transparent italic drop-shadow-md cursor-default select-none transition-all"
+            className="text-5xl font-bold text-[#272727] italic drop-shadow-md cursor-default select-none transition-all"
           >
             Packaging Logic Documentation
           </motion.h1>
           <motion.p 
             whileHover={{ y: -2 }}
-            className="text-xl text-slate-700 font-light max-w-2xl mx-auto leading-relaxed cursor-default select-none"
+            className="text-xl text-[#7E5C4A] font-light max-w-2xl mx-auto leading-relaxed cursor-default select-none"
           >
             Detailed breakdown of the 10-step BinPack optimization engine for high-efficiency logistics.
           </motion.p>
           <div className="flex items-center justify-center gap-6 pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
+            <div className="flex items-center gap-2 text-sm text-[#7E5C4A]">
               <Database size={14} />
               <span>Data Source Root</span>
             </div>
-            <div className="w-1 h-1 bg-slate-400 rounded-full" />
-            <div className="flex items-center gap-2 text-sm text-slate-600">
+            <div className="w-1 h-1 bg-[#7E5C4A]/60 rounded-full" />
+            <div className="flex items-center gap-2 text-sm text-[#7E5C4A]">
               <Zap size={14} />
               <span>Auto-Scaling Logic</span>
             </div>
@@ -488,52 +487,52 @@ export default function LogicDocsPage() {
           viewport={{ once: true }}
           className="mt-20 mb-10"
         >
-          <div className="relative p-8 rounded-3xl bg-linear-to-br from-indigo-50/50 to-emerald-50/50 border border-white/60 backdrop-blur-xl shadow-2xl shadow-indigo-900/5 overflow-hidden">
+          <div className="relative p-8 rounded-3xl bg-[#EEF2F6]/95 border border-white/80 backdrop-blur-xl shadow-2xl shadow-[#272727]/15 overflow-hidden">
             {/* Background Accent */}
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-[#7E5C4A]/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-[#9ACD32]/10 rounded-full blur-3xl" />
 
             <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
               {/* Score Circle */}
               <div className="flex flex-col items-center justify-center text-center space-y-2">
                 <div className="relative w-32 h-32 flex items-center justify-center">
                   <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                    <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200" />
-                    <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-emerald-500" strokeDasharray="364" strokeDashoffset="18" strokeLinecap="round" />
+                    <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-[#D4AA7D]/40" />
+                    <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-[#9ACD32]" strokeDasharray="364" strokeDashoffset="18" strokeLinecap="round" />
                   </svg>
                   <div className="flex flex-col items-center">
-                    <span className="text-3xl font-bold text-slate-900">95-97%</span>
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Accuracy</span>
+                    <span className="text-3xl font-bold text-[#272727]">95-97%</span>
+                    <span className="text-[10px] font-bold text-[#5a7a1a] uppercase tracking-widest">Accuracy</span>
                   </div>
                 </div>
-                <p className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                  <ShieldCheck size={12} className="text-emerald-500" /> Confirmed Calculation
+                <p className="text-xs font-semibold text-[#7E5C4A] flex items-center gap-1">
+                  <ShieldCheck size={12} className="text-[#9ACD32]" /> Confirmed Calculation
                 </p>
               </div>
 
               {/* Insights */}
               <div className="lg:col-span-2 space-y-4">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <TrendingUp className="text-indigo-600" size={20} />
+                <h3 className="text-xl font-bold text-[#272727] flex items-center gap-2">
+                  <TrendingUp className="text-[#7E5C4A]" size={20} />
                   Calculation Accuracy Insights
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
+                <p className="text-sm text-[#7E5C4A] leading-relaxed">
                   จากการประเมินกระบวนการ Logic ทั้งหมด ระบบมีความแม่นยำในการคำนวณเฉลี่ยอยู่ที่ <strong>95 - 97%</strong> เมื่อเทียบกับการแพ็คจริงหน้างาน โดยอ้างอิงจากฐานข้อมูลและเงื่อนไขการตรวจสอบดังนี้:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div className="p-3 bg-white/40 rounded-xl border border-white/60">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1 mb-1 italic">
+                    <h4 className="text-xs font-bold text-[#272727] flex items-center gap-1 mb-1 italic">
                       🎯 Confirmed Rules (98%+)
                     </h4>
-                    <p className="text-[11px] text-slate-500 leading-tight">
+                    <p className="text-[11px] text-[#7E5C4A] leading-tight">
                       กลุ่ม SamePack, Mono และ Warp ใช้ค่าคงที่จากฐานข้อมูลที่ได้รับการยืนยันแล้ว ทำให้ผลลัพธ์มีความคงที่สูงมาก
                     </p>
                   </div>
                   <div className="p-3 bg-white/40 rounded-xl border border-white/60">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1 mb-1 italic">
+                    <h4 className="text-xs font-bold text-[#272727] flex items-center gap-1 mb-1 italic">
                       🛡️ Safe-Fail Mechanism
                     </h4>
-                    <p className="text-[11px] text-slate-500 leading-tight">
+                    <p className="text-[11px] text-[#7E5C4A] leading-tight">
                       ระบบจะคัดแยกกลุ่ม Unknown Spec ออกจากการคำนวณอัตโนมัติหากข้อมูลไม่เพียงพอ เพื่อป้องกันความผิดพลาดเชิงพื้นที่
                     </p>
                   </div>
@@ -543,8 +542,8 @@ export default function LogicDocsPage() {
           </div>
           
           <div className="mt-6 flex items-start gap-2 px-4 italic">
-            <AlertCircle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-slate-400 leading-relaxed">
+            <AlertCircle size={14} className="text-[#7E5C4A] shrink-0 mt-0.5" />
+            <p className="text-[10px] text-[#7E5C4A]/70 leading-relaxed">
               *หมายเหตุ: ความคลาดเคลื่อน 3-5% อาจเกิดขึ้นจากปัจจัยทางกายภาพหน้างาน เช่น วัสดุกันกระแทก (Dunnage), ความยืดหยุ่นของบรรจุภัณฑ์ และการจัดวาง Palette ของพนักงาน
             </p>
           </div>
@@ -559,7 +558,7 @@ export default function LogicDocsPage() {
 
       {/* Printing Overlay */}
       {isPrinting && (
-        <div className="fixed inset-0 bg-white z-9999 flex items-center justify-center text-slate-900">
+        <div className="fixed inset-0 bg-[#EEF2F6]/95 z-9999 flex items-center justify-center text-[#272727]">
           <p className="text-xl font-medium animate-pulse">Preparing Report for PDF Export...</p>
         </div>
       )}
@@ -572,12 +571,12 @@ export default function LogicDocsPage() {
           }
           .min-h-screen { background: white !important; }
           h1, h2, h3, p, span, li { color: black !important; }
-          .bg-slate-900\/50 { background: white !important; }
+          .bg-[#272727]\/50 { background: white !important; }
           .bg-white\/5 { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
           .border-white\/5, .border-white\/10, .border-white\/20 { border-color: #e2e8f0 !important; }
           .bg-linear-to-r, .bg-linear-to-tr { background: none !important; -webkit-background-clip: unset !important; color: black !important; -webkit-text-fill-color: black !important; }
           .shadow-2xl, .shadow-lg, .shadow-inner { shadow: none !important; }
-          .text-indigo-400, .text-indigo-500, .text-slate-400, .text-slate-500 { color: #475569 !important; }
+          .text-[#7E5C4A], .text-[#D4AA7D], .text-[#9ACD32], .text-[#272727] { color: #475569 !important; }
           /* Ensure SVGs scale properly */
           .MermaidDiagram svg { max-width: 100% !important; height: auto !important; }
           /* Hide the preparing overlay when printing */

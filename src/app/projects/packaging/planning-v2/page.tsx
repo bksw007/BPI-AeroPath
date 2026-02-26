@@ -175,10 +175,10 @@ export default function PackagingPlanningV2Page() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6fb] pt-20 pb-16 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-24 -left-20 h-80 w-80 rounded-full bg-cyan-300/40 blur-3xl" />
-      <div className="pointer-events-none absolute top-20 right-0 h-96 w-96 rounded-full bg-orange-300/30 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-emerald-300/30 blur-3xl" />
+    <div className="min-h-screen bg-[#F6EDDE] pt-20 pb-16 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-24 -left-20 h-80 w-80 rounded-full bg-[#D4AA7D]/35 blur-3xl" />
+      <div className="pointer-events-none absolute top-20 right-0 h-96 w-96 rounded-full bg-[#9ACD32]/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#7E5C4A]/15 blur-3xl" />
 
       <section className="container-custom relative z-10 space-y-8">
         <ModuleHeader
@@ -189,35 +189,35 @@ export default function PackagingPlanningV2Page() {
         />
 
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <GlassCard className="h-fit p-5 space-y-4 border-2 border-slate-900/5 bg-white/90">
-            <div className="rounded-2xl bg-slate-900 text-white p-4">
+          <GlassCard className="h-fit p-5 space-y-4 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.25),-8px_-8px_18px_rgba(255,255,255,0.9)]">
+            <div className="rounded-2xl bg-[#272727] text-[#EFD09E] p-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Mode</p>
-                <Sparkles className="h-4 w-4 text-cyan-300" />
+                <p className="text-xs uppercase tracking-[0.2em] text-[#EFD09E]/70">Mode</p>
+                <Sparkles className="h-4 w-4 text-[#9ACD32]" />
               </div>
               <p className="mt-2 font-black text-xl">Deterministic Planner</p>
-              <p className="text-sm text-slate-300 mt-1">A/E/R allowed package only</p>
+              <p className="text-sm text-[#EFD09E]/70 mt-1">A/E/R allowed package only</p>
             </div>
 
             <div className="space-y-3 text-sm">
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
-                <p className="text-slate-500">Customer</p>
-                <p className="font-semibold text-slate-900">{selectedCustomer?.code || "Not selected"}</p>
+              <div className="rounded-xl border border-white/80 bg-[#EFD09E]/50 p-3">
+                <p className="text-[#7E5C4A]">Customer</p>
+                <p className="font-semibold text-[#272727]">{selectedCustomer?.code || "Not selected"}</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
-                <p className="text-slate-500">Pack Type</p>
-                <p className="font-semibold text-slate-900">{selectedCustomer?.packType || "-"}</p>
+              <div className="rounded-xl border border-white/80 bg-[#EFD09E]/50 p-3">
+                <p className="text-[#7E5C4A]">Pack Type</p>
+                <p className="font-semibold text-[#272727]">{selectedCustomer?.packType || "-"}</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
-                <p className="text-slate-500">PO in Result</p>
-                <p className="font-semibold text-slate-900">{poCount}</p>
+              <div className="rounded-xl border border-white/80 bg-[#EFD09E]/50 p-3">
+                <p className="text-[#7E5C4A]">PO in Result</p>
+                <p className="font-semibold text-[#272727]">{poCount}</p>
               </div>
             </div>
 
             <button
               onClick={handleExportPDF}
               disabled={!planResult.length || !selectedCustomer || isExporting}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#272727] px-4 py-3 text-sm font-semibold text-[#EFD09E] border border-[#EFD09E]/20 disabled:opacity-40"
             >
               {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Download Plan PDF
@@ -225,8 +225,8 @@ export default function PackagingPlanningV2Page() {
           </GlassCard>
 
           <div className="space-y-6">
-            <GlassCard className="p-6 border-2 border-slate-900/5 bg-white/90">
-              <div className="flex items-center gap-2 text-slate-700 mb-4">
+            <GlassCard className="p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.25),-8px_-8px_18px_rgba(255,255,255,0.9)]">
+              <div className="flex items-center gap-2 text-[#272727] mb-4">
                 <UserRound className="h-4 w-4" />
                 <p className="font-semibold">1. Select Customer</p>
               </div>
@@ -241,20 +241,20 @@ export default function PackagingPlanningV2Page() {
                       className={[
                         "rounded-xl border px-3 py-3 text-left transition",
                         active
-                          ? "border-cyan-500 bg-cyan-50 shadow-sm"
-                          : "border-slate-200 bg-white hover:border-slate-400",
+                          ? "border-[#9ACD32] bg-[#9ACD32]/15 shadow-sm"
+                          : "border-[#D4AA7D]/35 bg-[#EFD09E]/50 hover:border-[#7E5C4A]/45",
                       ].join(" ")}
                     >
-                      <p className="font-semibold text-slate-900">{code}</p>
-                      <p className="text-xs text-slate-500 mt-1">Type {packType}</p>
+                      <p className="font-semibold text-[#272727]">{code}</p>
+                      <p className="text-xs text-[#7E5C4A] mt-1">Type {packType}</p>
                     </button>
                   );
                 })}
               </div>
             </GlassCard>
 
-            <GlassCard className="p-6 border-2 border-slate-900/5 bg-white/90">
-              <div className="flex items-center gap-2 text-slate-700 mb-4">
+            <GlassCard className="p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.25),-8px_-8px_18px_rgba(255,255,255,0.9)]">
+              <div className="flex items-center gap-2 text-[#272727] mb-4">
                 <Radar className="h-4 w-4" />
                 <p className="font-semibold">2. Input PO Data</p>
               </div>
@@ -262,19 +262,19 @@ export default function PackagingPlanningV2Page() {
                 value={rawData}
                 onChange={(e) => setRawData(e.target.value)}
                 placeholder="PO<TAB>SKU<TAB>QTY"
-                className="min-h-[220px] w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 font-mono text-sm text-slate-800 outline-none focus:border-cyan-500"
+                className="min-h-[220px] w-full rounded-2xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 p-4 font-mono text-sm text-[#272727] outline-none focus:border-[#9ACD32]"
               />
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   onClick={handleSampleData}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-xl border border-[#D4AA7D]/50 bg-[#EFD09E]/50 px-4 py-2 text-sm font-semibold text-[#7E5C4A]"
                 >
                   Fill Sample
                 </button>
                 <button
                   onClick={handleGeneratePlan}
                   disabled={!selectedCustomer || !rawData.trim() || isProcessing}
-                  className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#272727] px-4 py-2 text-sm font-semibold text-[#EFD09E] border border-[#EFD09E]/20 disabled:opacity-40"
                 >
                   {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                   Generate V2 Plan
@@ -282,8 +282,8 @@ export default function PackagingPlanningV2Page() {
               </div>
             </GlassCard>
 
-            <GlassCard className="p-6 border-2 border-slate-900/5 bg-white/90">
-              <div className="flex items-center gap-2 text-slate-700 mb-4">
+            <GlassCard className="p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.25),-8px_-8px_18px_rgba(255,255,255,0.9)]">
+              <div className="flex items-center gap-2 text-[#272727] mb-4">
                 <Layers className="h-4 w-4" />
                 <p className="font-semibold">3. Result</p>
               </div>
@@ -298,21 +298,21 @@ export default function PackagingPlanningV2Page() {
               ) : null}
 
               {!planResult.length && !isProcessing ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed border-[#D4AA7D]/55 bg-[#EFD09E]/40 p-8 text-center text-sm text-[#7E5C4A]">
                   Generate plan to display PO, No, Item, Qty, Dimensions, Note
                 </div>
               ) : null}
 
               <div className="space-y-5">
                 {planResult.map((poCase) => (
-                  <div key={poCase.po} className="overflow-hidden rounded-2xl border border-slate-200">
-                    <div className="bg-slate-900 px-4 py-3 text-white flex items-center justify-between">
+                  <div key={poCase.po} className="overflow-hidden rounded-2xl border border-[#D4AA7D]/40">
+                    <div className="bg-[#272727] px-4 py-3 text-[#EFD09E] flex items-center justify-between">
                       <p className="font-semibold">PO {poCase.po}</p>
-                      <p className="text-xs text-slate-300">{poCase.cases.length} Cases Generated</p>
+                      <p className="text-xs text-[#EFD09E]/70">{poCase.cases.length} Cases Generated</p>
                     </div>
-                    <div className="overflow-x-auto bg-white">
+                    <div className="overflow-x-auto bg-[#EFD09E]">
                       <table className="min-w-full text-sm">
-                        <thead className="bg-slate-50 text-slate-700">
+                        <thead className="bg-[#D4AA7D] text-[#272727]">
                           <tr>
                             <th className="px-3 py-2 text-left">No</th>
                             <th className="px-3 py-2 text-left">Type</th>
@@ -327,13 +327,13 @@ export default function PackagingPlanningV2Page() {
                             const skuText = c.items.map((i) => i.sku).join(" / ");
                             const qtyText = c.items.map((i) => String(i.qty)).join(" + ");
                             return (
-                              <tr key={`${poCase.po}-${c.caseNo}-${c.type}`} className="border-t border-slate-100">
+                              <tr key={`${poCase.po}-${c.caseNo}-${c.type}`} className="border-t border-[#D4AA7D]/35">
                                 <td className="px-3 py-2 font-semibold">#{c.caseNo}</td>
                                 <td className="px-3 py-2">{c.type}</td>
                                 <td className="px-3 py-2 font-mono text-xs">{skuText}</td>
                                 <td className="px-3 py-2">{qtyText}</td>
                                 <td className="px-3 py-2">{c.dims || "-"}</td>
-                                <td className="px-3 py-2 text-slate-600">{c.note || "-"}</td>
+                                <td className="px-3 py-2 text-[#7E5C4A]">{c.note || "-"}</td>
                               </tr>
                             );
                           })}
@@ -353,12 +353,12 @@ export default function PackagingPlanningV2Page() {
 
 function Stat({ label, value, icon }: { label: string; value: number; icon: ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
-      <div className="flex items-center justify-between text-slate-500 text-xs uppercase tracking-wide">
+    <div className="rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/55 px-3 py-3">
+      <div className="flex items-center justify-between text-[#7E5C4A] text-xs uppercase tracking-wide">
         <span>{label}</span>
         {icon}
       </div>
-      <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
+      <p className="mt-2 text-2xl font-black text-[#272727]">{value}</p>
     </div>
   );
 }

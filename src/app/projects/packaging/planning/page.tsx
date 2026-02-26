@@ -281,7 +281,7 @@ export default function PackagingBookingPage() {
   ];
 
   return (
-    <div className="min-h-screen pt-20 pb-20">
+    <div className="min-h-screen bg-[#F6EDDE] pt-20 pb-20">
       <section className="py-8">
         <div className="container-custom">
           
@@ -293,8 +293,8 @@ export default function PackagingBookingPage() {
              action={
                  activeStep === 3 && (
                       <button 
-                          onClick={() => setActiveStep(4)}
-                          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"
+                         onClick={() => setActiveStep(4)}
+                         className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all"
                       >
                           Proceed to Save <Play className="w-4 h-4"/>
                       </button>
@@ -309,22 +309,22 @@ export default function PackagingBookingPage() {
                             <div className={`
                                 flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all
                                 ${activeStep === step.id 
-                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
+                                    ? 'border-[#D4AA7D]/50 bg-[#EFD09E]/70 text-[#272727]' 
                                     : activeStep > step.id 
-                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700' 
-                                        : 'border-slate-200 text-slate-400'
+                                        ? 'border-[#9ACD32]/50 bg-[#9ACD32]/15 text-[#5a7a1a]' 
+                                        : 'border-[#D4AA7D]/35 text-[#7E5C4A]'
                                 }
                             `}>
                                 <div className={`
                                     w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                                    ${activeStep === step.id ? 'bg-indigo-600 text-white' : activeStep > step.id ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}
+                                    ${activeStep === step.id ? 'bg-[#272727] text-[#EFD09E]' : activeStep > step.id ? 'bg-[#9ACD32] text-[#272727]' : 'bg-[#D4AA7D]/35 text-[#7E5C4A]'}
                                 `}>
                                     {step.id}
                                 </div>
                                 <span className="font-bold text-sm">{step.label}</span>
                             </div>
                             {idx < steps.length - 1 && (
-                                <div className="w-8 h-0.5 bg-slate-200 mx-2" />
+                                <div className="w-8 h-0.5 bg-[#D4AA7D]/40 mx-2" />
                             )}
                         </div>
                     ))}
@@ -337,8 +337,8 @@ export default function PackagingBookingPage() {
                  {/* STEP 1: Customer Selection */}
                  {activeStep === 1 && (
                      <GlassCard className="p-8 animate-in fade-in slide-in-from-bottom-4">
-                         <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                             <Search className="w-5 h-5 text-indigo-500"/>
+                         <h3 className="text-xl font-bold text-[#272727] mb-6 flex items-center gap-2">
+                             <Search className="w-5 h-5 text-[#7E5C4A]"/>
                              Select Customer
                          </h3>
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -346,19 +346,19 @@ export default function PackagingBookingPage() {
                                  <button
                                      key={code}
                                      onClick={() => handleCustomerSelect(code)}
-                                     className="p-6 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group text-left"
-                                 >
-                                     <div className="font-bold text-lg text-slate-700 group-hover:text-indigo-700 mb-1">{code}</div>
-                                     <div className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded w-fit group-hover:bg-white">
-                                         {CUSTOMER_PACK_TYPE_MAPPING[code] === 'A' ? 'Asia Region' : 'US/EU Region'}
-                                     </div>
-                                 </button>
+                                     className="p-6 rounded-xl border border-[#D4AA7D]/35 bg-[#EFD09E]/45 hover:border-[#9ACD32]/45 hover:bg-[#EFD09E]/70 transition-all group text-left"
+                                >
+                                    <div className="font-bold text-lg text-[#272727] group-hover:text-[#5a7a1a] mb-1">{code}</div>
+                                    <div className="text-xs text-[#7E5C4A] font-medium bg-[#EFD09E]/75 border border-[#D4AA7D]/35 px-2 py-1 rounded w-fit group-hover:bg-[#F6EDDE]">
+                                        {CUSTOMER_PACK_TYPE_MAPPING[code] === 'A' ? 'Asia Region' : 'US/EU Region'}
+                                    </div>
+                                </button>
                              ))}
                          </div>
 
                           {/* Recent History Section */}
-                          <div className="pt-6 border-t border-slate-100 mt-6">
-                                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <div className="pt-6 border-t border-[#D4AA7D]/30 mt-6">
+                                <h4 className="text-sm font-bold text-[#7E5C4A] uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <Clock className="w-4 h-4"/> Recent Calculations
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -366,20 +366,20 @@ export default function PackagingBookingPage() {
                                         <button 
                                             key={plan.id}
                                             onClick={() => handleLoadPlan(plan)}
-                                            className="p-4 bg-white/50 border border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-white text-left transition-all group shadow-sm hover:shadow-md"
+                                            className="p-4 bg-[#EFD09E]/50 border border-[#D4AA7D]/35 rounded-xl hover:border-[#9ACD32]/40 hover:bg-[#F6EDDE] text-left transition-all group shadow-sm hover:shadow-md"
                                         >
                                             <div className="flex justify-between items-start mb-2">
-                                                <span className="font-bold text-slate-700 group-hover:text-indigo-700">{plan.customer.name}</span>
-                                                <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md group-hover:bg-indigo-50 group-hover:text-indigo-600">
+                                                <span className="font-bold text-[#272727] group-hover:text-[#5a7a1a]">{plan.customer.name}</span>
+                                                <span className="text-[10px] bg-[#EFD09E]/70 border border-[#D4AA7D]/35 text-[#7E5C4A] px-1.5 py-0.5 rounded-md group-hover:bg-[#9ACD32]/20 group-hover:text-[#5a7a1a]">
                                                     {plan.createdAt?.seconds ? new Date(plan.createdAt?.seconds * 1000).toLocaleDateString() : 'Just now'}
                                                 </span>
                                             </div>
-                                            <div className="text-xs text-slate-500 space-y-1">
+                                            <div className="text-xs text-[#7E5C4A] space-y-1">
                                                 <div className="flex justify-between">
                                                     <span>POs: {plan.poList.length}</span>
                                                     <span>Item: {plan.summary.totalItems}</span>
                                                 </div>
-                                                <div className="flex justify-between font-medium text-slate-600">
+                                                <div className="flex justify-between font-medium text-[#272727]">
                                                     <span>Pallets: {plan.summary.totalPallets}</span>
                                                     <span>Boxes: {plan.summary.totalBoxes}</span>
                                                 </div>
@@ -387,7 +387,7 @@ export default function PackagingBookingPage() {
                                         </button>
                                     ))}
                                     {recentPlans.length === 0 && (
-                                        <div className="col-span-3 text-center py-8 text-slate-400 text-sm italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                                        <div className="col-span-3 text-center py-8 text-[#7E5C4A]/80 text-sm italic bg-[#EFD09E]/45 rounded-xl border border-dashed border-[#D4AA7D]/45">
                                             No recent history found.
                                         </div>
                                     )}
@@ -402,68 +402,68 @@ export default function PackagingBookingPage() {
                          <div className="lg:col-span-2">
                              <GlassCard className="p-6 h-full flex flex-col">
                                  <div className="flex justify-between items-center mb-4">
-                                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                         <FileSpreadsheet className="w-5 h-5 text-emerald-500"/>
-                                         Paste Raw Data
-                                     </h3>
-                                     <button onClick={handleSampleData} className="text-xs text-indigo-600 font-bold hover:underline">
-                                         Load Sample
-                                     </button>
-                                 </div>
+                                     <h3 className="font-bold text-[#272727] flex items-center gap-2">
+                                        <FileSpreadsheet className="w-5 h-5 text-[#7E5C4A]"/>
+                                        Paste Raw Data
+                                    </h3>
+                                    <button onClick={handleSampleData} className="text-xs text-[#7E5C4A] font-bold hover:underline">
+                                        Load Sample
+                                    </button>
+                                </div>
                                  <textarea
                                      value={rawData}
                                      onChange={handleRawInputChange}
                                      placeholder={`Paste form Excel (PO, SKU, QTY)\nExample:\nPO123  SKU001  100\nPO123  SKU002  50`}
-                                     className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none min-h-[300px]"
-                                 />
-                                 <div className="mt-4 flex justify-between items-center">
-                                     <button onClick={() => setActiveStep(1)} className="text-slate-500 hover:text-slate-700 font-bold text-sm">
-                                         Back
-                                     </button>
-                                     <button 
-                                         onClick={handleGeneratePlan}
-                                         disabled={!rawData || isProcessing}
-                                         className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                     >
+                                     className="flex-1 w-full bg-[#EFD09E]/45 border border-[#D4AA7D]/40 rounded-xl p-4 font-mono text-sm text-[#272727] focus:ring-2 focus:ring-[#9ACD32]/30 outline-none resize-none min-h-[300px]"
+                                />
+                                <div className="mt-4 flex justify-between items-center">
+                                    <button onClick={() => setActiveStep(1)} className="text-[#7E5C4A] hover:text-[#272727] font-bold text-sm">
+                                        Back
+                                    </button>
+                                    <button 
+                                        onClick={handleGeneratePlan}
+                                        disabled={!rawData || isProcessing}
+                                        className="px-6 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    >
                                          {isProcessing ? (
                                              <>Processing...</>
                                          ) : (
                                              <>Generate Plan <Play className="w-4 h-4 fill-current"/></>
                                          )}
-                                     </button>
-                                 </div>
+                                    </button>
+                                </div>
                              </GlassCard>
                          </div>
                          
                          <div className="space-y-6">
-                             <GlassCard className="p-6 bg-indigo-900/5 border-indigo-100">
-                                 <h4 className="font-bold text-indigo-900 mb-2">Selected Context</h4>
-                                 <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-indigo-100 mb-3">
-                                     <span className="text-sm text-slate-500">Customer</span>
-                                     <span className="font-bold text-indigo-700 text-lg">{selectedCustomer?.code}</span>
-                                 </div>
-                                 <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-indigo-100">
-                                     <span className="text-sm text-slate-500">Region</span>
-                                     <span className="font-bold text-indigo-700">{selectedCustomer?.region}</span>
-                                 </div>
-                             </GlassCard>
+                             <GlassCard className="p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.22),-8px_-8px_18px_rgba(255,255,255,0.9)]">
+                                <h4 className="font-bold text-[#272727] mb-2">Selected Context</h4>
+                                <div className="flex items-center justify-between bg-[#EFD09E]/55 p-3 rounded-lg border border-[#D4AA7D]/35 mb-3">
+                                    <span className="text-sm text-[#7E5C4A]">Customer</span>
+                                    <span className="font-bold text-[#272727] text-lg">{selectedCustomer?.code}</span>
+                                </div>
+                                <div className="flex items-center justify-between bg-[#EFD09E]/55 p-3 rounded-lg border border-[#D4AA7D]/35">
+                                    <span className="text-sm text-[#7E5C4A]">Region</span>
+                                    <span className="font-bold text-[#272727]">{selectedCustomer?.region}</span>
+                                </div>
+                            </GlassCard>
 
-                             <GlassCard className="p-6">
-                                 <h4 className="font-bold text-slate-800 mb-4">Tips</h4>
-                                 <ul className="space-y-2 text-sm text-slate-600">
-                                     <li className="flex gap-2">
-                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                         <span>Copy directly from Excel/Sheets</span>
-                                     </li>
-                                     <li className="flex gap-2">
-                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                         <span>Ensure columns are PO, SKU, Qty</span>
-                                     </li>
-                                     <li className="flex gap-2">
-                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                         <span>System auto-fetches specs</span>
-                                     </li>
-                                 </ul>
+                            <GlassCard className="p-6">
+                                <h4 className="font-bold text-[#272727] mb-4">Tips</h4>
+                                <ul className="space-y-2 text-sm text-[#7E5C4A]">
+                                    <li className="flex gap-2">
+                                        <CheckCircle2 className="w-4 h-4 text-[#9ACD32] shrink-0" />
+                                        <span>Copy directly from Excel/Sheets</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <CheckCircle2 className="w-4 h-4 text-[#9ACD32] shrink-0" />
+                                        <span>Ensure columns are PO, SKU, Qty</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <CheckCircle2 className="w-4 h-4 text-[#9ACD32] shrink-0" />
+                                        <span>System auto-fetches specs</span>
+                                    </li>
+                                </ul>
                              </GlassCard>
                          </div>
                      </div>
@@ -474,30 +474,30 @@ export default function PackagingBookingPage() {
                      <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6">
                          {/* Summary Cards */}
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                             <SummaryCard label="Total Pallets" value={planSummary.totalPallets} icon={Layers} color="amber" />
-                             <SummaryCard label="Total Boxes" value={planSummary.totalBoxes} icon={Box} color="blue" />
-                             <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={AlertTriangle} color="red" />
-                             <SummaryCard label="Total Items" value={planSummary.totalItems} icon={Package} color="emerald" />
+                             <SummaryCard label="Total Pallets" value={planSummary.totalPallets} icon={Layers} color="sunset" />
+                             <SummaryCard label="Total Boxes" value={planSummary.totalBoxes} icon={Box} color="raisin" />
+                             <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={AlertTriangle} color="buff" />
+                             <SummaryCard label="Total Items" value={planSummary.totalItems} icon={Package} color="green" />
                          </div>
 
                          {/* Results Table */}
                          <div className="space-y-8">
                              {planResult.map((poGroup) => (
                                  <GlassCard key={poGroup.po} className="overflow-hidden">
-                                     <div className="bg-slate-50/50 p-4 border-b border-white/10 flex justify-between items-center backdrop-blur-sm">
-                                         <div className="flex items-center gap-3">
-                                             <div className="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shadow-sm">
-                                                 PO
-                                             </div>
-                                             <div>
-                                                 <h3 className="font-bold text-lg text-slate-800">{poGroup.po}</h3>
-                                                 <p className="text-xs text-slate-500 font-medium">{poGroup.cases.length} Cases Generated</p>
-                                             </div>
-                                         </div>
-                                     </div>
-                                     <div className="overflow-x-auto">
-                                         <table className="w-full text-sm text-left">
-                                             <thead className="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
+                                     <div className="bg-[#EEF2F6]/90 p-4 border-b border-[#D4AA7D]/30 flex justify-between items-center backdrop-blur-sm">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm">
+                                                PO
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-lg text-[#272727]">{poGroup.po}</h3>
+                                                <p className="text-xs text-[#7E5C4A] font-medium">{poGroup.cases.length} Cases Generated</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm text-left">
+                                            <thead className="bg-[#D4AA7D] text-xs font-bold text-[#272727] uppercase">
                                                  <tr>
                                                      <th className="px-6 py-3">Case #</th>
                                                      <th className="px-6 py-3">Type</th>
@@ -506,30 +506,30 @@ export default function PackagingBookingPage() {
                                                      <th className="px-6 py-3">Note</th>
                                                  </tr>
                                              </thead>
-                                             <tbody className="divide-y divide-slate-100">
-                                                 {poGroup.cases.map((c, idx) => (
-                                                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                                         <td className="px-6 py-4 font-mono text-slate-500">#{c.caseNo}</td>
-                                                         <td className="px-6 py-4">
-                                                             <Badge type={c.type} />
-                                                         </td>
-                                                         <td className="px-6 py-4">
-                                                             <div className="space-y-1">
-                                                                 {c.items.map((item, i) => (
-                                                                     <div key={i} className="flex items-center justify-between text-xs max-w-[200px]">
-                                                                         <span className="font-medium text-slate-700 truncate mr-2" title={item.name || item.sku}>{item.sku}</span>
-                                                                         <span className="font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">x{item.qty}</span>
-                                                                     </div>
-                                                                 ))}
-                                                             </div>
-                                                         </td>
-                                                         <td className="px-6 py-4 font-mono text-xs text-slate-500">
-                                                             {c.dims}
-                                                         </td>
-                                                         <td className="px-6 py-4 text-xs text-slate-500 italic">
-                                                             {c.note || "-"}
-                                                         </td>
-                                                     </tr>
+                                             <tbody className="divide-y divide-[#D4AA7D]/30 bg-[#EFD09E]">
+                                                {poGroup.cases.map((c, idx) => (
+                                                    <tr key={idx} className="hover:bg-[#F6EDDE] transition-colors">
+                                                        <td className="px-6 py-4 font-mono text-[#7E5C4A]">#{c.caseNo}</td>
+                                                        <td className="px-6 py-4">
+                                                            <Badge type={c.type} />
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="space-y-1">
+                                                                {c.items.map((item, i) => (
+                                                                    <div key={i} className="flex items-center justify-between text-xs max-w-[200px]">
+                                                                        <span className="font-medium text-[#272727] truncate mr-2" title={item.name || item.sku}>{item.sku}</span>
+                                                                        <span className="font-bold text-[#7E5C4A] bg-[#EFD09E]/70 border border-[#D4AA7D]/35 px-1.5 py-0.5 rounded">x{item.qty}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-mono text-xs text-[#7E5C4A]">
+                                                            {c.dims}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-xs text-[#7E5C4A] italic">
+                                                            {c.note || "-"}
+                                                        </td>
+                                                    </tr>
                                                  ))}
                                              </tbody>
                                          </table>
@@ -541,14 +541,14 @@ export default function PackagingBookingPage() {
                          <div className="flex justify-center pt-8 gap-4">
                               <button 
                                   onClick={() => { setActiveStep(2); setPlanResult([]); setIsHistoryMode(false); }}
-                                  className="px-6 py-3 border-2 border-slate-200 text-slate-500 font-bold rounded-xl hover:border-slate-400 hover:text-slate-700 transition-all flex items-center gap-2"
+                                  className="px-6 py-3 border-2 border-[#D4AA7D]/45 text-[#7E5C4A] font-bold rounded-xl hover:border-[#7E5C4A]/60 hover:text-[#272727] transition-all flex items-center gap-2"
                               >
                                   <RotateCcw className="w-4 h-4"/> Back to Input
                               </button>
                               <button 
                                  onClick={() => setActiveStep(4)}
-                                 className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center gap-2"
-                             >
+                                 className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center gap-2"
+                            >
                                  Proceed to Save <Play className="w-4 h-4"/>
                              </button>
                          </div>
@@ -558,12 +558,12 @@ export default function PackagingBookingPage() {
                  {/* STEP 4: Save & Export */}
                  {activeStep === 4 && planSummary && (
                      <div className="animate-in fade-in slide-in-from-bottom-4 max-w-2xl mx-auto text-center space-y-8">
-                          <GlassCard className="p-12 flex flex-col items-center justify-center gap-6 border-emerald-100 bg-emerald-50/30">
-                              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-2">
+                          <GlassCard className="p-12 flex flex-col items-center justify-center gap-6 bg-[#EEF2F6]/95 border border-white/80">
+                              <div className="w-20 h-20 bg-[#9ACD32]/20 rounded-full flex items-center justify-center text-[#5a7a1a] mb-2">
                                   <CheckCircle2 className="w-10 h-10" />
                               </div>
-                              <h2 className="text-3xl font-black text-slate-800">Plan Ready!</h2>
-                              <p className="text-slate-500 max-w-md">
+                              <h2 className="text-3xl font-black text-[#272727]">Plan Ready!</h2>
+                              <p className="text-[#7E5C4A] max-w-md">
                                   Your packing plan has been generated successfully. You can now download the PDF report or save this plan to the database.
                               </p>
                               
@@ -573,19 +573,19 @@ export default function PackagingBookingPage() {
                                       disabled={isHistoryMode || isSaving}
                                       className={`flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 rounded-2xl transition-all group ${
                                           isHistoryMode || isSaving 
-                                          ? 'border-slate-100 opacity-50 cursor-not-allowed' 
-                                          : 'border-slate-100 hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer'
+                                          ? 'border-[#D4AA7D]/40 opacity-50 cursor-not-allowed' 
+                                          : 'border-[#D4AA7D]/35 hover:border-[#9ACD32] hover:bg-[#EFD09E]/55 cursor-pointer'
                                       }`}
                                   >
                                       {isHistoryMode ? (
                                           <>
-                                            <CheckCircle2 className="w-8 h-8 text-emerald-500"/>
-                                            <span className="font-bold text-emerald-600">Saved to DB</span>
+                                            <CheckCircle2 className="w-8 h-8 text-[#9ACD32]"/>
+                                            <span className="font-bold text-[#5a7a1a]">Saved to DB</span>
                                           </>
                                       ) : (
                                           <>
-                                            <Save className={`w-8 h-8 text-slate-400 ${!isSaving && 'group-hover:text-emerald-600'} transition-colors`}/>
-                                            <span className={`font-bold text-slate-600 ${!isSaving && 'group-hover:text-emerald-800'}`}>
+                                            <Save className={`w-8 h-8 text-[#7E5C4A] ${!isSaving && 'group-hover:text-[#5a7a1a]'} transition-colors`}/>
+                                            <span className={`font-bold text-[#7E5C4A] ${!isSaving && 'group-hover:text-[#5a7a1a]'}`}>
                                                 {isSaving ? 'Saving...' : 'Save to DB'}
                                             </span>
                                           </>
@@ -595,38 +595,38 @@ export default function PackagingBookingPage() {
                                   <button 
                                       onClick={handleExportPDF}
                                       disabled={isExportingPlan}
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#7E5C4A]/55 hover:bg-[#EFD09E]/70 transition-all group"
                                   >
-                                      <Download className="w-8 h-8 text-slate-400 group-hover:text-indigo-600 transition-colors"/>
-                                      <span className="font-bold text-slate-600 group-hover:text-indigo-800">
+                                      <Download className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#272727] transition-colors"/>
+                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#272727]">
                                         {isExportingPlan ? "Preparing PDF..." : "Download Plan"}
                                       </span>
                                   </button>
 
                                   <button 
                                       onClick={handleExportPackingDetails}
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group "
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#9ACD32]/55 hover:bg-[#EFD09E]/70 transition-all group "
                                   >
-                                      <FileText className="w-8 h-8 text-slate-400 group-hover:text-emerald-600 transition-colors"/>
-                                      <span className="font-bold text-slate-600 group-hover:text-emerald-800">Download Packing Details</span>
+                                      <FileText className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#5a7a1a] transition-colors"/>
+                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#5a7a1a]">Download Packing Details</span>
                                   </button>
                                   
                                   <button 
                                       onClick={generateLayoutGridPDF}
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-50 border-2 border-slate-200 border-dashed rounded-2xl hover:border-slate-400 hover:bg-slate-100 transition-all group"
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EEF2F6] border-2 border-[#D4AA7D]/45 border-dashed rounded-2xl hover:border-[#7E5C4A]/55 hover:bg-[#EFD09E]/45 transition-all group"
                                   >
-                                      <div className="w-8 h-8 border border-slate-400 grid grid-cols-2 grid-rows-2 gap-px bg-slate-300">
+                                      <div className="w-8 h-8 border border-[#7E5C4A]/50 grid grid-cols-2 grid-rows-2 gap-px bg-[#D4AA7D]/60">
                                           <div className="bg-white"></div><div className="bg-white"></div>
                                           <div className="bg-white"></div><div className="bg-white"></div>
                                       </div>
-                                      <span className="font-bold text-slate-500 group-hover:text-slate-700">Download Grid (Dev)</span>
+                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#272727]">Download Grid (Dev)</span>
                                   </button>
                               </div>
                           </GlassCard>
 
                            <button 
                                onClick={() => { setActiveStep(1); setPlanResult([]); setIsHistoryMode(false); }}
-                               className="px-8 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 shadow-lg shadow-slate-200 transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-xs"
+                               className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-xs"
                            >
                                <RotateCcw className="w-4 h-4"/> Start New Plan
                            </button>
@@ -640,14 +640,14 @@ export default function PackagingBookingPage() {
 
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in zoom-in-95">
-             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/30 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in zoom-in-95">
+             <div className="w-16 h-16 bg-[#9ACD32]/20 rounded-full flex items-center justify-center mx-auto text-[#5a7a1a]">
                 <CheckCircle2 className="w-8 h-8" />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-800">Saved Successfully!</h3>
-                <p className="text-slate-500 text-sm mt-2">
+                <h3 className="text-xl font-bold text-[#272727]">Saved Successfully!</h3>
+                <p className="text-[#7E5C4A] text-sm mt-2">
                    The packing plan has been saved to the database.
                 </p>
              </div>
@@ -655,14 +655,14 @@ export default function PackagingBookingPage() {
              <button 
                 onClick={handleExportPDF}
                 disabled={isExportingPlan}
-                className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2"
              >
                 <Download className="w-5 h-5"/> {isExportingPlan ? "Preparing PDF..." : "Download PDF"}
              </button>
 
              <button 
                 onClick={() => setShowSuccessModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-[#7E5C4A] hover:text-[#272727] text-sm font-bold"
              >
                 Close
              </button>
@@ -679,15 +679,15 @@ interface SummaryCardProps {
     label: string;
     value: number;
     icon: React.ElementType;
-    color: 'amber' | 'blue' | 'red' | 'emerald';
+    color: 'sunset' | 'raisin' | 'buff' | 'green';
 }
 
 function SummaryCard({ label, value, icon: Icon, color }: SummaryCardProps) {
     const colors = {
-        amber: "bg-amber-100 text-amber-600",
-        blue: "bg-blue-100 text-blue-600",
-        red: "bg-red-100 text-red-600",
-        emerald: "bg-emerald-100 text-emerald-600",
+        sunset: "bg-[#D4AA7D]/35 text-[#7E5C4A]",
+        raisin: "bg-[#EEF2F6] text-[#272727]",
+        buff: "bg-[#7E5C4A]/20 text-[#7E5C4A]",
+        green: "bg-[#9ACD32]/20 text-[#5a7a1a]",
     };
 
     return (
@@ -696,20 +696,20 @@ function SummaryCard({ label, value, icon: Icon, color }: SummaryCardProps) {
                 <Icon className="w-6 h-6" />
             </div>
             <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-                <p className="text-2xl font-black text-slate-800">{value}</p>
+                <p className="text-xs font-bold text-[#7E5C4A] uppercase tracking-wider">{label}</p>
+                <p className="text-2xl font-black text-[#272727]">{value}</p>
             </div>
         </GlassCard>
     );
 }
 
 function Badge({ type }: { type: string }) {
-    let style = "bg-slate-100 text-slate-600";
-    if (type.includes("Full Pallet")) style = "bg-emerald-100 text-emerald-700 border border-emerald-200";
-    else if (type.includes("Partial")) style = "bg-blue-50 text-blue-600 border border-blue-100";
-    else if (type.includes("Mixed")) style = "bg-indigo-50 text-indigo-600 border border-indigo-100";
-    else if (type.includes("Warp")) style = "bg-red-50 text-red-600 border border-red-100";
-    else if (type.includes("Unknown")) style = "bg-amber-50 text-amber-600 border border-amber-100";
+    let style = "bg-[#EEF2F6] text-[#7E5C4A] border border-[#D4AA7D]/35";
+    if (type.includes("Full Pallet")) style = "bg-[#9ACD32]/20 text-[#5a7a1a] border border-[#9ACD32]/35";
+    else if (type.includes("Partial")) style = "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45";
+    else if (type.includes("Mixed")) style = "bg-[#272727]/10 text-[#272727] border border-[#272727]/20";
+    else if (type.includes("Warp")) style = "bg-rose-50 text-rose-600 border border-rose-100";
+    else if (type.includes("Unknown")) style = "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45";
 
     return (
         <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${style}`}>

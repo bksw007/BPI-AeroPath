@@ -84,7 +84,7 @@ export function SearchToolbar({
   return (
     <div
       className={cn(
-        "flex flex-col md:flex-row gap-4 justify-between items-center bg-white/40 backdrop-blur-md p-4 rounded-xl border border-white/20 shadow-sm relative z-20",
+        "flex flex-col md:flex-row gap-4 justify-between items-center bg-[#EEF2F6]/95 p-4 rounded-2xl border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.92)] relative z-20",
         className
       )}
     >
@@ -92,13 +92,13 @@ export function SearchToolbar({
       <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
         {/* Search Field */}
         <div className="relative flex-1 sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7E5C4A]/70" />
           <input
             type="text"
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/50 border border-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 text-slate-700 placeholder-slate-400 text-sm"
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-[#EFD09E]/45 border border-[#D4AA7D]/40 focus:outline-none focus:ring-2 focus:ring-[#9ACD32]/30 focus:border-[#9ACD32]/40 text-[#272727] placeholder-[#7E5C4A]/70 text-sm"
           />
         </div>
 
@@ -107,7 +107,7 @@ export function SearchToolbar({
           <button
             type="button"
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-white/50 border border-white/30 rounded-lg text-sm text-slate-600 hover:bg-white/70 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/45 border border-[#D4AA7D]/40 rounded-lg text-sm text-[#7E5C4A] hover:bg-[#EFD09E]/65 transition-colors"
           >
             <Filter className="w-4 h-4" />
             <span>{selectedFilter === "All" ? "All Years" : selectedFilter}</span>
@@ -115,7 +115,7 @@ export function SearchToolbar({
           </button>
 
           {isFilterOpen && (
-            <div className="absolute z-[100] mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-2xl overflow-hidden">
+            <div className="absolute z-[100] mt-1 w-36 bg-[#EFD09E] border border-[#D4AA7D]/45 rounded-lg shadow-2xl overflow-hidden">
               {yearOptions.map((year) => (
                 <button
                   key={year}
@@ -124,8 +124,8 @@ export function SearchToolbar({
                     setIsFilterOpen(false);
                   }}
                   className={cn(
-                    "w-full px-4 py-2 text-left text-sm hover:bg-indigo-50",
-                    selectedFilter === year && "bg-indigo-100 text-indigo-700 font-medium"
+                    "w-full px-4 py-2 text-left text-sm text-[#272727] hover:bg-[#F6EDDE]",
+                    selectedFilter === year && "bg-[#D4AA7D]/60 text-[#272727] font-semibold"
                   )}
                 >
                   {year === "All" ? "All Years" : year}
@@ -146,7 +146,7 @@ export function SearchToolbar({
         {primaryButton && (
           <button
             onClick={primaryButton.onClick}
-            className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] rounded-lg text-sm font-semibold transition-colors shadow-md shadow-[#272727]/20 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
           >
             {primaryButton.icon}
             {primaryButton.label}

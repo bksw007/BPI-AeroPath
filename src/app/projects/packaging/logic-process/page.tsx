@@ -1155,7 +1155,7 @@ export default function LogicProcessPage() {
           {/* Back Link - Positioned Absolute Left */}
           <Link
             href="/projects/packaging"
-            className="absolute left-0 top-1.5 inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors text-sm md:text-base group"
+            className="absolute left-0 top-1.5 inline-flex items-center gap-2 text-[#7E5C4A]/80 hover:text-[#272727] transition-colors text-sm md:text-base group"
           >
             <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
             <span className="hidden sm:inline">Smart Packaging</span>
@@ -1166,7 +1166,7 @@ export default function LogicProcessPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-3xl font-bold mb-4"
           >
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-emerald-600 via-teal-600 to-indigo-600 drop-shadow-sm">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-[#9ACD32] via-[#7E5C4A] to-[#272727] drop-shadow-sm">
               🧪 Logic Process Visualizer
             </span>
           </motion.h1>
@@ -1180,20 +1180,20 @@ export default function LogicProcessPage() {
               <motion.div
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="group relative flex items-center gap-3 px-8 py-3 bg-white/40 backdrop-blur-xl border border-white/60 rounded-full shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-all cursor-pointer overflow-hidden"
+                className="group relative flex items-center gap-3 px-8 py-3 bg-[#EEF2F6]/95 backdrop-blur-xl border border-white/80 rounded-full shadow-lg shadow-[#272727]/15 hover:shadow-[#272727]/25 transition-all cursor-pointer overflow-hidden"
               >
                 {/* Glossy background effect */}
-                <div className="absolute inset-0 bg-linear-to-tr from-emerald-500/5 to-indigo-500/5 group-hover:from-emerald-500/10 group-hover:to-indigo-500/10 transition-colors" />
+                <div className="absolute inset-0 bg-linear-to-tr from-[#9ACD32]/5 to-[#7E5C4A]/5 group-hover:from-[#9ACD32]/10 group-hover:to-[#7E5C4A]/10 transition-colors" />
                 
                 <div className="relative flex items-center gap-3">
-                  <div className="p-2 bg-emerald-500/10 rounded-full text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all ring-1 ring-emerald-500/20">
+                  <div className="p-2 bg-[#9ACD32]/10 rounded-full text-[#5a7a1a] group-hover:bg-[#9ACD32] group-hover:text-[#272727] transition-all ring-1 ring-[#9ACD32]/20">
                     <FileText size={18} className="transition-transform group-hover:rotate-12" />
                   </div>
                   <div className="flex flex-col items-start leading-none">
-                    <span className="text-sm font-bold text-slate-800 tracking-tight">View Algorithm Flow</span>
-                    <span className="text-[10px] text-emerald-600/70 font-semibold uppercase tracking-widest mt-1">Full Documentation (PDF)</span>
+                    <span className="text-sm font-bold text-[#272727] tracking-tight">View Algorithm Flow</span>
+                    <span className="text-[10px] text-[#5a7a1a]/70 font-semibold uppercase tracking-widest mt-1">Full Documentation (PDF)</span>
                   </div>
-                  <ChevronRight size={16} className="text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                  <ChevronRight size={16} className="text-[#7E5C4A]/80 group-hover:text-[#9ACD32] group-hover:translate-x-1 transition-all" />
                 </div>
               </motion.div>
             </Link>
@@ -1213,9 +1213,9 @@ export default function LogicProcessPage() {
                   <div
                     className={`
                     flex items-center gap-1 px-2 py-1 rounded text-xs font-medium
-                    ${isActive ? "bg-emerald-500 text-white shadow" : ""}
-                    ${isComplete ? "bg-emerald-100 text-emerald-700" : ""}
-                    ${!isActive && !isComplete ? "bg-slate-100 text-slate-400" : ""}
+                    ${isActive ? "bg-[#9ACD32] text-[#272727] shadow" : ""}
+                    ${isComplete ? "bg-[#9ACD32]/20 text-[#5a7a1a]" : ""}
+                    ${!isActive && !isComplete ? "bg-[#EFD09E]/60 text-[#7E5C4A]" : ""}
                   `}
                   >
                     <Icon className="w-3 h-3" />
@@ -1223,7 +1223,7 @@ export default function LogicProcessPage() {
                   </div>
                   {idx < STEP_FLOW.length - 1 && (
                     <ChevronRight
-                      className={`w-3 h-3 ${isComplete ? "text-emerald-500" : "text-slate-300"}`}
+                      className={`w-3 h-3 ${isComplete ? "text-[#9ACD32]" : "text-[#D4AA7D]/60"}`}
                     />
                   )}
                 </div>
@@ -1237,15 +1237,15 @@ export default function LogicProcessPage() {
           <div className="space-y-4">
             {/* Input / Status */}
             <GlassCard className="p-4">
-              <h2 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <Package className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-base font-bold text-[#272727] mb-2 flex items-center gap-2">
+                <Package className="w-4 h-4 text-[#7E5C4A]" />
                 {currentStepIndex < 0 ? "Input Data" : "Processing"}
               </h2>
 
               {currentStepIndex < 0 ? (
                 <>
                   <div className="mb-3">
-                    <label className="text-xs font-semibold text-slate-500 mb-1 block">
+                    <label className="text-xs font-semibold text-[#7E5C4A] mb-1 block">
                       🌍 Select Region (Pack Type)
                     </label>
                     <div className="flex gap-2">
@@ -1256,8 +1256,8 @@ export default function LogicProcessPage() {
                           className={`
                             flex-1 py-1.5 rounded-md text-sm font-bold border transition-all
                             ${selectedRegion === r 
-                              ? "bg-indigo-600 border-indigo-600 text-white shadow-md" 
-                              : "bg-white border-slate-200 text-slate-600 hover:border-indigo-300"
+                              ? "bg-[#272727] border-[#272727] text-[#EFD09E] shadow-md" 
+                              : "bg-[#EEF2F6]/95 border-[#D4AA7D]/40 text-[#7E5C4A] hover:border-[#9ACD32]/45"
                             }
                           `}
                         >
@@ -1267,15 +1267,15 @@ export default function LogicProcessPage() {
                     </div>
                   </div>
                   <textarea
-                    className="w-full h-32 p-3 border border-slate-200 rounded-lg text-xs font-mono resize-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full h-32 p-3 border border-[#D4AA7D]/40 bg-[#EEF2F6]/95 rounded-lg text-xs font-mono resize-none focus:ring-2 focus:ring-[#9ACD32]/30 text-[#272727] placeholder-[#7E5C4A]/70"
                     placeholder="วางข้อมูล PO + SKU + Qty"
                     value={rawInput}
                     onChange={(e) => setRawInput(e.target.value)}
                   />
                 </>
               ) : (
-                <div className="p-2 bg-indigo-50 rounded border border-indigo-200">
-                  <p className="text-indigo-700 text-sm font-medium">
+                <div className="p-2 bg-[#EFD09E]/45 rounded border border-[#D4AA7D]/35">
+                  <p className="text-[#7E5C4A] text-sm font-medium">
                     {stepDescription}
                   </p>
                 </div>
@@ -1286,7 +1286,7 @@ export default function LogicProcessPage() {
                   <button
                     onClick={handleStart}
                     disabled={!rawInput.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#9ACD32] hover:bg-[#7fb832] text-[#272727] font-semibold rounded-lg text-sm disabled:opacity-50 border border-[#9ACD32]/25"
                   >
                     <Play className="w-4 h-4" /> Start
                   </button>
@@ -1297,14 +1297,14 @@ export default function LogicProcessPage() {
                       disabled={
                         currentStepIndex >= STEP_FLOW.length - 1 || isProcessing
                       }
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-[#9ACD32] hover:bg-[#7fb832] text-[#272727] font-semibold rounded-lg text-sm disabled:opacity-50 border border-[#9ACD32]/25"
                     >
                       {isProcessing ? "Processing..." : "Next"}{" "}
                       <ChevronRight className="w-4 h-4" />
                     </button>
                     <button
                       onClick={handleReset}
-                      className="px-3 py-2 bg-rose-100 text-rose-700 rounded-lg"
+                      className="px-3 py-2 bg-[#D4AA7D]/20 text-[#7E5C4A] rounded-lg border border-[#D4AA7D]/30"
                     >
                       <RotateCcw className="w-4 h-4" />
                     </button>
@@ -1316,7 +1316,7 @@ export default function LogicProcessPage() {
             {/* PO Data Status */}
             {poDataMap.size > 0 && (
               <GlassCard className="p-4">
-                <h3 className="text-sm font-bold text-slate-700 mb-2">
+                <h3 className="text-sm font-bold text-[#272727] mb-2">
                   📋 PO Status (Remaining)
                 </h3>
                 <div className="space-y-3">
@@ -1329,24 +1329,24 @@ export default function LogicProcessPage() {
                     .map((data) => (
                     <div
                       key={data.po}
-                      className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs"
+                      className="p-3 bg-[#EFD09E]/45 rounded-lg border border-[#D4AA7D]/35 text-xs"
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-indigo-700 text-sm">{data.po}</span>
+                        <span className="font-bold text-[#7E5C4A] text-sm">{data.po}</span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             data.packingType === "same"
-                              ? "bg-blue-100 text-blue-700"
+                              ? "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45"
                               : data.packingType === "mixed"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-slate-200 text-slate-600"
+                                ? "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45"
+                                : "bg-[#EEF2F6]/85 text-[#7E5C4A] border border-[#D4AA7D]/30"
                           }`}
                         >
                           {data.packingType.toUpperCase()}
                         </span>
                       </div>
                       
-                      <div className="space-y-4 mt-2 border-t pt-2 border-slate-200">
+                      <div className="space-y-4 mt-2 border-t pt-2 border-[#D4AA7D]/30">
                         {(() => {
                           const allPending = [...data.items, ...data.sameItems, ...data.mixedItems];
                           const pkgGroups = new Map<string, ProcessedItem[]>();
@@ -1372,14 +1372,14 @@ export default function LogicProcessPage() {
                           return (
                             <>
                               {recommendation && STEP_FLOW[currentStepIndex].id === "check_choose" && (
-                                <div className="mb-3 p-2 bg-orange-50 border border-orange-100 rounded-md">
+                                <div className="mb-3 p-2 bg-[#EFD09E]/60 border border-[#D4AA7D]/35 rounded-md">
                                   <div className="flex justify-between items-center text-[10px] mb-1">
-                                    <span className="font-bold text-orange-600 uppercase">✨ PO Recommendation</span>
-                                    <span className="text-orange-400">Total: {poTotalM3.toFixed(3)} m³</span>
+                                    <span className="font-bold text-[#7E5C4A] uppercase">✨ PO Recommendation</span>
+                                    <span className="text-[#7E5C4A]/70">Total: {poTotalM3.toFixed(3)} m³</span>
                                   </div>
                                   <div className="flex justify-between items-center">
-                                    <span className="text-xs font-bold text-orange-900">{recommendation.name}</span>
-                                    <span className="text-xs font-black text-orange-700">{(poTotalM3 / recommendation.m3 * 100).toFixed(1)}% Full</span>
+                                    <span className="text-xs font-bold text-[#272727]">{recommendation.name}</span>
+                                    <span className="text-xs font-black text-[#7E5C4A]">{(poTotalM3 / recommendation.m3 * 100).toFixed(1)}% Full</span>
                                   </div>
                                 </div>
                               )}
@@ -1398,15 +1398,15 @@ export default function LogicProcessPage() {
                                   const efficiency = containerM3 > 0 ? (groupM3 / containerM3) * 100 : 0;
 
                                   return (
-                                    <div key={gIdx} className="bg-white/50 p-2 rounded-md border border-slate-100">
+                                    <div key={gIdx} className="bg-[#EEF2F6]/85 p-2 rounded-md border border-[#D4AA7D]/35">
                                       <div className="flex justify-between items-center mb-1">
-                                        <p className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                                        <p className="text-[10px] uppercase font-bold text-[#7E5C4A] flex items-center gap-1">
                                           <Package className="w-3 h-3" /> {pkg}
                                         </p>
                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                          efficiency >= 90 ? "bg-emerald-100 text-emerald-700" :
-                                          efficiency >= 70 ? "bg-blue-100 text-blue-700" :
-                                          "bg-slate-100 text-slate-500"
+                                          efficiency >= 90 ? "bg-[#9ACD32]/20 text-[#5a7a1a]" :
+                                          efficiency >= 70 ? "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45" :
+                                          "bg-[#EEF2F6]/85 text-[#7E5C4A] border border-[#D4AA7D]/30"
                                         }`}>
                                           {efficiency.toFixed(1)}% Full
                                         </span>
@@ -1414,9 +1414,9 @@ export default function LogicProcessPage() {
                                       <div className="space-y-1">
                                         {groupItems.map((item, idx) => (
                                           <div key={idx} className="flex justify-between items-start gap-2 text-[10px]">
-                                            <span className="text-slate-700 font-medium truncate flex-1">{item.sku}</span>
-                                            <span className="text-slate-400">({item.spec ? `${item.spec.width}x${item.spec.length}x${item.spec.height}` : '-'})</span>
-                                            <span className="text-indigo-600 font-bold min-w-[30px] text-right">x{item.qty}</span>
+                                            <span className="text-[#272727] font-medium truncate flex-1">{item.sku}</span>
+                                            <span className="text-[#7E5C4A]/70">({item.spec ? `${item.spec.width}x${item.spec.length}x${item.spec.height}` : '-'})</span>
+                                            <span className="text-[#7E5C4A] font-bold min-w-[30px] text-right">x{item.qty}</span>
                                           </div>
                                         ))}
                                       </div>
@@ -1431,7 +1431,7 @@ export default function LogicProcessPage() {
                     </div>
                   ))}
                   {Array.from(poDataMap.values()).every(d => d.items.length === 0 && d.sameItems.length === 0 && d.mixedItems.length === 0) && (
-                    <div className="text-center py-4 text-slate-400 italic">
+                    <div className="text-center py-4 text-[#7E5C4A]/70 italic">
                       All POs processed.
                     </div>
                   )}
@@ -1444,26 +1444,26 @@ export default function LogicProcessPage() {
               currentStepIndex >= 0 &&
               currentStepIndex < 4 && (
                 <GlassCard className="p-4">
-                  <h3 className="text-sm font-bold text-slate-700 mb-2">
+                  <h3 className="text-sm font-bold text-[#272727] mb-2">
                     Working ({workingItems.length})
                   </h3>
                   <div className="overflow-auto">
                     <table className="w-full text-xs">
-                      <thead className="bg-slate-100 sticky top-0">
+                      <thead className="bg-[#EFD09E]/60 sticky top-0">
                         <tr>
-                          <th className="py-1 px-2 text-left">PO</th>
-                          <th className="py-1 px-2 text-left">SKU</th>
-                          <th className="py-1 px-2 text-right">Qty</th>
+                          <th className="py-1 px-2 text-left text-[#7E5C4A] font-bold">PO</th>
+                          <th className="py-1 px-2 text-left text-[#7E5C4A] font-bold">SKU</th>
+                          <th className="py-1 px-2 text-right text-[#7E5C4A] font-bold">Qty</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
                         {workingItems.slice(0, 15).map((item, idx) => (
                           <tr key={idx}>
-                            <td className="py-1 px-2 font-mono text-slate-600">
+                            <td className="py-1 px-2 font-mono text-[#7E5C4A]">
                               {item.po}
                             </td>
-                            <td className="py-1 px-2">{item.sku}</td>
-                            <td className="py-1 px-2 text-right font-bold text-indigo-600">
+                            <td className="py-1 px-2 text-[#272727]">{item.sku}</td>
+                            <td className="py-1 px-2 text-right font-bold text-[#7E5C4A]">
                               {item.qty}
                             </td>
                           </tr>
@@ -1471,7 +1471,7 @@ export default function LogicProcessPage() {
                       </tbody>
                     </table>
                     {workingItems.length > 15 && (
-                      <p className="text-center text-slate-400 text-xs py-1">
+                      <p className="text-center text-[#7E5C4A]/70 text-xs py-1">
                         +{workingItems.length - 15} more
                       </p>
                     )}
@@ -1482,8 +1482,8 @@ export default function LogicProcessPage() {
 
           {/* RIGHT: Completed Results by PO */}
           <GlassCard className="p-4 h-fit">
-            <h2 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <h2 className="text-base font-bold text-[#272727] mb-3 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#9ACD32]" />
               ผลลัพธ์ (แยกตาม PO)
             </h2>
 
@@ -1492,13 +1492,13 @@ export default function LogicProcessPage() {
                 {Array.from(poResults.entries()).map(([po, result]) => (
                   <div
                     key={po}
-                    className="border border-slate-200 rounded-lg overflow-hidden"
+                    className="border border-[#D4AA7D]/40 rounded-lg overflow-hidden"
                   >
                     <div
                       className={`px-3 py-2 font-bold text-sm ${
                         result.status === "complete"
-                          ? "bg-emerald-500 text-white"
-                          : "bg-amber-100 text-amber-800"
+                          ? "bg-[#9ACD32] text-[#272727]"
+                          : "bg-[#D4AA7D]/30 text-[#7E5C4A]"
                       }`}
                     >
                       📋 PO: {po} {result.status === "complete" ? "✓" : "⏳"}
@@ -1509,22 +1509,22 @@ export default function LogicProcessPage() {
 
                     {/* Same - แสดงก่อน */}
                     {result.sameCases.length > 0 && (
-                      <div className="p-2 bg-blue-50 border-b">
-                        <p className="text-xs font-semibold text-blue-700 mb-2">
+                      <div className="p-2 bg-[#EFD09E]/45 border-b border-[#D4AA7D]/30">
+                        <p className="text-xs font-semibold text-[#7E5C4A] mb-2">
                           📦 Same Cases ({result.sameCases.length})
                         </p>
                         <div className="space-y-1">
                           {result.sameCases.map((c, idx) => (
-                            <div key={idx} className="bg-white rounded p-2 border border-blue-200">
+                            <div key={idx} className="bg-[#EEF2F6]/95 rounded p-2 border border-[#D4AA7D]/35">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                <span className="bg-[#7E5C4A] text-[#EFD09E] text-xs font-bold px-2 py-0.5 rounded">
                                   Case #{c.caseNo}
                                 </span>
-                                <span className="text-xs text-blue-600">{c.type}</span>
-                                <span className="text-xs text-slate-500">({c.dims})</span>
+                                <span className="text-xs text-[#7E5C4A]">{c.type}</span>
+                                <span className="text-xs text-[#7E5C4A]/70">({c.dims})</span>
                               </div>
-                              {c.note && <div className="text-xs text-blue-500 mb-1">[{c.note}]</div>}
-                              <div className="text-xs text-slate-600">
+                              {c.note && <div className="text-xs text-[#7E5C4A]/80 mb-1">[{c.note}]</div>}
+                              <div className="text-xs text-[#272727]">
                                 {c.items.map((i, iIdx) => (
                                   <div key={iIdx}>• {i.sku} x{i.qty}</div>
                                 ))}
@@ -1537,22 +1537,22 @@ export default function LogicProcessPage() {
 
                     {/* Mixed - แสดงที่สอง */}
                     {result.mixedCases.length > 0 && (
-                      <div className="p-2 bg-emerald-50 border-b">
-                        <p className="text-xs font-semibold text-emerald-700 mb-2">
+                      <div className="p-2 bg-[#9ACD32]/10 border-b border-[#9ACD32]/30">
+                        <p className="text-xs font-semibold text-[#5a7a1a] mb-2">
                           🔀 Mixed Cases ({result.mixedCases.length})
                         </p>
                         <div className="space-y-1">
                           {result.mixedCases.map((c, idx) => (
-                            <div key={idx} className="bg-white rounded p-2 border border-emerald-200">
+                            <div key={idx} className="bg-[#EEF2F6]/95 rounded p-2 border border-[#9ACD32]/35">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                <span className="bg-[#9ACD32] text-[#272727] text-xs font-bold px-2 py-0.5 rounded">
                                   Case #{c.caseNo}
                                 </span>
-                                <span className="text-xs text-emerald-600">{c.type}</span>
-                                <span className="text-xs text-slate-500">({c.dims})</span>
+                                <span className="text-xs text-[#5a7a1a]">{c.type}</span>
+                                <span className="text-xs text-[#7E5C4A]/70">({c.dims})</span>
                               </div>
-                              {c.note && <div className="text-xs text-emerald-500 mb-1">[{c.note}]</div>}
-                              <div className="text-xs text-slate-600">
+                              {c.note && <div className="text-xs text-[#5a7a1a]/80 mb-1">[{c.note}]</div>}
+                              <div className="text-xs text-[#272727]">
                                 {c.items.map((i, iIdx) => (
                                   <div key={iIdx}>• {i.sku} x{i.qty}</div>
                                 ))}
@@ -1565,21 +1565,21 @@ export default function LogicProcessPage() {
 
                     {/* Warp - แสดงที่สาม */}
                     {result.warpCases.length > 0 && (
-                      <div className="p-2 bg-rose-50 border-b">
-                        <p className="text-xs font-semibold text-rose-700 mb-2">
+                      <div className="p-2 bg-[#D4AA7D]/10 border-b border-[#D4AA7D]/30">
+                        <p className="text-xs font-semibold text-[#7E5C4A] mb-2">
                           🔴 Warp Cases ({result.warpCases.length})
                         </p>
                         <div className="space-y-1">
                           {result.warpCases.map((c, idx) => (
-                            <div key={idx} className="bg-white rounded p-2 border border-rose-200">
+                            <div key={idx} className="bg-[#EEF2F6]/95 rounded p-2 border border-[#D4AA7D]/35">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                <span className="bg-[#D4AA7D] text-[#EFD09E] text-xs font-bold px-2 py-0.5 rounded">
                                   Case #{c.caseNo}
                                 </span>
-                                <span className="text-xs text-rose-600">{c.type}</span>
-                                <span className="text-xs text-slate-500">({c.dims})</span>
+                                <span className="text-xs text-[#7E5C4A]">{c.type}</span>
+                                <span className="text-xs text-[#7E5C4A]/70">({c.dims})</span>
                               </div>
-                              <div className="text-xs text-slate-600">
+                              <div className="text-xs text-[#272727]">
                                 {c.items.map((i, iIdx) => (
                                   <div key={iIdx}>• {i.sku} x{i.qty}</div>
                                 ))}
@@ -1592,22 +1592,22 @@ export default function LogicProcessPage() {
 
                     {/* Unknown Cases - ⚠️ แสดงหลัง Warp และก่อน Mono */}
                     {result.unknownCases && result.unknownCases.length > 0 && (
-                      <div className="p-2 bg-amber-50 border-b">
-                        <p className="text-xs font-semibold text-amber-700 mb-2">
+                      <div className="p-2 bg-[#EFD09E]/60 border-b border-[#D4AA7D]/35">
+                        <p className="text-xs font-semibold text-[#7E5C4A] mb-2">
                           ⚠️ Unknown Cases ({result.unknownCases.length})
                         </p>
                         <div className="space-y-1">
                           {result.unknownCases.map((c, idx) => (
-                            <div key={idx} className="bg-white rounded p-2 border border-amber-300">
+                            <div key={idx} className="bg-[#EEF2F6]/95 rounded p-2 border border-[#D4AA7D]/35">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                <span className="bg-[#7E5C4A] text-[#EFD09E] text-xs font-bold px-2 py-0.5 rounded">
                                   Case #{c.caseNo}
                                 </span>
-                                <span className="text-xs text-amber-600">{c.type}</span>
-                                <span className="text-xs text-slate-500">({c.dims})</span>
+                                <span className="text-xs text-[#7E5C4A]">{c.type}</span>
+                                <span className="text-xs text-[#7E5C4A]/70">({c.dims})</span>
                               </div>
-                              {c.note && <div className="text-xs text-amber-600 font-medium mb-1">⚠️ {c.note}</div>}
-                              <div className="text-xs text-slate-600">
+                              {c.note && <div className="text-xs text-[#7E5C4A]/80 font-medium mb-1">⚠️ {c.note}</div>}
+                              <div className="text-xs text-[#272727]">
                                 {c.items.map((i, iIdx) => (
                                   <div key={iIdx}>• {i.sku} ({i.name}) x{i.qty}</div>
                                 ))}
@@ -1620,22 +1620,22 @@ export default function LogicProcessPage() {
 
                     {/* Mono - แสดงสุดท้าย */}
                     {result.monoCases.length > 0 && (
-                      <div className="p-2 bg-purple-50">
-                        <p className="text-xs font-semibold text-purple-700 mb-2">
+                      <div className="p-2 bg-[#272727]/10 border-b border-[#272727]/30">
+                        <p className="text-xs font-semibold text-[#272727] mb-2">
                           🎯 Mono Cases ({result.monoCases.length})
                         </p>
                         <div className="space-y-1">
                           {result.monoCases.map((c, idx) => (
-                            <div key={idx} className="bg-white rounded p-2 border border-purple-200">
+                            <div key={idx} className="bg-[#EEF2F6]/95 rounded p-2 border border-[#272727]/35">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                <span className="bg-[#272727] text-[#EFD09E] text-xs font-bold px-2 py-0.5 rounded">
                                   Case #{c.caseNo}
                                 </span>
-                                <span className="text-xs text-purple-600">{c.type}</span>
-                                <span className="text-xs text-slate-500">({c.dims})</span>
+                                <span className="text-xs text-[#272727]">{c.type}</span>
+                                <span className="text-xs text-[#7E5C4A]/70">({c.dims})</span>
                               </div>
-                              {c.note && <div className="text-xs text-purple-500 mb-1">[{c.note}]</div>}
-                              <div className="text-xs text-slate-600">
+                              {c.note && <div className="text-xs text-[#272727]/80 mb-1">[{c.note}]</div>}
+                              <div className="text-xs text-[#272727]">
                                 {c.items.map((i, iIdx) => (
                                   <div key={iIdx}>• {i.sku} x{i.qty}</div>
                                 ))}
@@ -1649,7 +1649,7 @@ export default function LogicProcessPage() {
                 ))}
               </div>
             ) : (
-              <div className="h-40 flex items-center justify-center text-slate-400 text-sm">
+              <div className="h-40 flex items-center justify-center text-[#7E5C4A]/70 text-sm">
                 ผลลัพธ์จะแสดงเมื่อ process เสร็จ
               </div>
             )}

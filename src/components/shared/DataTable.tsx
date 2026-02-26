@@ -78,11 +78,11 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <GlassCard className={cn("overflow-hidden p-0", className)}>
+    <GlassCard className={cn("overflow-hidden p-0 bg-[#EFD09E]/95 border border-[#D4AA7D]/35", className)}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-slate-600">
+        <table className="w-full text-sm text-[#272727]">
           {/* Header */}
-          <thead className="bg-slate-100/50 border-b border-indigo-100 uppercase text-xs tracking-wider font-black text-slate-500">
+          <thead className="bg-[#D4AA7D] border-b border-[#7E5C4A]/25 uppercase text-xs tracking-wider font-black text-[#272727]">
             <tr>
               {columns.map((col) => (
                 <th
@@ -96,10 +96,10 @@ export function DataTable<T extends Record<string, any>>({
           </thead>
 
           {/* Body */}
-          <tbody className="divide-y divide-indigo-50">
+          <tbody className="divide-y divide-[#D4AA7D]/30 bg-[#EFD09E]">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400">
+                <td colSpan={columns.length} className="px-6 py-12 text-center text-[#7E5C4A]/80">
                   {emptyMessage}
                 </td>
               </tr>
@@ -110,7 +110,7 @@ export function DataTable<T extends Record<string, any>>({
                   onClick={() => onRowClick?.(row)}
                   className={cn(
                     "transition-colors",
-                    onRowClick && "hover:bg-indigo-50/50 cursor-pointer group"
+                    onRowClick && "hover:bg-[#F6EDDE] cursor-pointer group"
                   )}
                 >
                   {columns.map((col, colIndex) => (
@@ -121,7 +121,7 @@ export function DataTable<T extends Record<string, any>>({
                         getAlignClass(col.align),
                         col.className,
                         // First column: highlight on hover
-                        colIndex === 0 && onRowClick && "font-medium text-indigo-600 group-hover:text-indigo-800"
+                        colIndex === 0 && onRowClick && "font-medium text-[#7E5C4A] group-hover:text-[#272727]"
                       )}
                     >
                       {getCellValue(row, col)}
