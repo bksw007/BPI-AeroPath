@@ -48,11 +48,11 @@ export default function LoginPage() {
     return (
       <AuthContainer mode="login" onToggleMode={handleToggleMode}>
         <div className="text-center p-8">
-          <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-bounce-subtle">
-            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+          <div className="w-20 h-20 bg-[#9ACD32]/15 rounded-2xl flex items-center justify-center mx-auto mb-6 animate-bounce-subtle border border-[#9ACD32]/30 shadow-[4px_4px_10px_rgba(166,180,200,0.22),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+            <CheckCircle2 className="w-10 h-10 text-[#9ACD32]" />
           </div>
           <h2 className="text-3xl font-black text-[#272727] mb-4">Check your email</h2>
-          <p className="text-slate-600 mb-8 font-medium">
+          <p className="text-[#7E5C4A] mb-8 font-medium">
             We&apos;ve sent password reset instructions to <strong>{email}</strong>
           </p>
           <button
@@ -60,7 +60,7 @@ export default function LoginPage() {
               setIsForgotPassword(false);
               setResetSent(false);
             }}
-            className="w-full py-4 bg-indigo-600 text-[#EFD09E] rounded-2xl font-bold shadow-lg shadow-indigo-600/20"
+            className="w-full py-4 bg-[#272727] text-[#EFD09E] rounded-2xl font-bold shadow-lg shadow-[#272727]/20 border border-[#EFD09E]/20 hover:bg-[#272727]/90 transition-all"
           >
             Back to Sign In
           </button>
@@ -73,7 +73,7 @@ export default function LoginPage() {
     <AuthContainer mode="login" onToggleMode={handleToggleMode}>
       <div className="w-full">
         {error && (
-          <div className="mb-6 p-4 bg-[#FFD8A8] backdrop-blur-md border border-[#7E5C4A]/20 rounded-2xl flex items-start gap-3 text-red-700 text-sm animate-shake shadow-lg">
+          <div className="mb-6 p-4 bg-red-50/80 backdrop-blur-md border border-red-200/60 rounded-2xl flex items-start gap-3 text-red-700 text-sm animate-shake shadow-[4px_4px_10px_rgba(166,180,200,0.2),-4px_-4px_10px_rgba(255,255,255,0.88)]">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <p className="font-bold">Invalid email or password. Please check and try again.</p>
           </div>
@@ -111,9 +111,9 @@ export default function LoginPage() {
         </button>
 
         <div className="relative mb-8 flex items-center gap-4">
-          <div className="flex-1 border-t-2 border-slate-100"></div>
-          <div className="text-[10px] font-black text-[#272727] uppercase tracking-[0.3em] italic">Secure Access</div>
-          <div className="flex-1 border-t-2 border-slate-100"></div>
+          <div className="flex-1 border-t-2 border-[#D4AA7D]/20"></div>
+          <div className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.3em] italic">Secure Access</div>
+          <div className="flex-1 border-t-2 border-[#D4AA7D]/20"></div>
         </div>
 
         <form 
@@ -121,14 +121,14 @@ export default function LoginPage() {
           className="space-y-5"
         >
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Terminal</label>
+            <label className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.2em] ml-1">Email Terminal</label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AA7D] group-focus-within:text-[#7E5C4A] transition-all duration-300" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3.5 bg-[#EEF2F6]/70 border border-white/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9ACD32]/15 focus:border-[#9ACD32]/50 transition-all placeholder:text-[#D4AA7D] font-bold text-[#272727] text-sm shadow-[inset_3px_3px_7px_rgba(166,180,200,0.18),inset_-3px_-3px_7px_rgba(255,255,255,0.85)]"
                 placeholder="USER@AEROPATH.SYS"
                 required
               />
@@ -138,29 +138,29 @@ export default function LoginPage() {
           {!isForgotPassword && (
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Access Key</label>
+                <label className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.2em]">Access Key</label>
                 <button
                   type="button"
                   onClick={() => setIsForgotPassword(true)}
-                  className="text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors"
+                  className="text-[10px] font-black text-[#D4AA7D] hover:text-[#7E5C4A] uppercase tracking-widest transition-colors"
                 >
                   Retrieve Key
                 </button>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AA7D] group-focus-within:text-[#7E5C4A] transition-all duration-300" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3.5 bg-[#EEF2F6]/70 border border-white/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9ACD32]/15 focus:border-[#9ACD32]/50 transition-all placeholder:text-[#D4AA7D] font-bold text-[#272727] text-sm shadow-[inset_3px_3px_7px_rgba(166,180,200,0.18),inset_-3px_-3px_7px_rgba(255,255,255,0.85)]"
                   placeholder="••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#272727] transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#D4AA7D] hover:text-[#7E5C4A] transition-colors p-1"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -174,10 +174,10 @@ export default function LoginPage() {
             className="w-full py-4.5 bg-[#272727] hover:bg-[#7E5C4A] text-[#EFD09E] rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-2 text-[11px] uppercase tracking-[0.3em]"
           >
             {loading ? (
-              <div className="w-5 h-5 border-3 border-white/30 border-t-green-400 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-3 border-white/30 border-t-[#9ACD32] rounded-full animate-spin" />
             ) : (
               <>
-                {isForgotPassword ? "Send Reset Key" : "Execute Login"} <ArrowRight className="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" />
+                {isForgotPassword ? "Send Reset Key" : "Execute Login"} <ArrowRight className="w-5 h-5 text-[#9ACD32] group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
@@ -187,7 +187,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setIsForgotPassword(false)}
-            className="w-full text-center text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors mt-6"
+            className="w-full text-center text-sm font-bold text-[#7E5C4A]/60 hover:text-[#7E5C4A] transition-colors mt-6"
           >
             Back to Sign In
           </button>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { LucideIcon } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import { LucideIcon, ArrowUpRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 
 /**
@@ -40,78 +39,85 @@ export function ProjectCard({
 
   const toneMap = {
     raisin: {
-      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      card: "bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:bg-[#272727] hover:border-[#EFD09E]/20 hover:shadow-[0_16px_40px_rgba(39,39,39,0.3)] hover:-translate-y-2 transition-all duration-300",
+      icon: "bg-[#272727] border-2 border-[#EFD09E]/40 group-hover:bg-[#EFD09E]/20",
+      iconColor: "text-[#EFD09E] group-hover:text-[#EFD09E]",
       title: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      badge:
-        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+      description: "!text-[#7E5C4A] group-hover:!text-[#EFD09E]/70",
+      badge: "!bg-[#9ACD32] !text-[#272727] !border-transparent",
+      arrow: "text-[#272727] bg-[#EFD09E]/30 group-hover:bg-[#9ACD32] group-hover:text-[#272727]",
+      divider: "border-[#EFD09E]/20",
     },
     buff: {
-      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      card: "bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:bg-[#272727] hover:border-[#D4AA7D]/30 hover:shadow-[0_16px_40px_rgba(39,39,39,0.3)] hover:-translate-y-2 transition-all duration-300",
+      icon: "bg-[#D4AA7D] border-2 border-white/50 group-hover:bg-[#D4AA7D]/80",
+      iconColor: "text-[#272727] group-hover:text-[#272727]",
       title: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      badge:
-        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+      description: "!text-[#7E5C4A] group-hover:!text-[#EFD09E]/70",
+      badge: "!bg-[#D4AA7D] !text-[#272727] !border-transparent",
+      arrow: "text-[#7E5C4A] bg-[#D4AA7D]/20 group-hover:bg-[#D4AA7D] group-hover:text-[#272727]",
+      divider: "border-[#D4AA7D]/30",
     },
     sunset: {
-      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      card: "bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:bg-[#272727] hover:border-[#9ACD32]/30 hover:shadow-[0_16px_40px_rgba(39,39,39,0.3)] hover:-translate-y-2 transition-all duration-300",
+      icon: "bg-[#9ACD32] border-2 border-white/50 group-hover:bg-[#9ACD32]",
+      iconColor: "text-[#272727] group-hover:text-[#272727]",
       title: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      badge:
-        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+      description: "!text-[#7E5C4A] group-hover:!text-[#EFD09E]/70",
+      badge: "!bg-[#9ACD32] !text-[#272727] !border-transparent",
+      arrow: "text-[#5a7a1a] bg-[#9ACD32]/20 group-hover:bg-[#9ACD32] group-hover:text-[#272727]",
+      divider: "border-[#9ACD32]/30",
     },
     creamy: {
-      card: "bg-[#EFD09E] shadow-[0_8px_24px_rgba(39,39,39,0.15)] hover:bg-[#272727] hover:shadow-[0_16px_40px_rgba(39,39,39,0.25)] border-0 hover:border-0 !border-0",
+      card: "bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:bg-[#272727] hover:border-[#9ACD32]/30 hover:shadow-[0_16px_40px_rgba(39,39,39,0.3)] hover:-translate-y-2 transition-all duration-300",
+      icon: "bg-[#9ACD32] border-2 border-white/50 group-hover:bg-[#9ACD32]",
+      iconColor: "text-[#272727] group-hover:text-[#272727]",
       title: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      description: "!text-[#272727] group-hover:!text-[#EFD09E]",
-      badge:
-        "!bg-[#9ACD32] !text-[#272727] !border-[#EFD09E]",
+      description: "!text-[#7E5C4A] group-hover:!text-[#EFD09E]/70",
+      badge: "!bg-[#9ACD32] !text-[#272727] !border-transparent",
+      arrow: "text-[#5a7a1a] bg-[#9ACD32]/20 group-hover:bg-[#9ACD32] group-hover:text-[#272727]",
+      divider: "border-[#9ACD32]/30",
     },
   };
 
   const cardTone = toneMap[tone];
 
   return (
-    <Link href={href}>
-      <GlassCard
-        hoverEffect
-        className={`h-auto py-4 px-5 group relative overflow-hidden border-0 bg-opacity-100 hover:border-0 ${cardTone.card} !border-0 !outline-none`}
-      >
-        <div className="absolute inset-0 bg-linear-to-br from-white/0 to-white/0 group-hover:from-white/8 group-hover:to-black/8 transition-all duration-500" />
+    <Link href={href} className="block h-full">
+      <div className={`group relative h-full flex flex-col rounded-2xl p-5 cursor-pointer hover:scale-[1.08] ${cardTone.card}`}>
 
-        {/* Content */}
-        <div className="relative z-10 flex items-center gap-4">
-          {/* Icon */}
-          <div
-            className={`w-16 h-16 rounded-xl bg-[#9ACD32] border-2 border-[#EFD09E] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0`}
-          >
-            <Icon className="w-10 h-10 text-[#272727]" />
+        {/* Top row: Icon + arrow */}
+        <div className="flex items-start justify-between mb-4">
+          <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-[4px_4px_10px_rgba(166,180,200,0.22),-2px_-2px_6px_rgba(255,255,255,0.9)] flex-shrink-0 transition-all duration-300 ${cardTone.icon}`}>
+            <Icon className={`w-8 h-8 ${cardTone.iconColor}`} />
           </div>
-
-          {/* Text Content */}
-          <div className="flex flex-col gap-2 flex-1 min-w-0">
-            {/* Title & Status */}
-            <div className="flex items-start justify-between gap-2">
-              <h3 className={`text-xl font-bold transition-colors ${cardTone.title}`}>
-                {title}
-              </h3>
-              {status && (
-                <StatusBadge
-                  status={statusMap[status].type}
-                  label={statusMap[status].label}
-                  showDot={false}
-                  className={cardTone.badge}
-                />
-              )}
-            </div>
-
-            {/* Description */}
-            <p className={`text-sm leading-relaxed ${cardTone.description}`}>
-              {description}
-            </p>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${cardTone.arrow}`}>
+            <ArrowUpRight className="w-4 h-4" />
           </div>
         </div>
-      </GlassCard>
+
+        {/* Title */}
+        <h3 className={`text-base font-bold leading-tight mb-1 ${cardTone.title}`}>
+          {title}
+        </h3>
+
+        {/* Description */}
+        <p className={`text-xs leading-relaxed flex-1 ${cardTone.description}`}>
+          {description}
+        </p>
+
+        {/* Bottom: Status badge */}
+        {status && (
+          <div className={`mt-3 pt-3 border-t ${cardTone.divider}`}>
+            <StatusBadge
+              status={statusMap[status].type}
+              label={statusMap[status].label}
+              showDot={status === "active"}
+              className={cardTone.badge}
+            />
+          </div>
+        )}
+      </div>
     </Link>
   );
 }

@@ -101,6 +101,40 @@ function WeatherWidget() {
     return <CloudSun className="w-14 h-14 text-yellow-500" />;
   };
 
+  const getWeatherImage = (code: string) => {
+    switch (code) {
+      case "01d":
+        return "01d Clear sky.png";
+      case "01n":
+        return "01n Clear sky (Night).png";
+      case "02d":
+        return "02d Few clouds.png";
+      case "02n":
+      case "03n":
+        return "02n _ 03n Few _ Scattered clouds (Night).png";
+      case "03d":
+        return "03d Scattered clouds.png";
+      case "04d":
+        return "04d Broken _ Overcast clouds.png";
+      case "04n":
+        return "04n_Overcast clouds (Night).png";
+      case "09d":
+      case "09n":
+        return "09d Shower rain _ Drizzle.png";
+      case "10d":
+      case "10n":
+        return "10d Rain.png";
+      case "11d":
+      case "11n":
+        return "11d Thunderstorm.png";
+      case "50d":
+      case "50n":
+        return "50d Mist _ Haze _ Fog.png";
+      default:
+        return "01d Clear sky.png";
+    }
+  };
+
   if (loading) {
     return (
       <GlassCard className="h-full p-6 flex items-center justify-center bg-[#F6EDDE]/40 border-[#D4AA7D]/15">
@@ -121,8 +155,21 @@ function WeatherWidget() {
   };
 
   return (
-    <GlassCard className="h-full p-6 flex flex-col justify-between bg-[#F6EDDE]/40 border-[#D4AA7D]/15">
-      <div className="flex justify-between items-start">
+    <GlassCard className="h-full p-6 flex flex-col justify-between relative overflow-hidden bg-[#F6EDDE]/40 border-[#D4AA7D]/15">
+      <div className="absolute top-0 right-0 w-28 h-28 bg-[#D4AA7D]/18 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none z-0" />
+
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className="relative w-[220px] h-[220px] opacity-90 drop-shadow-2xl">
+          <Image
+            src={`/icons/icon-weather/${getWeatherImage(data.icon_code)}`}
+            alt={data.description}
+            fill
+            className="object-contain"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between items-start relative z-10">
         <div>
           <h3 className="text-[#7E5C4A] text-sm font-medium uppercase tracking-wider">{data.city}</h3>
           <p className="text-xs text-[#D4AA7D] mt-1 capitalize">{data.description}</p>
@@ -130,13 +177,13 @@ function WeatherWidget() {
         <div className="-mt-1 -mr-1 opacity-80 scale-90">{getWeatherIcon(data.icon_code)}</div>
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-4xl font-bold text-[#272727]">{data.temp}°C</h2>
-        <div className="flex gap-3 mt-2 text-xs text-[#7E5C4A] font-medium">
+      <div className="mt-6 relative z-10 flex items-end justify-between gap-4">
+        <div className="flex gap-3 text-xs text-[#7E5C4A] font-medium">
           <span>H: {data.high}°</span>
           <span>L: {data.low}°</span>
           <span>Humidity: {data.humidity}%</span>
         </div>
+        <h2 className="text-4xl font-bold text-[#272727] text-right">{data.temp}°C</h2>
       </div>
     </GlassCard>
   );

@@ -37,6 +37,12 @@ import { ParallaxProvider } from "@/contexts/ParallaxContext";
 import { ParallaxElement } from "@/components/effects/ParallaxElement";
 import { FloatingElements } from "@/components/effects/FloatingElements";
 
+const CLAY_CARD_BASE =
+  "bg-[#EEF2F6]/88 border border-white/70 rounded-[1.75rem] shadow-[8px_8px_18px_rgba(166,180,200,0.34),-8px_-8px_18px_rgba(255,255,255,0.92)]";
+
+const CLAY_INSET =
+  "shadow-[inset_3px_3px_8px_rgba(166,180,200,0.25),inset_-3px_-3px_8px_rgba(255,255,255,0.92)]";
+
 // ------------------------------------------------------------------
 // 🕒 Components: World Clock
 // ------------------------------------------------------------------
@@ -51,7 +57,7 @@ function WorldClock({ city, timezone }: { city: string; timezone: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center p-2.5 bg-[#EFD09E]/30 rounded-xl backdrop-blur-sm border border-[#D4AA7D]/20 min-w-[70px]">
+    <div className={`flex flex-col items-center p-2.5 rounded-xl border border-white/65 min-w-[70px] bg-[#EEF2F6]/90 ${CLAY_INSET}`}>
       <span className="text-lg font-bold text-[#272727] font-mono">
         {mounted ? time.toLocaleTimeString("en-US", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hour12: false }) : "--:--"}
       </span>
@@ -164,7 +170,7 @@ function WeatherWidget() {
   };
 
   return (
-    <GlassCard className="h-full p-6 flex flex-col justify-between relative overflow-hidden group bg-[#F6EDDE]/40 border-[#D4AA7D]/15">
+    <GlassCard className={`h-full p-6 flex flex-col justify-between relative overflow-hidden group ${CLAY_CARD_BASE}`}>
       <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AA7D]/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none z-0" />
       
       {/* Large Centered Custom Icon */}
@@ -246,7 +252,7 @@ function OilPriceWidget() {
   }, []);
 
   return (
-    <GlassCard className="h-full flex flex-col px-6 pb-6 pt-3 relative overflow-hidden bg-[#F6EDDE]/40 backdrop-blur-md border-[#D4AA7D]/15">
+    <GlassCard className={`h-full flex flex-col px-6 pb-6 pt-3 relative overflow-hidden ${CLAY_CARD_BASE}`}>
       {/* Header */}
       <div className="flex flex-col items-center gap-1 mb-4 pb-3 border-b border-[#D4AA7D]/30 shrink-0">
         <div className="relative w-full h-16">
@@ -361,7 +367,7 @@ function CurrencyWidget() {
   }, []);
 
   return (
-    <GlassCard className="w-full h-full px-6 pb-6 pt-3 flex flex-col relative overflow-hidden bg-[#F6EDDE]/40 backdrop-blur-md border-[#D4AA7D]/15">
+    <GlassCard className={`w-full h-full px-6 pb-6 pt-3 flex flex-col relative overflow-hidden ${CLAY_CARD_BASE}`}>
       <div className="flex flex-col items-center gap-1 mb-6 pb-3 border-b border-[#D4AA7D]/30 shrink-0">
         <div className="relative w-full h-16 mb-2">
           <Image
@@ -456,7 +462,7 @@ function TimeZoneWidget() {
   }, []);
 
   return (
-    <GlassCard className="h-full p-6 flex flex-col relative overflow-hidden bg-[#F6EDDE]/40 backdrop-blur-md border-[#D4AA7D]/15">
+    <GlassCard className={`h-full p-6 flex flex-col relative overflow-hidden ${CLAY_CARD_BASE}`}>
       <div className="flex items-center gap-2 mb-6 pb-3 border-b border-[#D4AA7D]/30 shrink-0">
         <GlobeLock className="w-5 h-5 text-[#7E5C4A]" />
         <span className="text-sm font-bold tracking-wider uppercase text-[#7E5C4A]">Global Time Zones</span>
@@ -491,8 +497,8 @@ function TimeZoneWidget() {
 // ------------------------------------------------------------------
 function NewsCard({ title, date, category, image }: { title: string; date: string; category: string; image: string }) {
   return (
-    <div className="group cursor-pointer">
-      <div className="relative h-48 rounded-xl overflow-hidden mb-3">
+    <div className={`group cursor-pointer rounded-[1.5rem] p-4 border border-white/70 bg-[#EEF2F6]/88 shadow-[8px_8px_16px_rgba(166,180,200,0.3),-8px_-8px_16px_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_18px_rgba(166,180,200,0.34),-10px_-10px_18px_rgba(255,255,255,0.94)]`}>
+      <div className="relative h-48 rounded-2xl overflow-hidden mb-4 border border-white/70">
         <Image
           src={image}
           alt={title}
@@ -501,11 +507,11 @@ function NewsCard({ title, date, category, image }: { title: string; date: strin
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10" />
-        <span className="absolute top-3 left-3 bg-[#7E5C4A] text-white text-[10px] font-bold px-2 py-1 rounded-full z-20">
+        <span className="absolute top-3 left-3 bg-[#EEF2F6]/95 text-[#7E5C4A] text-[10px] font-bold px-3 py-1 rounded-full z-20 border border-white/80 shadow-[2px_2px_6px_rgba(166,180,200,0.25),-2px_-2px_6px_rgba(255,255,255,0.9)]">
           {category}
         </span>
       </div>
-      <p className="text-xs text-slate-400 mb-1">{date}</p>
+      <p className="text-xs text-[#7E5C4A]/70 mb-1">{date}</p>
       <h4 className="font-bold text-[#272727] leading-snug group-hover:text-[#7E5C4A] transition-colors">
         {title}
       </h4>
@@ -530,10 +536,10 @@ export default function PendingPage() {
 
   return (
     <ParallaxProvider>
-    <div className="min-h-screen bg-[#F6EDDE]">
+    <div className="min-h-screen bg-linear-to-br from-[#E8ECF1] via-[#F0F4F8] to-[#E7EDF3]">
       
       {/* 1. Header / Top Bar */}
-      <header className="bg-[#F6EDDE]/70 backdrop-blur-2xl border-b border-[#D4AA7D]/20 sticky top-0 z-50 shadow-sm">
+      <header className="bg-[#EEF2F6]/85 backdrop-blur-2xl border-b border-white/70 sticky top-0 z-50 shadow-[0_10px_24px_rgba(166,180,200,0.28)]">
         <div className="container-custom py-3.5 flex justify-between items-center">
           <div className="flex items-center gap-3.5">
             <Image 
@@ -563,7 +569,7 @@ export default function PendingPage() {
               }}
               onMouseEnter={() => setIsJoinHovered(true)}
               onMouseLeave={() => setIsJoinHovered(false)}
-              className="relative px-6 py-2.5 text-sm font-bold transition-all duration-300 transform active:scale-95 flex items-center justify-center min-w-[100px]"
+              className={`relative px-6 py-2.5 text-sm font-bold transition-all duration-300 flex items-center justify-center min-w-[100px] rounded-xl bg-[#EEF2F6] border border-white/70 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_rgba(166,180,200,0.3),-8px_-8px_16px_rgba(255,255,255,0.92)] active:translate-y-0 active:scale-[0.98] active:shadow-[inset_3px_3px_7px_rgba(166,180,200,0.24),inset_-3px_-3px_7px_rgba(255,255,255,0.9)] ${CLAY_INSET}`}
             >
               <motion.span 
                 animate={isJoinHovered ? { color: '#EFD09E' } : { color: ['#272727', '#EFD09E', '#272727'] }}
@@ -596,7 +602,7 @@ export default function PendingPage() {
       {/* Sticky Notification Bar */}
       {user && !loading && (
         <div className="sticky top-[57px] z-40 w-full py-3 flex justify-center">
-          <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-[#EFD09E]/40 backdrop-blur-xl border border-[#D4AA7D]/30 rounded-full shadow-lg shadow-black/5">
+          <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-[#EEF2F6]/95 backdrop-blur-xl border border-white/70 rounded-full shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)]">
             <div className="relative">
               <Clock className="w-4 h-4 text-[#7E5C4A]" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#D4AA7D] rounded-full animate-ping"></span>
@@ -661,7 +667,7 @@ export default function PendingPage() {
 
             {/* 🎯 Subtitle with Subtle Parallax (Far/Slow) */}
             <ParallaxElement depth={0.02} speed="slow">
-            <div className="inline-block bg-[#EFD09E]/30 border border-[#D4AA7D]/20 rounded-2xl px-8 py-5">
+            <div className="inline-block bg-[#EEF2F6]/90 border border-white/70 rounded-2xl px-8 py-5 shadow-[8px_8px_18px_rgba(166,180,200,0.28),-8px_-8px_18px_rgba(255,255,255,0.9)]">
               <p className="text-lg md:text-xl leading-relaxed max-w-none mx-auto text-center" style={{ fontFamily: 'var(--font-montserrat-alt)', fontWeight: 400, fontStyle: 'italic' }}>
                 <span className="block text-[#272727] animate-fade-in-up delay-150 lg:whitespace-nowrap" style={{ animationDuration: '0.4s' }}>
                   Transform your warehouse operations into a streamlined, digital powerhouse.
@@ -735,7 +741,7 @@ export default function PendingPage() {
               </h2>
               <p className="text-[#7E5C4A] mt-2 font-medium">Stay updated with the latest news from BPI AeroPath team</p>
             </div>
-            <a href="#" className="px-6 py-2.5 bg-[#7E5C4A] text-[#EFD09E] rounded-full text-sm font-bold hover:bg-[#272727] transition-colors">View All →</a>
+            <a href="#" className="px-6 py-2.5 bg-[#EEF2F6] text-[#7E5C4A] rounded-full text-sm font-bold border border-white/80 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.92)] hover:-translate-y-0.5 hover:text-[#272727] transition-all active:translate-y-0 active:shadow-[inset_3px_3px_6px_rgba(166,180,200,0.25),inset_-3px_-3px_6px_rgba(255,255,255,0.9)]">View All →</a>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -783,7 +789,7 @@ export default function PendingPage() {
           {/* Benefits Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
             <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AA7D]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-20 bg-[#F6D9E1] rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.26),-6px_-6px_14px_rgba(255,255,255,0.9)]">
                 <Warehouse className="w-10 h-10 text-[#9ACD32]" />
               </div>
               <h3 className="text-xl font-bold text-[#272727] mb-3">Total Visibility</h3>
@@ -792,7 +798,7 @@ export default function PendingPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AA7D]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-20 bg-[#DCE8F7] rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.26),-6px_-6px_14px_rgba(255,255,255,0.9)]">
                 <ShieldCheck className="w-10 h-10 text-[#9ACD32]" />
               </div>
               <h3 className="text-xl font-bold text-[#272727] mb-3">Enterprise Security</h3>
@@ -801,7 +807,7 @@ export default function PendingPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-[#D4AA7D]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-20 bg-[#F8EAC8] rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.26),-6px_-6px_14px_rgba(255,255,255,0.9)]">
                 <Truck className="w-10 h-10 text-[#9ACD32]" />
               </div>
               <h3 className="text-xl font-bold text-[#272727] mb-3">Operational Redundancy</h3>
@@ -812,43 +818,43 @@ export default function PendingPage() {
           </div>
 
           {/* Tech Stack Infographic */}
-          <GlassCard className="p-10 md:p-16 relative overflow-hidden bg-linear-to-br from-[#272727] to-[#1a1a1a] text-white border-0">
+          <GlassCard className={`${CLAY_CARD_BASE} p-10 md:p-16 relative overflow-hidden`}>
              {/* Background Mesh */}
-             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-[#D4AA7D] via-[#272727] to-black"></div>
+             <div className="absolute inset-0 opacity-60 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-[#F6D9E1]/70 via-[#EEF2F6]/60 to-[#DCE8F7]/70"></div>
              
              <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
                 <div className="flex-1 space-y-6">
-                  <div className="inline-block px-4 py-1.5 rounded-full bg-[#9ACD32]/15 border border-[#9ACD32]/30 text-[#9ACD32] text-sm font-medium">
+                  <div className="inline-block px-4 py-1.5 rounded-full bg-[#EEF2F6] border border-white/80 text-[#7E5C4A] text-sm font-medium shadow-[4px_4px_10px_rgba(166,180,200,0.24),-4px_-4px_10px_rgba(255,255,255,0.9)]">
                     POWERED BY ANTIGRAVITY
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-bold leading-tight">
-                    Modern Architecture for <br/> <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D4AA7D] to-[#EFD09E]">Maximum Performance</span>
+                  <h2 className="text-3xl md:text-5xl font-bold leading-tight text-[#272727]">
+                    Modern Architecture for <br/> <span className="text-transparent bg-clip-text bg-linear-to-r from-[#7E5C4A] to-[#9ACD32]">Maximum Performance</span>
                   </h2>
-                  <p className="text-[#D4AA7D] text-lg leading-relaxed max-w-xl">
+                  <p className="text-[#7E5C4A] text-lg leading-relaxed max-w-xl">
                     Leveraging the latest in web technology to deliver a lightning-fast, secure, and scalable experience.
                   </p>
                 </div>
                 
                 <div className="flex-1 grid grid-cols-2 gap-4 w-full md:w-auto">
-                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                      <Server className="w-8 h-8 text-white mb-4" />
-                      <h4 className="font-bold text-lg mb-1">Next.js 14</h4>
-                      <p className="text-sm text-slate-400">Server-side rendering for ultimate speed and SEO.</p>
+                    <div className="p-6 rounded-2xl bg-[#EEF2F6]/95 border border-white/80 shadow-[5px_5px_12px_rgba(166,180,200,0.24),-5px_-5px_12px_rgba(255,255,255,0.92)] transition-all duration-300 hover:-translate-y-0.5">
+                      <Server className="w-8 h-8 text-[#7E5C4A] mb-4" />
+                      <h4 className="font-bold text-lg mb-1 text-[#272727]">Next.js 14</h4>
+                      <p className="text-sm text-[#7E5C4A]">Server-side rendering for ultimate speed and SEO.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                      <Lock className="w-8 h-8 text-white mb-4" />
-                      <h4 className="font-bold text-lg mb-1">Firebase Auth</h4>
-                      <p className="text-sm text-slate-400">Secure identity management with Google integration.</p>
+                    <div className="p-6 rounded-2xl bg-[#EEF2F6]/95 border border-white/80 shadow-[5px_5px_12px_rgba(166,180,200,0.24),-5px_-5px_12px_rgba(255,255,255,0.92)] transition-all duration-300 hover:-translate-y-0.5">
+                      <Lock className="w-8 h-8 text-[#7E5C4A] mb-4" />
+                      <h4 className="font-bold text-lg mb-1 text-[#272727]">Firebase Auth</h4>
+                      <p className="text-sm text-[#7E5C4A]">Secure identity management with Google integration.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                      <Database className="w-8 h-8 text-white mb-4" />
-                      <h4 className="font-bold text-lg mb-1">Firestore</h4>
-                      <p className="text-sm text-slate-400">Real-time NoSQL database for instant data sync.</p>
+                    <div className="p-6 rounded-2xl bg-[#EEF2F6]/95 border border-white/80 shadow-[5px_5px_12px_rgba(166,180,200,0.24),-5px_-5px_12px_rgba(255,255,255,0.92)] transition-all duration-300 hover:-translate-y-0.5">
+                      <Database className="w-8 h-8 text-[#7E5C4A] mb-4" />
+                      <h4 className="font-bold text-lg mb-1 text-[#272727]">Firestore</h4>
+                      <p className="text-sm text-[#7E5C4A]">Real-time NoSQL database for instant data sync.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white/5 border border-[#9ACD32]/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                      <FileText className="w-8 h-8 text-white mb-4" />
-                      <h4 className="font-bold text-lg mb-1">Cloud Storage</h4>
-                      <p className="text-sm text-slate-400">Enterprise-grade storage for documents and assets.</p>
+                    <div className="p-6 rounded-2xl bg-[#EEF2F6]/95 border border-white/80 shadow-[5px_5px_12px_rgba(166,180,200,0.24),-5px_-5px_12px_rgba(255,255,255,0.92)] transition-all duration-300 hover:-translate-y-0.5">
+                      <FileText className="w-8 h-8 text-[#7E5C4A] mb-4" />
+                      <h4 className="font-bold text-lg mb-1 text-[#272727]">Cloud Storage</h4>
+                      <p className="text-sm text-[#7E5C4A]">Enterprise-grade storage for documents and assets.</p>
                     </div>
                 </div>
              </div>
@@ -858,7 +864,7 @@ export default function PendingPage() {
       </section>
 
       {/* 5. Problem & Solution Section */}
-      <section className="mx-auto max-w-7xl px-6 py-24 bg-[#F6EDDE]/50 backdrop-blur-sm rounded-3xl my-10 border border-[#D4AA7D]/30 relative z-2">
+      <section className="mx-auto max-w-7xl px-6 py-24 bg-[#EEF2F6]/88 rounded-[2rem] my-10 border border-white/75 shadow-[10px_10px_22px_rgba(166,180,200,0.3),-10px_-10px_22px_rgba(255,255,255,0.92)] relative z-2">
         <h2 className="text-3xl font-bold mb-4 text-center text-[#272727]">
           Common Challenges in Warehouse Operations
         </h2>
@@ -867,9 +873,9 @@ export default function PendingPage() {
         </p>
         
         <div className="grid gap-10 md:grid-cols-2">
-          <GlassCard className="p-8 hover:shadow-lg transition-all border-[#D4AA7D]/20 bg-[#F6EDDE]/60">
+          <GlassCard className={`${CLAY_CARD_BASE} p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[12px_12px_22px_rgba(166,180,200,0.32),-12px_-12px_22px_rgba(255,255,255,0.94)]`}>
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-[#D4AA7D]/30 rounded-lg">
+              <div className="p-3 bg-[#F8D7DF] rounded-xl border border-white/80 shadow-[5px_5px_10px_rgba(166,180,200,0.24),-5px_-5px_10px_rgba(255,255,255,0.9)]">
                  <AlertCircle size={24} className="text-[#9ACD32]" />
               </div>
               <div>
@@ -881,16 +887,16 @@ export default function PendingPage() {
               </div>
             </div>
             <div className="mt-8 pt-6 border-t border-[#9ACD32]/20">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/30 rounded-xl">
+              <div className={`inline-flex items-center gap-2 px-4 py-2 bg-[#EEF2F6] rounded-xl border border-white/80 ${CLAY_INSET}`}>
                 <CheckCircle2 size={20} className="text-[#7E5C4A]" />
                 <span className="font-bold text-[#7E5C4A]">Real-time Digital Workflow</span>
               </div>
             </div>
           </GlassCard>
 
-          <GlassCard className="p-8 hover:shadow-lg transition-all border-[#D4AA7D]/20 bg-[#F6EDDE]/60">
+          <GlassCard className={`${CLAY_CARD_BASE} p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[12px_12px_22px_rgba(166,180,200,0.32),-12px_-12px_22px_rgba(255,255,255,0.94)]`}>
              <div className="flex items-start gap-4">
-              <div className="p-3 bg-[#D4AA7D]/30 rounded-lg">
+              <div className="p-3 bg-[#DCE8F7] rounded-xl border border-white/80 shadow-[5px_5px_10px_rgba(166,180,200,0.24),-5px_-5px_10px_rgba(255,255,255,0.9)]">
                  <AlertCircle size={24} className="text-[#9ACD32]" />
               </div>
               <div>
@@ -902,7 +908,7 @@ export default function PendingPage() {
               </div>
             </div>
             <div className="mt-8 pt-6 border-t border-[#9ACD32]/20">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/30 rounded-xl">
+              <div className={`inline-flex items-center gap-2 px-4 py-2 bg-[#EEF2F6] rounded-xl border border-white/80 ${CLAY_INSET}`}>
                 <CheckCircle2 size={20} className="text-[#7E5C4A]" />
                 <span className="font-bold text-[#7E5C4A]">Instant Live Dashboard</span>
               </div>
@@ -918,8 +924,8 @@ export default function PendingPage() {
         </h2>
         <div className="grid gap-8 md:grid-cols-3">
           
-          <GlassCard className="md:col-span-2 p-10 flex flex-col items-center text-center bg-[#F6EDDE]/70 hover:scale-[1.02] transition-transform duration-300 border-[#D4AA7D]/20">
-            <div className="px-6 py-3 bg-[#EFD09E]/40 rounded-xl mb-4">
+          <GlassCard className={`${CLAY_CARD_BASE} md:col-span-2 p-10 flex flex-col items-center text-center hover:scale-[1.02] transition-transform duration-300`}>
+            <div className={`px-6 py-3 bg-[#EEF2F6] rounded-xl mb-4 border border-white/80 ${CLAY_INSET}`}>
               <span className="text-5xl font-black text-[#272727] tracking-tight">-80%</span>
             </div>
             <h3 className="text-xl font-bold text-[#272727] mb-3">Infrastructure Cost</h3>
@@ -928,8 +934,8 @@ export default function PendingPage() {
             </p>
           </GlassCard>
 
-          <GlassCard className="p-10 flex flex-col items-center text-center bg-[#F6EDDE]/70 hover:scale-[1.02] transition-transform duration-300 border-[#D4AA7D]/20">
-            <div className="px-6 py-3 bg-[#EFD09E]/40 rounded-xl mb-4">
+          <GlassCard className={`${CLAY_CARD_BASE} p-10 flex flex-col items-center text-center hover:scale-[1.02] transition-transform duration-300`}>
+            <div className={`px-6 py-3 bg-[#EEF2F6] rounded-xl mb-4 border border-white/80 ${CLAY_INSET}`}>
               <span className="text-5xl font-black text-[#272727] tracking-tight">+30%</span>
             </div>
             <h3 className="text-xl font-bold text-[#272727] mb-3">Operational Efficiency</h3>
@@ -938,8 +944,8 @@ export default function PendingPage() {
             </p>
           </GlassCard>
 
-          <GlassCard className="md:col-span-1 p-10 flex flex-col items-center text-center bg-[#F6EDDE]/70 hover:scale-[1.02] transition-transform duration-300 border-[#D4AA7D]/20">
-            <div className="px-6 py-3 bg-[#EFD09E]/40 rounded-xl mb-4">
+          <GlassCard className={`${CLAY_CARD_BASE} md:col-span-1 p-10 flex flex-col items-center text-center hover:scale-[1.02] transition-transform duration-300`}>
+            <div className={`px-6 py-3 bg-[#EEF2F6] rounded-xl mb-4 border border-white/80 ${CLAY_INSET}`}>
               <span className="text-5xl font-black text-[#272727] tracking-tight">1-4</span>
             </div>
             <h3 className="text-xl font-bold text-[#272727] mb-3">Weeks to Value</h3>
@@ -998,8 +1004,8 @@ export default function PendingPage() {
               desc: 'Live Dashboard & automated alerts for precise, data-driven decisions.'
             }
           ].map((item, index) => (
-            <GlassCard key={index} className="p-8 flex flex-col items-center hover:border-[#7E5C4A] transition-colors group bg-[#F6EDDE]/70 border-[#D4AA7D]/20">
-              <div className="mb-6 p-4 rounded-full bg-[#D4AA7D] text-[#9ACD32] group-hover:bg-[#272727] transition-colors">
+            <GlassCard key={index} className={`${CLAY_CARD_BASE} p-8 flex flex-col items-center transition-all duration-300 group hover:-translate-y-1`}>
+              <div className="mb-6 p-4 rounded-[1rem] bg-[#EEF2F6] text-[#7E5C4A] border border-white/80 shadow-[6px_6px_12px_rgba(166,180,200,0.25),-6px_-6px_12px_rgba(255,255,255,0.9)] group-hover:text-[#9ACD32] group-hover:bg-[#272727] transition-colors">
                 <item.icon size={32} />
               </div>
               <p className="text-4xl font-black text-[#D4AA7D] group-hover:text-[#7E5C4A] transition-colors mb-2">{item.step}</p>
@@ -1011,7 +1017,7 @@ export default function PendingPage() {
       </section>
 
       {/* 7. Security Layers Section */}
-      <section className="py-24 bg-[#F6EDDE]/50 backdrop-blur-sm border-y border-[#D4AA7D]/20 relative z-2">
+      <section className="py-24 bg-[#EEF2F6]/70 backdrop-blur-sm border-y border-white/70 relative z-2">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold mb-16 text-center text-[#272727]">
             Enterprise-Grade Architecture & Security
@@ -1039,8 +1045,8 @@ export default function PendingPage() {
                 desc: "Vercel Edge Network · HTTPS · DDoS Protection"
               }
             ].map((item, index) => (
-               <div key={index} className="rounded-2xl bg-white p-8 shadow-sm hover:shadow-lg transition-all border border-[#D4AA7D]/15">
-                  <div className="mb-4 bg-[#D4AA7D]/30 w-fit p-3 rounded-xl">
+               <div key={index} className="rounded-2xl bg-[#EEF2F6]/95 p-8 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:-translate-y-1 transition-all">
+                  <div className="mb-4 bg-[#EEF2F6] w-fit p-3 rounded-xl border border-white/85 shadow-[inset_3px_3px_7px_rgba(166,180,200,0.2),inset_-3px_-3px_7px_rgba(255,255,255,0.88)]">
                       <item.icon size={24} className="text-[#9ACD32]" />
                   </div>
                   <h4 className="font-bold mb-2 text-lg text-[#272727]">{item.title}</h4>
@@ -1052,11 +1058,11 @@ export default function PendingPage() {
       </section>
 
       {/* 8. Custom Footer */}
-      <footer className="bg-[#272727] text-[#D4AA7D] py-12 border-t border-[#7E5C4A]/30 relative z-2">
+      <footer className="bg-[#EEF2F6] text-[#7E5C4A] py-12 border-t border-white/75 relative z-2 shadow-[0_-8px_20px_rgba(166,180,200,0.2)]">
         <div className="container-custom text-center">
           <div className="flex justify-center items-center gap-3 mb-8">
             <Image src="/icons/Logo no bg.png" alt="BPI AeroPath" width={50} height={50} className="opacity-80 grayscale hover:grayscale-0 transition-all" />
-            <span className="text-2xl font-bold text-[#EFD09E] tracking-tight">BPI AeroPath</span>
+            <span className="text-2xl font-bold text-[#272727] tracking-tight">BPI AeroPath</span>
           </div>
           
           <div className="max-w-2xl mx-auto mb-10">
@@ -1064,16 +1070,16 @@ export default function PendingPage() {
                Centralized Work Hub for Warehouse & Logistics Management. <br/>
                Empowering teams with real-time data and seamless collaboration tools.
              </p>
-             <div className="flex justify-center gap-6 text-2xl opacity-50">
+             <div className="flex justify-center gap-6 text-2xl opacity-60">
                {/* Tech Logos (Text representation for now) */}
-               <span className="hover:opacity-100 transition-opacity hover:text-white cursor-help" title="Next.js">⚛️</span>
+               <span className="hover:opacity-100 transition-opacity hover:text-[#272727] cursor-help" title="Next.js">⚛️</span>
                <span className="hover:opacity-100 transition-opacity hover:text-orange-400 cursor-help" title="Firebase">🔥</span>
                <span className="hover:opacity-100 transition-opacity hover:text-cyan-400 cursor-help" title="Tailwind CSS">🎨</span>
                <span className="hover:opacity-100 transition-opacity hover:text-blue-400 cursor-help" title="TypeScript">TS</span>
              </div>
           </div>
 
-          <div className="border-t border-[#7E5C4A]/30 pt-8 flex flex-col md:flex-row justify-between items-center text-xs">
+          <div className="border-t border-white/75 pt-8 flex flex-col md:flex-row justify-between items-center text-xs">
             <p>© {new Date().getFullYear()} BPI AeroPath. All rights reserved.</p>
             <p className="mt-2 md:mt-0">
               Created by <span className="text-[#9ACD32] font-bold">Antigravity</span>

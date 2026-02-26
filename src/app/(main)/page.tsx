@@ -13,6 +13,9 @@ import {
   ArrowRight,
   ArrowDown,
   Boxes,
+  Zap,
+  FlaskConical,
+  Clock,
 } from "lucide-react";
 import Image from "next/image";
 import * as motion from "motion/react-client";
@@ -213,46 +216,46 @@ export default function Home() {
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Feature 1: Visibility */}
-            <GlassCard hoverEffect className="flex flex-col gap-4 border-[#7E5C4A]/28 bg-[#F6EDDE]/80">
+            <div className="flex flex-col gap-4 rounded-2xl p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:shadow-[8px_8px_20px_rgba(166,180,200,0.34),-8px_-8px_20px_rgba(255,255,255,0.95)] hover:-translate-y-1.5 transition-all duration-300 hover:bg-[#272727] group">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] flex items-center justify-center shadow-[0_10px_20px_rgba(39,39,39,0.16)] flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] border-2 border-white/50 flex items-center justify-center shadow-[4px_4px_10px_rgba(166,180,200,0.22),-2px_-2px_6px_rgba(255,255,255,0.9)] flex-shrink-0">
                   <Eye className="w-7 h-7 text-[#272727]" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#272727]">Visibility</h3>
+                <h3 className="text-2xl font-bold text-[#272727] group-hover:text-[#EFD09E] transition-colors">Visibility</h3>
               </div>
-              <p className="text-[#7E5C4A] leading-relaxed">
+              <p className="text-[#7E5C4A] leading-relaxed group-hover:text-[#EFD09E]/70 transition-colors">
                 See all work movements in real-time. Track inventory, orders,
                 and deliveries from a single dashboard.
               </p>
-            </GlassCard>
+            </div>
 
             {/* Feature 2: Tracking */}
-            <GlassCard hoverEffect className="flex flex-col gap-4 border-[#7E5C4A]/28 bg-[#F6EDDE]/80">
+            <div className="flex flex-col gap-4 rounded-2xl p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:shadow-[8px_8px_20px_rgba(166,180,200,0.34),-8px_-8px_20px_rgba(255,255,255,0.95)] hover:-translate-y-1.5 transition-all duration-300 hover:bg-[#272727] group">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] flex items-center justify-center shadow-[0_10px_20px_rgba(39,39,39,0.16)] flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] border-2 border-white/50 flex items-center justify-center shadow-[4px_4px_10px_rgba(166,180,200,0.22),-2px_-2px_6px_rgba(255,255,255,0.9)] flex-shrink-0">
                   <Target className="w-7 h-7 text-[#272727]" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#272727]">Tracking</h3>
+                <h3 className="text-2xl font-bold text-[#272727] group-hover:text-[#EFD09E] transition-colors">Tracking</h3>
               </div>
-              <p className="text-[#7E5C4A] leading-relaxed">
+              <p className="text-[#7E5C4A] leading-relaxed group-hover:text-[#EFD09E]/70 transition-colors">
                 Monitor issues and progress across all departments. Get instant
                 alerts and detailed reports.
               </p>
-            </GlassCard>
+            </div>
 
             {/* Feature 3: Redundancy */}
-            <GlassCard hoverEffect className="flex flex-col gap-4 border-[#7E5C4A]/28 bg-[#F6EDDE]/80">
+            <div className="flex flex-col gap-4 rounded-2xl p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)] hover:shadow-[8px_8px_20px_rgba(166,180,200,0.34),-8px_-8px_20px_rgba(255,255,255,0.95)] hover:-translate-y-1.5 transition-all duration-300 hover:bg-[#272727] group">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] flex items-center justify-center shadow-[0_10px_20px_rgba(39,39,39,0.16)] flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl bg-[#9ACD32] border-2 border-white/50 flex items-center justify-center shadow-[4px_4px_10px_rgba(166,180,200,0.22),-2px_-2px_6px_rgba(255,255,255,0.9)] flex-shrink-0">
                   <Shield className="w-7 h-7 text-[#272727]" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#272727]">Redundancy</h3>
+                <h3 className="text-2xl font-bold text-[#272727] group-hover:text-[#EFD09E] transition-colors">Redundancy</h3>
               </div>
-              <p className="text-[#7E5C4A] leading-relaxed">
+              <p className="text-[#7E5C4A] leading-relaxed group-hover:text-[#EFD09E]/70 transition-colors">
                 Team members can seamlessly cover for each other. No single
                 point of failure in your operations.
               </p>
-            </GlassCard>
+            </div>
           </div>
         </div>
       </section>
@@ -260,77 +263,116 @@ export default function Home() {
       {/* Projects Section */}
       <section id="modules" className="py-16 md:py-24">
         <div className="container-custom">
-          <div className="text-center mb-10">
+          <div className="text-center mb-14">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              <span className="text-[#272727]">
-                Explore Our Modules
-              </span>
+              <span className="text-[#272727]">Explore Our Modules</span>
             </h2>
             <p className="text-[#7E5C4A] text-base md:text-lg max-w-2xl mx-auto">
-              Everything you need to manage your warehouse and logistics
-              operations
+              Everything you need to manage your warehouse and logistics operations
             </p>
           </div>
 
-          {/* Projects Stack Deck */}
-          <div className="relative mx-auto flex max-w-6xl flex-col pt-2 pb-6">
-            {modules.map((module, index) => (
-              <motion.div
-                key={module.href}
-                initial={{
-                  opacity: 0,
-                  y: 120,
-                  x: index % 2 === 0 ? -80 : 80,
-                  scale: 0.86,
-                  rotate: index % 2 === 0 ? -7 : 7,
-                  filter: "blur(12px)",
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                  x: 0,
-                  scale: 1,
-                  rotate: index % 2 === 0 ? -0.7 : 0.7,
-                  filter: "blur(0px)",
-                }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 290,
-                  damping: 16,
-                  mass: 0.68,
-                  delay: index * 0.06,
-                }}
-                whileHover={{
-                  scale: 1.08,
-                  y: -30,
-                  x: index % 2 === 0 ? 120 : -120,
-                  rotate: 0,
-                  zIndex: 220,
-                  boxShadow: "0 42px 70px rgba(39, 39, 39, 0.34)",
-                  borderRadius: "2rem",
-                }}
-                whileTap={{ scale: 0.94, rotate: 0 }}
-                className="transform-gpu will-change-transform rounded-[2rem]"
-                style={{
-                  zIndex: modules.length - index,
-                  marginTop: index === 0 ? 0 : -10,
-                  alignSelf: index % 2 === 0 ? "flex-start" : "flex-end",
-                  width: index % 2 === 0 ? "min(94%, 980px)" : "min(90%, 940px)",
-                  borderRadius: "2rem",
-                }}
-              >
-                <ProjectCard
-                  title={module.title}
-                  description={module.description}
-                  icon={module.icon}
-                  href={module.href}
-                  status={module.status}
-                  iconColor={module.iconColor}
-                  tone={module.tone}
-                />
-              </motion.div>
-            ))}
+          <div className="space-y-14 max-w-6xl mx-auto">
+
+            {/* Group: Active */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#9ACD32]/15 border border-[#9ACD32]/30">
+                  <Zap className="w-3.5 h-3.5 text-[#5a7a1a]" />
+                  <span className="text-xs font-semibold text-[#5a7a1a] uppercase tracking-widest">Active</span>
+                </div>
+                <div className="flex-1 h-px bg-[#9ACD32]/20" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {modules.filter(m => m.status === "active").map((module, i) => (
+                  <motion.div
+                    key={module.href}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22, delay: i * 0.07 }}
+                    className="h-full"
+                  >
+                    <ProjectCard
+                      title={module.title}
+                      description={module.description}
+                      icon={module.icon}
+                      href={module.href}
+                      status={module.status}
+                      iconColor={module.iconColor}
+                      tone={module.tone}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Group: Beta */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#D4AA7D]/15 border border-[#D4AA7D]/30">
+                  <FlaskConical className="w-3.5 h-3.5 text-[#7E5C4A]" />
+                  <span className="text-xs font-semibold text-[#7E5C4A] uppercase tracking-widest">Beta</span>
+                </div>
+                <div className="flex-1 h-px bg-[#D4AA7D]/20" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {modules.filter(m => m.status === "beta").map((module, i) => (
+                  <motion.div
+                    key={module.href}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22, delay: i * 0.07 }}
+                    className="h-full"
+                  >
+                    <ProjectCard
+                      title={module.title}
+                      description={module.description}
+                      icon={module.icon}
+                      href={module.href}
+                      status={module.status}
+                      iconColor={module.iconColor}
+                      tone={module.tone}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Group: Coming Soon */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EFD09E]/30 border border-[#EFD09E]/50">
+                  <Clock className="w-3.5 h-3.5 text-[#7E5C4A]" />
+                  <span className="text-xs font-semibold text-[#7E5C4A] uppercase tracking-widest">Coming Soon</span>
+                </div>
+                <div className="flex-1 h-px bg-[#EFD09E]/40" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {modules.filter(m => m.status === "coming-soon").map((module, i) => (
+                  <motion.div
+                    key={module.href}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22, delay: i * 0.07 }}
+                    className="h-full opacity-75"
+                  >
+                    <ProjectCard
+                      title={module.title}
+                      description={module.description}
+                      icon={module.icon}
+                      href={module.href}
+                      status={module.status}
+                      iconColor={module.iconColor}
+                      tone={module.tone}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

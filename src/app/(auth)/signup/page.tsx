@@ -48,7 +48,7 @@ export default function SignupPage() {
     <AuthContainer mode="signup" onToggleMode={handleToggleMode}>
       <div className="w-full">
         {error && (
-          <div className="mb-6 p-4 bg-[#FFD8A8] backdrop-blur-md border border-[#7E5C4A]/20 rounded-2xl flex items-start gap-3 text-red-700 text-sm animate-shake shadow-lg">
+          <div className="mb-6 p-4 bg-red-50/80 backdrop-blur-md border border-red-200/60 rounded-2xl flex items-start gap-3 text-red-700 text-sm animate-shake shadow-[4px_4px_10px_rgba(166,180,200,0.2),-4px_-4px_10px_rgba(255,255,255,0.88)]">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <p className="font-bold">{error.message}</p>
           </div>
@@ -86,9 +86,9 @@ export default function SignupPage() {
         </button>
 
         <div className="relative mb-8 flex items-center gap-4">
-          <div className="flex-1 border-t-2 border-slate-100"></div>
-          <div className="text-[10px] font-black text-[#272727] uppercase tracking-[0.3em] italic">New Terminal</div>
-          <div className="flex-1 border-t-2 border-slate-100"></div>
+          <div className="flex-1 border-t-2 border-[#D4AA7D]/20"></div>
+          <div className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.3em] italic">New Terminal</div>
+          <div className="flex-1 border-t-2 border-[#D4AA7D]/20"></div>
         </div>
 
         <form 
@@ -96,14 +96,14 @@ export default function SignupPage() {
           className="space-y-4"
         >
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Identity Name</label>
+            <label className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.2em] ml-1">Identity Name</label>
             <div className="relative group">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AA7D] group-focus-within:text-[#7E5C4A] transition-all duration-300" />
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-[#EEF2F6]/70 border border-white/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9ACD32]/15 focus:border-[#9ACD32]/50 transition-all placeholder:text-[#D4AA7D] font-bold text-[#272727] text-sm shadow-[inset_3px_3px_7px_rgba(166,180,200,0.18),inset_-3px_-3px_7px_rgba(255,255,255,0.85)]"
                 placeholder="JOHN DOE"
                 required
               />
@@ -111,14 +111,14 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Terminal</label>
+            <label className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.2em] ml-1">Email Terminal</label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AA7D] group-focus-within:text-[#7E5C4A] transition-all duration-300" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-[#EEF2F6]/70 border border-white/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9ACD32]/15 focus:border-[#9ACD32]/50 transition-all placeholder:text-[#D4AA7D] font-bold text-[#272727] text-sm shadow-[inset_3px_3px_7px_rgba(166,180,200,0.18),inset_-3px_-3px_7px_rgba(255,255,255,0.85)]"
                 placeholder="USER@AEROPATH.SYS"
                 required
               />
@@ -127,14 +127,14 @@ export default function SignupPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Access Key</label>
+              <label className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.2em] ml-1">Access Key</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AA7D] group-focus-within:text-[#7E5C4A] transition-all duration-300" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3 bg-[#EEF2F6]/70 border border-white/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9ACD32]/15 focus:border-[#9ACD32]/50 transition-all placeholder:text-[#D4AA7D] font-bold text-[#272727] text-sm shadow-[inset_3px_3px_7px_rgba(166,180,200,0.18),inset_-3px_-3px_7px_rgba(255,255,255,0.85)]"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -142,7 +142,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#272727] transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#D4AA7D] hover:text-[#7E5C4A] transition-colors p-1"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -150,14 +150,14 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Confirm</label>
+              <label className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-[0.2em] ml-1">Confirm</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-green-400 transition-all duration-300" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AA7D] group-focus-within:text-[#7E5C4A] transition-all duration-300" />
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-[#f6edde] border-2 border-slate-100 rounded-2xl focus:border-[#272727] outline-none transition-all placeholder:text-slate-500 font-bold text-slate-800 text-sm"
+                  className="w-full pl-12 pr-12 py-3 bg-[#EEF2F6]/70 border border-white/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9ACD32]/15 focus:border-[#9ACD32]/50 transition-all placeholder:text-[#D4AA7D] font-bold text-[#272727] text-sm shadow-[inset_3px_3px_7px_rgba(166,180,200,0.18),inset_-3px_-3px_7px_rgba(255,255,255,0.85)]"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -165,7 +165,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#272727] transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#D4AA7D] hover:text-[#7E5C4A] transition-colors p-1"
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -179,10 +179,10 @@ export default function SignupPage() {
             className="w-full py-4.5 bg-[#272727] hover:bg-[#7E5C4A] text-[#EFD09E] rounded-2xl font-black transition-all shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] mt-4 text-[11px] uppercase tracking-[0.3em]"
           >
             {loading ? (
-              <div className="w-5 h-5 border-3 border-[#EFD09E]/30 border-t-green-400 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-3 border-[#EFD09E]/30 border-t-[#9ACD32] rounded-full animate-spin" />
             ) : (
               <>
-                Initialize Account <ArrowRight className="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" />
+                Initialize Account <ArrowRight className="w-5 h-5 text-[#9ACD32] group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
