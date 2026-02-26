@@ -187,10 +187,10 @@ export default function PackagingCustomersPage() {
                 </button>
             </div>
 
-            <div className="bg-[#EFD09E]/60 border border-[#D4AA7D]/35 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-transparent border border-[#D4AA7D]/35 rounded-2xl overflow-hidden shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)]">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-[#D4AA7D] border-b border-[#7E5C4A]/25 text-xs font-bold text-[#272727] uppercase">
+                        <thead className="bg-[#D4AA7D] border-b border-[#7E5C4A]/25 text-xs font-black text-[#272727] uppercase tracking-wider">
                             <tr>
                                 <th className="px-6 py-4">Package Name / Outer</th>
                                 <th className="px-6 py-4">Category</th>
@@ -200,32 +200,32 @@ export default function PackagingCustomersPage() {
                                 <th className="px-6 py-4">Assigned Customers</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#D4AA7D]/35 bg-[#EFD09E]">
+                        <tbody className="divide-y divide-[#D4AA7D]/35 bg-transparent">
                             {packages.map((pkg, idx) => {
                                 const mappedCustomers = getMappedCustomers(pkg.types);
                                 return (
                                     <tr 
                                         key={idx} 
                                         onClick={() => openPackageModal(pkg)}
-                                        className="hover:bg-[#F6EDDE] transition-colors group cursor-pointer"
+                                        className="hover:bg-[#272727] transition-colors group cursor-pointer"
                                     >
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-[#272727]">{pkg.name}</div>
-                                            <div className="text-xs text-[#7E5C4A] font-mono">
+                                            <div className="font-bold text-[#272727] group-hover:text-[#EFD09E]">{pkg.name}</div>
+                                            <div className="text-xs text-[#7E5C4A] font-mono group-hover:text-[#EFD09E]/70">
                                                 Outer: {pkg.outer.w}x{pkg.outer.l}x{pkg.outer.h} cm
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wide ${
-                                                pkg.category === 'Pallet' ? 'bg-[#D4AA7D]/35 text-[#7E5C4A]' : 'bg-[#EEF2F6] text-[#7E5C4A]'
+                                                pkg.category === 'Pallet' ? 'bg-[#D4AA7D]/35 text-[#7E5C4A] group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]' : 'bg-[#EEF2F6] text-[#7E5C4A] group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]'
                                             }`}>
                                                 {pkg.category}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-mono text-xs text-[#5a7a1a] font-bold">
+                                        <td className="px-6 py-4 font-mono text-xs text-[#5a7a1a] font-bold group-hover:text-[#9ACD32]">
                                             {pkg.inner.w}x{pkg.inner.l}x{pkg.inner.h} <span className="text-[#9ACD32]">cm</span>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-mono text-[#5a7a1a] font-bold">
+                                        <td className="px-6 py-4 text-right font-mono text-[#5a7a1a] font-bold group-hover:text-[#9ACD32]">
                                             {pkg.m3}
                                         </td>
                                         <td className="px-6 py-4">
@@ -292,17 +292,17 @@ export default function PackagingCustomersPage() {
 
                   <div className="flex-1 overflow-y-auto p-0">
                       <table className="w-full text-sm text-left">
-                          <thead className="bg-[#D4AA7D] text-xs font-bold text-[#272727] uppercase sticky top-0">
+                          <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider sticky top-0">
                               <tr>
                                   <th className="px-6 py-3">Code</th>
                                   <th className="px-6 py-3 text-center">Region Type</th>
                                   <th className="px-6 py-3 text-right">Action</th>
                               </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#D4AA7D]/30">
+                          <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
                                {customers.map((c) => (
-                                   <tr key={c.code} className="hover:bg-[#EFD09E]/35">
-                                       <td className="px-6 py-3 font-bold text-[#272727]">{c.code}</td>
+                                   <tr key={c.code} className="hover:bg-[#272727] group transition-colors cursor-pointer">
+                                       <td className="px-6 py-3 font-bold text-[#272727] group-hover:text-[#EFD09E]">{c.code}</td>
                                        <td className="px-6 py-3 text-center">
                                             <span className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold ${
                                                 c.type === 'A' ? 'bg-[#9ACD32]/20 text-[#5a7a1a]' :

@@ -243,29 +243,29 @@ export default function InventoryPage() {
                         <h4 className="text-sm font-semibold text-[#272727]">Recent Movements</h4>
                         <button className="text-xs text-[#7E5C4A] hover:underline">View All</button>
                       </div>
-                      <div className="border border-[#D4AA7D]/20 rounded-lg overflow-hidden flex-1 overflow-y-auto bg-white/60">
+                      <div className="border border-[#D4AA7D]/20 rounded-xl overflow-hidden flex-1 overflow-y-auto bg-transparent shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)]">
                         <table className="w-full text-sm text-left relative">
-                          <thead className="bg-[#EEF2F6] text-[#7E5C4A] border-b border-[#D4AA7D]/20 sticky top-0 z-10">
+                          <thead className="bg-[#D4AA7D] text-[#272727] border-b border-[#7E5C4A]/25 sticky top-0 z-10 uppercase text-xs font-black tracking-wider">
                             <tr>
-                              <th className="px-4 py-2 font-medium">Date</th>
-                              <th className="px-4 py-2 font-medium">Type</th>
-                              <th className="px-4 py-2 font-medium text-right">Qty</th>
-                              <th className="px-4 py-2 font-medium">By</th>
+                              <th className="px-4 py-2">Date</th>
+                              <th className="px-4 py-2">Type</th>
+                              <th className="px-4 py-2 text-right">Qty</th>
+                              <th className="px-4 py-2">By</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#D4AA7D]/15">
+                          <tbody className="divide-y divide-[#D4AA7D]/15 bg-transparent">
                             {[1,2,3,4,5,6,7,8].map((j) => (
-                              <tr key={j} className="hover:bg-[#EFD09E]/15">
-                                <td className="px-4 py-2 text-[#7E5C4A]">{formatDate("2026-01-30")}</td>
+                              <tr key={j} className="hover:bg-[#272727] group transition-colors">
+                                <td className="px-4 py-2 text-[#7E5C4A] group-hover:text-[#EFD09E]/80">{formatDate("2026-01-30")}</td>
                                 <td className="px-4 py-2">
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${j % 2 === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${j % 2 === 0 ? 'bg-green-100 text-green-700 group-hover:bg-[#9ACD32]/25 group-hover:text-[#9ACD32]' : 'bg-red-100 text-red-700 group-hover:bg-rose-500/20 group-hover:text-rose-300'}`}>
                                     {j % 2 === 0 ? 'IN' : 'OUT'}
                                   </span>
                                 </td>
-                                <td className={`px-4 py-2 text-right font-medium ${j % 2 === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                <td className={`px-4 py-2 text-right font-medium ${j % 2 === 0 ? 'text-green-600 group-hover:text-[#9ACD32]' : 'text-red-600 group-hover:text-rose-300'}`}>
                                   {j % 2 === 0 ? '+' : '-'}{10 * j}
                                 </td>
-                                <td className="px-4 py-2 text-[#7E5C4A]/70 text-xs">Admin</td>
+                                <td className="px-4 py-2 text-[#7E5C4A]/70 text-xs group-hover:text-[#EFD09E]/60">Admin</td>
                               </tr>
                             ))}
                           </tbody>

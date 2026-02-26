@@ -310,9 +310,9 @@ export default function PackagingPlanningV2Page() {
                       <p className="font-semibold">PO {poCase.po}</p>
                       <p className="text-xs text-[#EFD09E]/70">{poCase.cases.length} Cases Generated</p>
                     </div>
-                    <div className="overflow-x-auto bg-[#EFD09E]">
+                    <div className="overflow-x-auto bg-transparent rounded-b-2xl shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)]">
                       <table className="min-w-full text-sm">
-                        <thead className="bg-[#D4AA7D] text-[#272727]">
+                        <thead className="bg-[#D4AA7D] text-[#272727] uppercase text-xs font-black tracking-wider">
                           <tr>
                             <th className="px-3 py-2 text-left">No</th>
                             <th className="px-3 py-2 text-left">Type</th>
@@ -322,18 +322,18 @@ export default function PackagingPlanningV2Page() {
                             <th className="px-3 py-2 text-left">Note</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-transparent">
                           {poCase.cases.map((c) => {
                             const skuText = c.items.map((i) => i.sku).join(" / ");
                             const qtyText = c.items.map((i) => String(i.qty)).join(" + ");
                             return (
-                              <tr key={`${poCase.po}-${c.caseNo}-${c.type}`} className="border-t border-[#D4AA7D]/35">
-                                <td className="px-3 py-2 font-semibold">#{c.caseNo}</td>
-                                <td className="px-3 py-2">{c.type}</td>
-                                <td className="px-3 py-2 font-mono text-xs">{skuText}</td>
-                                <td className="px-3 py-2">{qtyText}</td>
-                                <td className="px-3 py-2">{c.dims || "-"}</td>
-                                <td className="px-3 py-2 text-[#7E5C4A]">{c.note || "-"}</td>
+                              <tr key={`${poCase.po}-${c.caseNo}-${c.type}`} className="border-t border-[#D4AA7D]/35 hover:bg-[#272727] group transition-colors">
+                                <td className="px-3 py-2 font-semibold group-hover:text-[#EFD09E]">#{c.caseNo}</td>
+                                <td className="px-3 py-2 group-hover:text-[#EFD09E]">{c.type}</td>
+                                <td className="px-3 py-2 font-mono text-xs group-hover:text-[#EFD09E]">{skuText}</td>
+                                <td className="px-3 py-2 group-hover:text-[#EFD09E]">{qtyText}</td>
+                                <td className="px-3 py-2 group-hover:text-[#EFD09E]">{c.dims || "-"}</td>
+                                <td className="px-3 py-2 text-[#7E5C4A] group-hover:text-[#EFD09E]/80">{c.note || "-"}</td>
                               </tr>
                             );
                           })}

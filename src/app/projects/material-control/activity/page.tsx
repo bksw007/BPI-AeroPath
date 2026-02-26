@@ -239,21 +239,21 @@ export default function ActivityPage() {
                 {selectedActivity.changes && selectedActivity.changes.length > 0 && (
                   <div>
                     <p className="text-xs text-[#7E5C4A] uppercase mb-2">Changes</p>
-                    <div className="bg-[#EEF2F6]/70 rounded-lg border border-white/80 overflow-hidden">
+                    <div className="bg-[#EEF2F6]/70 rounded-xl border border-white/80 overflow-hidden shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)]">
                       <table className="w-full text-sm">
-                        <thead className="bg-[#EEF2F6]">
+                        <thead className="bg-[#D4AA7D]">
                           <tr>
-                            <th className="px-3 py-2 text-left font-semibold text-[#7E5C4A]">Field</th>
-                            <th className="px-3 py-2 text-left font-semibold text-[#7E5C4A]">Before</th>
-                            <th className="px-3 py-2 text-left font-semibold text-[#7E5C4A]">After</th>
+                            <th className="px-3 py-2 text-left font-black text-[#272727] uppercase text-xs tracking-wider">Field</th>
+                            <th className="px-3 py-2 text-left font-black text-[#272727] uppercase text-xs tracking-wider">Before</th>
+                            <th className="px-3 py-2 text-left font-black text-[#272727] uppercase text-xs tracking-wider">After</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-transparent">
                           {selectedActivity.changes?.map((change: any, idx: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
-                            <tr key={idx} className="border-t border-[#D4AA7D]/20">
-                              <td className="px-3 py-2 font-medium text-[#272727]">{change.field}</td>
-                              <td className="px-3 py-2 text-rose-600 line-through">{change.before}</td>
-                              <td className="px-3 py-2 text-emerald-600 font-medium">{change.after}</td>
+                            <tr key={idx} className="border-t border-[#D4AA7D]/20 hover:bg-[#272727] group transition-colors">
+                              <td className="px-3 py-2 font-medium text-[#272727] group-hover:text-[#EFD09E]">{change.field}</td>
+                              <td className="px-3 py-2 text-rose-500 line-through group-hover:text-rose-400">{change.before}</td>
+                              <td className="px-3 py-2 text-[#5a7a1a] font-medium group-hover:text-[#9ACD32]">{change.after}</td>
                             </tr>
                           ))}
                         </tbody>

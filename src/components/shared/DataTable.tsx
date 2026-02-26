@@ -78,7 +78,7 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <GlassCard className={cn("overflow-hidden p-0 bg-[#EFD09E]/95 border border-[#D4AA7D]/35", className)}>
+    <GlassCard className={cn("overflow-hidden p-0 bg-[#EEF2F6]/95 border border-[#D4AA7D]/35 shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)] rounded-2xl", className)}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-[#272727]">
           {/* Header */}
@@ -96,7 +96,7 @@ export function DataTable<T extends Record<string, any>>({
           </thead>
 
           {/* Body */}
-          <tbody className="divide-y divide-[#D4AA7D]/30 bg-[#EFD09E]">
+          <tbody className="divide-y divide-[#D4AA7D]/30 bg-[#EEF2F6]/95">
             {data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-12 text-center text-[#7E5C4A]/80">
@@ -110,18 +110,18 @@ export function DataTable<T extends Record<string, any>>({
                   onClick={() => onRowClick?.(row)}
                   className={cn(
                     "transition-colors",
-                    onRowClick && "hover:bg-[#F6EDDE] cursor-pointer group"
+                    onRowClick && "hover:bg-[#272727]/80 cursor-pointer group"
                   )}
                 >
                   {columns.map((col, colIndex) => (
                     <td
                       key={String(col.key)}
                       className={cn(
-                        "px-6 py-4",
+                        "px-6 py-4 group-hover:text-[#EFD09E]",
                         getAlignClass(col.align),
                         col.className,
                         // First column: highlight on hover
-                        colIndex === 0 && onRowClick && "font-medium text-[#7E5C4A] group-hover:text-[#272727]"
+                        colIndex === 0 && onRowClick && "font-medium text-[#7E5C4A]"
                       )}
                     >
                       {getCellValue(row, col)}

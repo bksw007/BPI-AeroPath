@@ -495,9 +495,9 @@ export default function PackagingBookingPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="overflow-x-auto">
+                                    <div className="overflow-x-auto rounded-b-2xl shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)]">
                                         <table className="w-full text-sm text-left">
-                                            <thead className="bg-[#D4AA7D] text-xs font-bold text-[#272727] uppercase">
+                                            <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider">
                                                  <tr>
                                                      <th className="px-6 py-3">Case #</th>
                                                      <th className="px-6 py-3">Type</th>
@@ -506,10 +506,10 @@ export default function PackagingBookingPage() {
                                                      <th className="px-6 py-3">Note</th>
                                                  </tr>
                                              </thead>
-                                             <tbody className="divide-y divide-[#D4AA7D]/30 bg-[#EFD09E]">
+                                             <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
                                                 {poGroup.cases.map((c, idx) => (
-                                                    <tr key={idx} className="hover:bg-[#F6EDDE] transition-colors">
-                                                        <td className="px-6 py-4 font-mono text-[#7E5C4A]">#{c.caseNo}</td>
+                                                    <tr key={idx} className="hover:bg-[#272727] group transition-colors cursor-pointer">
+                                                        <td className="px-6 py-4 font-mono text-[#7E5C4A] group-hover:text-[#EFD09E]">#{c.caseNo}</td>
                                                         <td className="px-6 py-4">
                                                             <Badge type={c.type} />
                                                         </td>
@@ -517,16 +517,16 @@ export default function PackagingBookingPage() {
                                                             <div className="space-y-1">
                                                                 {c.items.map((item, i) => (
                                                                     <div key={i} className="flex items-center justify-between text-xs max-w-[200px]">
-                                                                        <span className="font-medium text-[#272727] truncate mr-2" title={item.name || item.sku}>{item.sku}</span>
-                                                                        <span className="font-bold text-[#7E5C4A] bg-[#EFD09E]/70 border border-[#D4AA7D]/35 px-1.5 py-0.5 rounded">x{item.qty}</span>
+                                                                        <span className="font-medium text-[#272727] truncate mr-2 group-hover:text-[#EFD09E]" title={item.name || item.sku}>{item.sku}</span>
+                                                                        <span className="font-bold text-[#7E5C4A] bg-[#EFD09E]/70 border border-[#D4AA7D]/35 px-1.5 py-0.5 rounded group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]">x{item.qty}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 font-mono text-xs text-[#7E5C4A]">
+                                                        <td className="px-6 py-4 font-mono text-xs text-[#7E5C4A] group-hover:text-[#EFD09E]/80">
                                                             {c.dims}
                                                         </td>
-                                                        <td className="px-6 py-4 text-xs text-[#7E5C4A] italic">
+                                                        <td className="px-6 py-4 text-xs text-[#7E5C4A] italic group-hover:text-[#EFD09E]/60">
                                                             {c.note || "-"}
                                                         </td>
                                                     </tr>

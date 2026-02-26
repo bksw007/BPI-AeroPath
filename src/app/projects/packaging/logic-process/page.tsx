@@ -1447,23 +1447,23 @@ export default function LogicProcessPage() {
                   <h3 className="text-sm font-bold text-[#272727] mb-2">
                     Working ({workingItems.length})
                   </h3>
-                  <div className="overflow-auto">
+                  <div className="overflow-auto rounded-xl shadow-[4px_4px_12px_rgba(166,180,200,0.28),-4px_-4px_12px_rgba(255,255,255,0.92)]">
                     <table className="w-full text-xs">
-                      <thead className="bg-[#EFD09E]/60 sticky top-0">
+                      <thead className="bg-[#D4AA7D] sticky top-0">
                         <tr>
-                          <th className="py-1 px-2 text-left text-[#7E5C4A] font-bold">PO</th>
-                          <th className="py-1 px-2 text-left text-[#7E5C4A] font-bold">SKU</th>
-                          <th className="py-1 px-2 text-right text-[#7E5C4A] font-bold">Qty</th>
+                          <th className="py-1 px-2 text-left text-[#272727] font-black uppercase text-[10px] tracking-wide">PO</th>
+                          <th className="py-1 px-2 text-left text-[#272727] font-black uppercase text-[10px] tracking-wide">SKU</th>
+                          <th className="py-1 px-2 text-right text-[#272727] font-black uppercase text-[10px] tracking-wide">Qty</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y">
+                      <tbody className="divide-y divide-[#D4AA7D]/20 bg-transparent">
                         {workingItems.slice(0, 15).map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="py-1 px-2 font-mono text-[#7E5C4A]">
+                          <tr key={idx} className="hover:bg-[#272727]/70 group transition-colors">
+                            <td className="py-1 px-2 font-mono text-[#7E5C4A] group-hover:text-[#EFD09E]/80">
                               {item.po}
                             </td>
-                            <td className="py-1 px-2 text-[#272727]">{item.sku}</td>
-                            <td className="py-1 px-2 text-right font-bold text-[#7E5C4A]">
+                            <td className="py-1 px-2 text-[#272727] group-hover:text-[#EFD09E]">{item.sku}</td>
+                            <td className="py-1 px-2 text-right font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]">
                               {item.qty}
                             </td>
                           </tr>

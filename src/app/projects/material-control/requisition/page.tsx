@@ -232,9 +232,9 @@ export default function RequisitionPage() {
                     </button>
                   </div>
                   
-                  <div className="border border-[#D4AA7D]/25 rounded-lg overflow-hidden bg-white/60">
+                  <div className="border border-[#D4AA7D]/25 rounded-xl overflow-hidden bg-transparent shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)]">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-[#EEF2F6] text-[#7E5C4A] text-xs uppercase border-b border-[#D4AA7D]/25">
+                      <thead className="bg-[#D4AA7D] text-[#272727] text-xs uppercase font-black tracking-wider border-b border-[#7E5C4A]/25">
                         <tr>
                           <th className="px-3 py-2">Item</th>
                           <th className="px-3 py-2 w-20 text-center">Qty</th>
@@ -242,7 +242,7 @@ export default function RequisitionPage() {
                           <th className="px-3 py-2 w-10"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#D4AA7D]/15">
+                      <tbody className="divide-y divide-[#D4AA7D]/15 bg-transparent">
                         <tr>
                           <td className="p-2">
                             <select className="w-full bg-transparent text-sm text-[#272727] focus:outline-none">
@@ -333,21 +333,21 @@ export default function RequisitionPage() {
                 {/* Mock Items List */}
                 <div>
                   <h4 className="text-sm font-semibold text-[#272727] mb-3">Requested Items</h4>
-                  <div className="border border-[#D4AA7D]/25 rounded-lg overflow-hidden bg-white/60">
+                  <div className="border border-[#D4AA7D]/25 rounded-xl overflow-hidden bg-transparent shadow-[6px_6px_14px_rgba(166,180,200,0.28),-6px_-6px_14px_rgba(255,255,255,0.92)]">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-[#EEF2F6] text-[#7E5C4A] text-xs uppercase border-b border-[#D4AA7D]/25">
+                      <thead className="bg-[#D4AA7D] text-[#272727] text-xs uppercase font-black tracking-wider border-b border-[#7E5C4A]/25">
                         <tr>
                           <th className="px-4 py-2">Item</th>
                           <th className="px-4 py-2 text-right">Qty</th>
                           <th className="px-4 py-2">Unit</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#D4AA7D]/15">
+                      <tbody className="divide-y divide-[#D4AA7D]/15 bg-transparent">
                         {[1, 2].map((i) => (
-                          <tr key={i}>
-                            <td className="px-4 py-2 text-[#272727]">Detailed Spec Material #{i}</td>
-                            <td className="px-4 py-2 text-right font-medium">10</td>
-                            <td className="px-4 py-2 text-[#7E5C4A] text-xs">Pcs</td>
+                          <tr key={i} className="hover:bg-[#272727] group transition-colors">
+                            <td className="px-4 py-2 text-[#272727] group-hover:text-[#EFD09E]">Detailed Spec Material #{i}</td>
+                            <td className="px-4 py-2 text-right font-medium group-hover:text-[#EFD09E]">10</td>
+                            <td className="px-4 py-2 text-[#7E5C4A] text-xs group-hover:text-[#EFD09E]/70">Pcs</td>
                           </tr>
                         ))}
                       </tbody>
