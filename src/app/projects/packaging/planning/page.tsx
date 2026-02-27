@@ -15,7 +15,10 @@ import {
   Search,
   Users,
   Save,
-  Clock // Add Clock Icon
+  Clock,
+  Plus,
+  Trash2,
+  X
 } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
@@ -50,7 +53,15 @@ interface RecentPlan {
   poList: string[];
 }
 
+interface CustomerFormState {
+  code: string;
+  type: "A" | "E" | "R";
+}
+
 export default function PackagingBookingPage() {
+  const [customerPackTypeMapping, setCustomerPackTypeMapping] = useState<Record<string, string>>(
+    () => ({ ...CUSTOMER_PACK_TYPE_MAPPING })
+  );
   const [activeStep, setActiveStep] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<{code: string; region: string} | null>(null);
   const [rawData, setRawData] = useState("");
@@ -62,6 +73,10 @@ export default function PackagingBookingPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isExportingPlan, setIsExportingPlan] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
+  const [editingCustomerCode, setEditingCustomerCode] = useState<string | null>(null);
+  const [customerForm, setCustomerForm] = useState<CustomerFormState>({ code: "", type: "E" });
+  const [pendingDeleteCustomerCode, setPendingDeleteCustomerCode] = useState<string | null>(null);
 
   // --- Load History on Mount ---
   useEffect(() => {
@@ -69,7 +84,7 @@ export default function PackagingBookingPage() {
   }, []);
 
   const loadHistory = async () => {
-      const history = await PackagingService.getRecentPackingPlans(3);
+      const history = await PackagingService.getRecentPackingPlans(6);
       setRecentPlans(history as unknown as RecentPlan[]);
   };
 
@@ -118,10 +133,78 @@ export default function PackagingBookingPage() {
 
   // --- 1. Customer Selection ---
   const handleCustomerSelect = (code: string) => {
-    const type = CUSTOMER_PACK_TYPE_MAPPING[code] || "E";
-    const region = type === "A" ? "Asia" : "US/EU";
+    const type = customerPackTypeMapping[code] || "E";
+    const region = type === "A" ? "Asia" : type === "R" ? "R" : "US/EU";
     setSelectedCustomer({ code, region });
     setActiveStep(2);
+  };
+
+  const openCustomerForm = (code?: string) => {
+    setIsCustomerFormOpen(true);
+    if (code) {
+      const type = customerPackTypeMapping[code] === "A" ? "A" : customerPackTypeMapping[code] === "R" ? "R" : "E";
+      setEditingCustomerCode(code);
+      setCustomerForm({ code, type });
+      return;
+    }
+    setEditingCustomerCode(null);
+    setCustomerForm({ code: "", type: "E" });
+  };
+
+  const closeCustomerForm = () => {
+    setIsCustomerFormOpen(false);
+    setEditingCustomerCode(null);
+    setCustomerForm({ code: "", type: "E" });
+  };
+
+  const saveCustomer = () => {
+    const code = customerForm.code.trim().toUpperCase();
+    if (!code) {
+      alert("Customer code is required.");
+      return;
+    }
+
+    if (!editingCustomerCode && customerPackTypeMapping[code]) {
+      alert("Customer already exists.");
+      return;
+    }
+
+    const type = customerForm.type;
+    setCustomerPackTypeMapping((prev) => ({ ...prev, [code]: type }));
+
+    if (selectedCustomer?.code === code || selectedCustomer?.code === editingCustomerCode) {
+      setSelectedCustomer({ code, region: type === "A" ? "Asia" : type === "R" ? "R" : "US/EU" });
+    }
+
+    closeCustomerForm();
+  };
+
+  const confirmDeleteCustomer = (code: string) => {
+
+    setCustomerPackTypeMapping((prev) => {
+      if (Object.keys(prev).length <= 1) {
+        alert("At least one customer must remain.");
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[code];
+      return next;
+    });
+
+    if (selectedCustomer?.code === code) {
+      setSelectedCustomer(null);
+      setActiveStep(1);
+    }
+
+    if (editingCustomerCode === code) {
+      closeCustomerForm();
+    }
+
+    setPendingDeleteCustomerCode(null);
+  };
+
+  const deleteCustomer = (code: string) => {
+    setPendingDeleteCustomerCode(code);
   };
 
   // --- 2. Data Input ---
@@ -143,7 +226,7 @@ export default function PackagingBookingPage() {
 
     try {
       // 1. Initialize Service
-      const regionCode = selectedCustomer.region === 'US/EU' ? 'E' : 'A';
+      const regionCode = selectedCustomer.region === 'US/EU' ? 'E' : selectedCustomer.region === 'R' ? 'R' : 'A';
       
       const service = new PackingLogicService(
         { region: regionCode as 'E' | 'A' | 'R' },
@@ -336,28 +419,51 @@ export default function PackagingBookingPage() {
                  
                  {/* STEP 1: Customer Selection */}
                  {activeStep === 1 && (
-                     <GlassCard className="p-8 animate-in fade-in slide-in-from-bottom-4">
-                         <h3 className="text-xl font-bold text-[#272727] mb-6 flex items-center gap-2">
-                             <Search className="w-5 h-5 text-[#7E5C4A]"/>
-                             Select Customer
-                         </h3>
+                     <GlassCard className="relative overflow-hidden p-8 rounded-[2rem] border border-[#F3F3F3] bg-gradient-to-br from-[#FDFDFD] via-[#F4F4F4] to-[#ECECEC] shadow-[14px_14px_30px_rgba(177,177,177,0.3),-12px_-12px_26px_rgba(255,255,255,0.95),inset_2px_2px_1px_rgba(255,255,255,0.92),inset_-3px_-4px_8px_rgba(180,180,180,0.22)] animate-in fade-in slide-in-from-bottom-4">
+                         <div className="pointer-events-none absolute -top-20 right-[-60px] h-52 w-52 rounded-full bg-white/75 blur-2xl" />
+                         <div className="pointer-events-none absolute -bottom-16 left-[-40px] h-44 w-44 rounded-full bg-[#DCDCDC]/35 blur-2xl" />
+                         <div className="relative mb-6 flex items-center justify-between gap-4">
+                            <h3 className="text-xl font-bold text-[#3F2814] flex items-center gap-2">
+                                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#EAC9A3] bg-gradient-to-br from-[#FFF0D5] to-[#E7BE8A] shadow-[5px_5px_10px_rgba(166,110,54,0.22),-4px_-4px_10px_rgba(255,245,225,0.8)]">
+                                   <Search className="w-4 h-4 text-[#7E5C4A]"/>
+                                </span>
+                                Select Customer
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => openCustomerForm()}
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[#D4AA7D]/55 bg-[#F8E3C0]/80 text-[#4F3A2A] text-sm font-bold transition-colors hover:bg-[#272635] hover:border-[#EFD09E] hover:text-[#EFD09E]"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Manage Customers
+                            </button>
+                         </div>
+
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                             {Object.keys(CUSTOMER_PACK_TYPE_MAPPING).map(code => (
+                             {Object.keys(customerPackTypeMapping).sort().map(code => (
                                  <button
                                      key={code}
                                      onClick={() => handleCustomerSelect(code)}
-                                     className="p-6 rounded-xl border border-[#D4AA7D]/35 bg-[#EFD09E]/45 hover:border-[#9ACD32]/45 hover:bg-[#EFD09E]/70 transition-all group text-left"
+                                     className={`
+                                        p-4 rounded-2xl border text-left transition-all duration-200 group
+                                        ${selectedCustomer?.code === code
+                                           ? "border-[#D1914F] bg-gradient-to-br from-[#FCE8C8] to-[#E8C090] shadow-[inset_2px_2px_1px_rgba(255,245,229,0.9),inset_-4px_-5px_10px_rgba(167,108,49,0.24),8px_10px_16px_rgba(165,108,54,0.22)] ring-2 ring-[#D1914F]/45"
+                                           : "border-[#EAC9A3] bg-gradient-to-br from-[#FAE7C8] to-[#EAC394] shadow-[10px_12px_20px_rgba(160,103,48,0.22),-6px_-6px_14px_rgba(255,244,223,0.85),inset_1px_1px_0_rgba(255,246,230,0.85)] hover:border-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:to-[#1F1D2B] hover:translate-y-[1px] hover:shadow-[7px_8px_14px_rgba(39,38,53,0.36),-4px_-4px_10px_rgba(255,244,223,0.45),inset_1px_1px_0_rgba(255,255,255,0.12)] active:translate-y-[3px] active:shadow-[inset_2px_2px_2px_rgba(255,255,255,0.08),inset_-3px_-3px_6px_rgba(9,9,14,0.4)]"
+                                        }
+                                     `}
                                 >
-                                    <div className="font-bold text-lg text-[#272727] group-hover:text-[#5a7a1a] mb-1">{code}</div>
-                                    <div className="text-xs text-[#7E5C4A] font-medium bg-[#EFD09E]/75 border border-[#D4AA7D]/35 px-2 py-1 rounded w-fit group-hover:bg-[#F6EDDE]">
-                                        {CUSTOMER_PACK_TYPE_MAPPING[code] === 'A' ? 'Asia Region' : 'US/EU Region'}
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="font-bold text-base text-[#3B2B1F] group-hover:text-[#EFD09E] leading-none">{code}</div>
+                                        <div className="text-[11px] leading-none text-[#7E5C4A] font-semibold bg-[#F8E3C0]/80 border border-[#D4AA7D]/45 px-2 py-1 rounded-lg shadow-[inset_1px_1px_0_rgba(255,247,232,0.9)] group-hover:bg-[#3A374F] group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/55">
+                                            {customerPackTypeMapping[code] === 'A' ? 'Asia Region' : customerPackTypeMapping[code] === 'R' ? 'R Region' : 'US/EU Region'}
+                                        </div>
                                     </div>
                                 </button>
                              ))}
                          </div>
 
                           {/* Recent History Section */}
-                          <div className="pt-6 border-t border-[#D4AA7D]/30 mt-6">
+                          <div className="pt-6 border-t border-[#D4AA7D]/35 mt-6">
                                 <h4 className="text-sm font-bold text-[#7E5C4A] uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <Clock className="w-4 h-4"/> Recent Calculations
                                 </h4>
@@ -366,20 +472,20 @@ export default function PackagingBookingPage() {
                                         <button 
                                             key={plan.id}
                                             onClick={() => handleLoadPlan(plan)}
-                                            className="p-4 bg-[#EFD09E]/50 border border-[#D4AA7D]/35 rounded-xl hover:border-[#9ACD32]/40 hover:bg-[#F6EDDE] text-left transition-all group shadow-sm hover:shadow-md"
+                                            className="p-4 bg-gradient-to-br from-[#F8E0BC] to-[#E9C08F] border border-[#D9AE7E]/55 rounded-2xl text-left transition-all duration-200 group shadow-[8px_9px_16px_rgba(161,104,47,0.2),-4px_-4px_10px_rgba(255,244,224,0.75),inset_1px_1px_0_rgba(255,247,231,0.85)] hover:-translate-y-1 hover:scale-[1.01] hover:border-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:to-[#1F1D2B] hover:shadow-[12px_14px_24px_rgba(39,38,53,0.34),-4px_-4px_10px_rgba(255,244,224,0.4),inset_1px_1px_0_rgba(255,255,255,0.12)]"
                                         >
                                             <div className="flex justify-between items-start mb-2">
-                                                <span className="font-bold text-[#272727] group-hover:text-[#5a7a1a]">{plan.customer.name}</span>
-                                                <span className="text-[10px] bg-[#EFD09E]/70 border border-[#D4AA7D]/35 text-[#7E5C4A] px-1.5 py-0.5 rounded-md group-hover:bg-[#9ACD32]/20 group-hover:text-[#5a7a1a]">
+                                                <span className="font-bold text-[#3B2B1F] group-hover:text-[#EFD09E]">{plan.customer.name}</span>
+                                                <span className="text-[10px] bg-[#FAE7C8]/85 border border-[#D4AA7D]/45 text-[#7E5C4A] px-1.5 py-0.5 rounded-md shadow-[inset_1px_1px_0_rgba(255,247,232,0.9)] group-hover:bg-[#3A374F] group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/55">
                                                     {plan.createdAt?.seconds ? new Date(plan.createdAt?.seconds * 1000).toLocaleDateString() : 'Just now'}
                                                 </span>
                                             </div>
-                                            <div className="text-xs text-[#7E5C4A] space-y-1">
+                                            <div className="text-xs text-[#6F4E3D] space-y-1 group-hover:text-[#EFD09E]">
                                                 <div className="flex justify-between">
                                                     <span>POs: {plan.poList.length}</span>
                                                     <span>Item: {plan.summary.totalItems}</span>
                                                 </div>
-                                                <div className="flex justify-between font-medium text-[#272727]">
+                                                <div className="flex justify-between font-medium text-[#3B2B1F] group-hover:text-[#EFD09E]">
                                                     <span>Pallets: {plan.summary.totalPallets}</span>
                                                     <span>Boxes: {plan.summary.totalBoxes}</span>
                                                 </div>
@@ -638,10 +744,188 @@ export default function PackagingBookingPage() {
         </div>
       </section>
 
+      {/* Customer Management Modal */}
+      {isCustomerFormOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/50 backdrop-blur-sm animate-fade-in"
+          onClick={closeCustomerForm}
+        >
+          <div
+            className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl w-full max-w-4xl max-h-[88vh] flex flex-col shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-[#D4AA7D]/25 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#9ACD32] text-[#272727] rounded-lg">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-[#272727]">Manage Customers</h3>
+                  <p className="text-sm text-[#7E5C4A]">Add or edit customer codes and their region types.</p>
+                </div>
+              </div>
+              <button
+                onClick={closeCustomerForm}
+                className="p-2 text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/60 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 flex-1 min-h-0">
+              <div className="overflow-y-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider sticky top-0">
+                    <tr>
+                      <th className="px-4 py-3">Code</th>
+                      <th className="px-4 py-3 text-center">Region Type</th>
+                      <th className="px-4 py-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
+                    {Object.keys(customerPackTypeMapping).sort().map((code) => (
+                      <tr key={code} className="hover:bg-[#272727] group transition-colors cursor-pointer">
+                        <td className="px-4 py-3 font-bold text-[#272727] group-hover:text-[#EFD09E]">{code}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold ${
+                            customerPackTypeMapping[code] === "A" ? "bg-[#9ACD32]/20 text-[#5a7a1a] group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]" :
+                            customerPackTypeMapping[code] === "E" ? "bg-[#272727]/10 text-[#272727] group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]" :
+                            "bg-[#D4AA7D]/30 text-[#7E5C4A] group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]"
+                          }`}>
+                            {customerPackTypeMapping[code]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => openCustomerForm(code)}
+                            className="text-[#7E5C4A] font-bold hover:underline text-xs"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border-l border-[#D4AA7D]/25 p-5 bg-[#F5E7CC]/45 overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-bold text-[#272727]">
+                    {editingCustomerCode ? "Edit Customer" : "New Customer"}
+                  </h4>
+                  <button
+                    onClick={() => {
+                      setEditingCustomerCode(null);
+                      setCustomerForm({ code: "", type: "E" });
+                    }}
+                    className="text-xs font-bold px-2 py-1 rounded border border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#EFD09E]/60"
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Customer Code</label>
+                    <input
+                      type="text"
+                      value={customerForm.code}
+                      onChange={(e) => setCustomerForm((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                      className="w-full px-3 py-2 border border-[#D4AA7D]/40 bg-[#EFD09E]/45 rounded-xl text-[#272727] outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
+                      placeholder="e.g. FAP"
+                      disabled={!!editingCustomerCode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Region Type</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["A", "E", "R"] as const).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setCustomerForm((prev) => ({ ...prev, type }))}
+                          className={`py-2 rounded-lg font-bold border transition-all ${
+                            customerForm.type === type
+                              ? "bg-[#272727] text-[#EFD09E] border-[#272727]"
+                              : "bg-[#EFD09E]/45 text-[#7E5C4A] border-[#D4AA7D]/35 hover:bg-[#EFD09E]/70"
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pt-2 flex gap-3">
+                    {editingCustomerCode && (
+                      <button
+                        onClick={() => deleteCustomer(editingCustomerCode)}
+                        className="p-3 text-red-500 hover:bg-red-50 rounded-xl border border-red-100"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={saveCustomer}
+                      className="flex-1 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
+                    >
+                      <Save className="w-4 h-4" /> Save Customer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {pendingDeleteCustomerCode && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm animate-in fade-in"
+          onClick={() => setPendingDeleteCustomerCode(null)}
+        >
+          <div
+            className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-6 max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-[#D4AA7D]/35 text-[#7E5C4A] rounded-lg">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <h4 className="text-lg font-bold text-[#272727]">Confirm Delete</h4>
+            </div>
+            <p className="text-sm text-[#7E5C4A]">
+              Delete customer <span className="font-bold text-[#272727]">{pendingDeleteCustomerCode}</span>?
+            </p>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setPendingDeleteCustomerCode(null)}
+                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => confirmDeleteCustomer(pendingDeleteCustomerCode)}
+                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#1f1f1f]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/30 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in zoom-in-95">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/30 backdrop-blur-sm animate-in fade-in"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
              <div className="w-16 h-16 bg-[#9ACD32]/20 rounded-full flex items-center justify-center mx-auto text-[#5a7a1a]">
                 <CheckCircle2 className="w-8 h-8" />
              </div>
@@ -716,8 +1000,4 @@ function Badge({ type }: { type: string }) {
             {type}
         </span>
     );
-}
-
-function UsersIcon({ className }: { className?: string }) {
-    return <Users className={className} />;
 }

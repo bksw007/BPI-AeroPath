@@ -263,11 +263,20 @@ export class PackingLogicService {
       try {
         const spec = await this.fetchSpecFromDB(sku);
         if (spec) {
-          const rules = spec.packingRules as {
+          const rawRules = spec.packingRules as {
             warp?: boolean;
             boxes?: Record<string, number>;
             pallets?: Record<string, number>;
+            rtn?: Record<string, number> | number;
           };
+
+          // Normalize: merge top-level 'rtn' into pallets["RTN"]
+          // Firebase stores RTN as a separate key, not inside pallets
+          const rules = { ...rawRules };
+          if (rawRules.rtn && typeof rawRules.rtn === 'object') {
+            if (!rules.pallets) rules.pallets = {} as Record<string, number>;
+            (rules.pallets as Record<string, unknown>)["RTN"] = rawRules.rtn;
+          }
 
           // Determine if valid for region
           let isValidForRegion = false;

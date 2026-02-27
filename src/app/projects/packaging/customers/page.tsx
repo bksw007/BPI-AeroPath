@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
-  Users, 
   Package, 
   Plus, 
   X, 
@@ -22,24 +21,13 @@ interface CustomerMapping {
 
 export default function PackagingCustomersPage() {
   const router = useRouter();
-  // State initialization from config
-  const [customers, setCustomers] = useState<CustomerMapping[]>(
-      Object.entries(CUSTOMER_PACK_TYPE_MAPPING).map(([code, type]) => ({ code, type }))
-  );
+  const customers: CustomerMapping[] = Object.entries(CUSTOMER_PACK_TYPE_MAPPING).map(([code, type]) => ({ code, type }));
   
   const [packages, setPackages] = useState<PackageDef[]>(PACKAGE_MASTER_DATA);
-
-  // Modal States
-  const [isCustomerManageOpen, setIsCustomerManageOpen] = useState(false); // New Manager Modal
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false); // Add/Edit specific customer
-  const [editingCustomer, setEditingCustomer] = useState<CustomerMapping | null>(null);
 
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PackageDef | null>(null);
 
-  // Forms
-  const [custForm, setCustForm] = useState({ code: "", type: "E" });
-  
   const [pkgForm, setPkgForm] = useState<PackageDef>({ 
       name: "", 
       outer: { w: 0, l: 0, h: 0 },
@@ -54,36 +42,6 @@ export default function PackagingCustomersPage() {
       // Find customers whose type is included in this package's allowed types
       return customers.filter(c => pkgTypes.includes(c.type));
   };
-
-  // --- Handlers: Customer ---
-  const openCustomerModal = (customer?: CustomerMapping) => {
-      if (customer) {
-          setEditingCustomer(customer);
-          setCustForm({ code: customer.code, type: customer.type });
-      } else {
-          setEditingCustomer(null);
-          setCustForm({ code: "", type: "E" });
-      }
-      setIsCustomerModalOpen(true);
-  };
-
-  const saveCustomer = () => {
-      if (!custForm.code) return;
-      
-      if (editingCustomer) {
-          setCustomers(prev => prev.map(c => c.code === editingCustomer.code ? { ...custForm } : c));
-      } else {
-          setCustomers(prev => [...prev, { ...custForm }]);
-      }
-      setIsCustomerModalOpen(false);
-  };
-
-  const deleteCustomer = (code: string) => {
-      if(confirm(`Delete customer ${code}?`)) {
-          setCustomers(prev => prev.filter(c => c.code !== code));
-          setIsCustomerModalOpen(false);
-      }
-  }
 
   // --- Handlers: Package ---
   const openPackageModal = (pkg?: PackageDef) => {
@@ -156,17 +114,6 @@ export default function PackagingCustomersPage() {
                 Manage package dimensions and their allowed customer mappings.
                 </p>
             </div>
-
-            {/* Manage Customers Button */}
-            <button
-                onClick={() => setIsCustomerManageOpen(true)}
-                className="absolute right-0 flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/55 border border-[#D4AA7D]/35 text-[#7E5C4A] rounded-xl hover:bg-[#EFD09E]/75 hover:border-[#9ACD32]/35 transition-all shadow-sm group"
-            >
-                <div className="p-1 bg-[#272727]/10 text-[#272727] rounded-lg group-hover:bg-[#9ACD32] group-hover:text-[#272727] transition-colors">
-                    <Users className="w-4 h-4" />
-                </div>
-                <span className="font-bold text-sm">Manage Customers</span>
-            </button>
           </div>
 
           {/* Unified Package Table */}
@@ -265,146 +212,6 @@ export default function PackagingCustomersPage() {
 
         </div>
       </section>
-
-      {/* --- MODALS --- */}
-
-      {/* Customer Management Hub Modal */}
-      {isCustomerManageOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/50 backdrop-blur-sm animate-fade-in">
-             <div className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
-                  <div className="p-6 border-b border-[#D4AA7D]/25 flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                          <div className="p-2 bg-[#272727]/10 text-[#272727] rounded-lg">
-                              <Users className="w-5 h-5"/>
-                          </div>
-                          <div>
-                              <h3 className="text-xl font-bold text-[#272727]">Manage Customers</h3>
-                              <p className="text-sm text-[#7E5C4A]">Add or edit customer codes and their region types.</p>
-                          </div>
-                      </div>
-                      <button 
-                          onClick={() => setIsCustomerManageOpen(false)}
-                          className="p-2 text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/60 rounded-lg transition"
-                      >
-                          <X className="w-5 h-5" />
-                      </button>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-0">
-                      <table className="w-full text-sm text-left">
-                          <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider sticky top-0">
-                              <tr>
-                                  <th className="px-6 py-3">Code</th>
-                                  <th className="px-6 py-3 text-center">Region Type</th>
-                                  <th className="px-6 py-3 text-right">Action</th>
-                              </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
-                               {customers.map((c) => (
-                                   <tr key={c.code} className="hover:bg-[#272727] group transition-colors cursor-pointer">
-                                       <td className="px-6 py-3 font-bold text-[#272727] group-hover:text-[#EFD09E]">{c.code}</td>
-                                       <td className="px-6 py-3 text-center">
-                                            <span className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold ${
-                                                c.type === 'A' ? 'bg-[#9ACD32]/20 text-[#5a7a1a]' :
-                                                c.type === 'E' ? 'bg-[#272727]/10 text-[#272727]' :
-                                                'bg-[#D4AA7D]/30 text-[#7E5C4A]'
-                                            }`}>
-                                                {c.type}
-                                            </span>
-                                       </td>
-                                       <td className="px-6 py-3 text-right">
-                                           <button 
-                                              onClick={() => openCustomerModal(c)}
-                                              className="text-[#7E5C4A] font-bold hover:underline text-xs"
-                                           >
-                                               Edit
-                                           </button>
-                                       </td>
-                                   </tr>
-                               ))}
-                          </tbody>
-                      </table>
-                  </div>
-
-                  <div className="p-4 border-t border-[#D4AA7D]/25 text-center">
-                      <button 
-                          onClick={() => openCustomerModal()}
-                          className="w-full py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] transition shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
-                      >
-                          <Plus className="w-4 h-4" /> Add New Customer
-                      </button>
-                  </div>
-             </div>
-          </div>
-      )}
-
-      {/* Add/Edit Specific Customer Modal (Nested or independent) */}
-      {isCustomerModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm animate-in zoom-in duration-200">
-           <div className="bg-[#EEF2F6]/95 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative border border-white/80">
-              <button 
-                  onClick={() => setIsCustomerModalOpen(false)}
-                  className="absolute right-4 top-4 text-[#7E5C4A] hover:text-[#272727]"
-              >
-                  <X className="w-5 h-5" />
-              </button>
-              
-              <h3 className="text-xl font-bold text-[#272727] mb-6">
-                  {editingCustomer ? 'Edit Customer' : 'New Customer'}
-              </h3>
-
-              <div className="space-y-4">
-                  <div>
-                      <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Customer Code</label>
-                      <input 
-                          type="text" 
-                          value={custForm.code}
-                          onChange={e => setCustForm({...custForm, code: e.target.value})}
-                          className="w-full px-3 py-2 border border-[#D4AA7D]/40 bg-[#EFD09E]/45 rounded-xl text-[#272727] outline-none focus:ring-2 focus:ring-[#9ACD32]/30"
-                          placeholder="e.g. FAP"
-                          autoFocus
-                          disabled={!!editingCustomer} // Disable code edit if updating
-                      />
-                  </div>
-                  <div>
-                      <label className="block text-sm font-bold text-[#7E5C4A] mb-1">Region Type</label>
-                      <div className="flex gap-2">
-                          {['A', 'E', 'R'].map(type => (
-                              <button
-                                  key={type}
-                                  onClick={() => setCustForm({...custForm, type})}
-                                  className={`flex-1 py-2 rounded-lg font-bold border transition-all ${
-                                      custForm.type === type 
-                                      ? 'bg-[#272727] text-[#EFD09E] border-[#272727]' 
-                                      : 'bg-[#EFD09E]/45 text-[#7E5C4A] border-[#D4AA7D]/35 hover:bg-[#EFD09E]/70'
-                                  }`}
-                              >
-                                  {type}
-                              </button>
-                          ))}
-                      </div>
-                  </div>
-                  
-                  <div className="pt-4 flex gap-3">
-                      {editingCustomer && (
-                          <button 
-                             onClick={() => deleteCustomer(editingCustomer.code)}
-                             className="p-3 text-red-500 hover:bg-red-50 rounded-xl border border-red-100"
-                          >
-                              <Trash2 className="w-5 h-5" />
-                          </button>
-                      )}
-                      <button 
-                          onClick={saveCustomer}
-                          className="flex-1 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
-                      >
-                          <Save className="w-4 h-4" /> Save Customer
-                      </button>
-                  </div>
-              </div>
-           </div>
-        </div>
-      )}
 
       {/* Package Modal (Detail / Edit / New) */}
       {isPackageModalOpen && (
