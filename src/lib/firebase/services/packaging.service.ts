@@ -164,6 +164,12 @@ export const PackagingService = {
     summary: { totalPallets: number; totalBoxes: number; totalWarps: number; totalItems: number };
     poList: string[];
     data: string; // JSON string
+    baseData?: string;
+    effectiveData?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    adjustments?: any[];
+    hasManualAdjustment?: boolean;
+    adjustmentCount?: number;
   }) => {
     try {
       const batch = writeBatch(db);
@@ -185,7 +191,7 @@ export const PackagingService = {
         targetId: planRef.id,
         targetName: `Plan for ${planData.customer.name}`,
         user: 'System', // Replace with auth user if available later
-        details: `Created packing plan with ${planData.summary.totalPallets} pallets and ${planData.summary.totalBoxes} boxes.`
+        details: `Created packing plan with ${planData.summary.totalPallets} pallets and ${planData.summary.totalBoxes} boxes. Adjusted: ${planData.hasManualAdjustment ? "Yes" : "No"} (${planData.adjustmentCount || 0})`
       });
 
       await batch.commit();

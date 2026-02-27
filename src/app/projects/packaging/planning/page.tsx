@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   FileSpreadsheet, 
   RotateCcw, 
@@ -29,12 +29,12 @@ import type { PackingInput, PackingOutput, PackedCase, PackingPlanResult } from 
 import { generatePackingListPDFMake } from "@/lib/utils/pdfMakeGenerator";
 import { generatePackingListPDF } from "@/lib/utils/pdfGenerator";
 import { generatePackingDetailsPDF, generateLayoutGridPDF } from "@/lib/utils/pdfTemplateGenerator";
-
-// UI Types
-interface POCase {
-  po: string;
-  cases: PackedCase[];
-}
+import { AdjustmentToolbar } from "@/components/projects/packaging/planning/AdjustmentToolbar";
+import { EditableCaseRow } from "@/components/projects/packaging/planning/EditableCaseRow";
+import type { AdjustmentValidationResult, POCase, PlanAdjustmentRecord, PlanAdjustmentOp } from "@/lib/planning/adjustments.types";
+import { createAdjustmentRecord, clonePlanResult, summarizePlan } from "@/lib/planning/adjustments.helpers";
+import { applyAdjustment, applyAdjustments } from "@/lib/planning/adjustments.reducer";
+import { buildExpectedQtyMap, validateAdjustedResult } from "@/lib/planning/adjustments.validation";
 
 interface PlanSummary {
   totalPallets: number;
@@ -49,13 +49,30 @@ interface RecentPlan {
   customer: { name: string; region: string };
   summary: PlanSummary;
   createdAt: { seconds: number; nanoseconds: number };
-  data: string; // JSON string
+  data?: string; // Legacy JSON string
+  baseData?: string; // JSON string
+  effectiveData?: string; // JSON string
+  adjustments?: PlanAdjustmentRecord[];
   poList: string[];
 }
 
 interface CustomerFormState {
   code: string;
   type: "A" | "E" | "R";
+}
+
+interface SplitDraft {
+  po: string;
+  caseNo: number;
+  sku: string;
+  qty: number;
+  packageName: string;
+}
+
+interface MergeDraft {
+  po: string;
+  caseNos: number[];
+  packageName: string;
 }
 
 export default function PackagingBookingPage() {
@@ -66,8 +83,16 @@ export default function PackagingBookingPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<{code: string; region: string} | null>(null);
   const [rawData, setRawData] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [basePlanResult, setBasePlanResult] = useState<POCase[]>([]);
   const [planResult, setPlanResult] = useState<POCase[]>([]);
   const [planSummary, setPlanSummary] = useState<PlanSummary | null>(null);
+  const [adjustmentRecords, setAdjustmentRecords] = useState<PlanAdjustmentRecord[]>([]);
+  const [redoRecords, setRedoRecords] = useState<PlanAdjustmentRecord[]>([]);
+  const [validationResult, setValidationResult] = useState<AdjustmentValidationResult>({ errors: [], warnings: [] });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedCaseKeys, setSelectedCaseKeys] = useState<Record<string, boolean>>({});
+  const [splitDraft, setSplitDraft] = useState<SplitDraft | null>(null);
+  const [mergeDraft, setMergeDraft] = useState<MergeDraft | null>(null);
   const [recentPlans, setRecentPlans] = useState<RecentPlan[]>([]);
   const [isHistoryMode, setIsHistoryMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,11 +113,83 @@ export default function PackagingBookingPage() {
       setRecentPlans(history as unknown as RecentPlan[]);
   };
 
+  const selectedPackType = useMemo<"A" | "E" | "R">(() => {
+    if (!selectedCustomer) return "E";
+    if (selectedCustomer.region === "US/EU") return "E";
+    if (selectedCustomer.region === "R") return "R";
+    return "A";
+  }, [selectedCustomer]);
+
+  const availablePackages = useMemo(
+    () => PACKAGE_MASTER_DATA.filter((pkg) => pkg.types.includes(selectedPackType)),
+    [selectedPackType]
+  );
+
+  const expectedQtyMap = useMemo(() => buildExpectedQtyMap(rawData), [rawData]);
+
+  const updateWorkingPlan = (next: POCase[]) => {
+    setPlanResult(next);
+    setPlanSummary(summarizePlan(next));
+    setValidationResult(validateAdjustedResult(next, expectedQtyMap));
+  };
+
+  const applyOperation = (op: PlanAdjustmentOp) => {
+    const next = applyAdjustment(planResult, op);
+    if (JSON.stringify(next) === JSON.stringify(planResult)) return;
+
+    updateWorkingPlan(next);
+    setAdjustmentRecords((prev) => [...prev, createAdjustmentRecord(op)]);
+    setRedoRecords([]);
+    setSelectedCaseKeys({});
+    setIsHistoryMode(false);
+  };
+
+  const resetAdjustments = (baseData: POCase[]) => {
+    const cloned = clonePlanResult(baseData);
+    setBasePlanResult(cloned);
+    updateWorkingPlan(cloned);
+    setAdjustmentRecords([]);
+    setRedoRecords([]);
+    setSelectedCaseKeys({});
+    setIsEditMode(false);
+  };
+
+  const caseKey = (po: string, caseNo: number) => `${po}|${caseNo}`;
+
+  const getCase = (po: string, caseNo: number): PackedCase | undefined => {
+    const poGroup = planResult.find((g) => g.po === po);
+    return poGroup?.cases.find((c) => c.caseNo === caseNo);
+  };
+
+  const selectedCaseNosByPo = (po: string): number[] => {
+    return Object.entries(selectedCaseKeys)
+      .filter(([key, selected]) => selected && key.startsWith(`${po}|`))
+      .map(([key]) => Number(key.split("|")[1]))
+      .filter((value) => Number.isFinite(value));
+  };
+
+  useEffect(() => {
+    if (planResult.length === 0) {
+      setValidationResult({ errors: [], warnings: [] });
+      return;
+    }
+    setValidationResult(validateAdjustedResult(planResult, expectedQtyMap));
+  }, [expectedQtyMap, planResult]);
+
   const handleLoadPlan = (plan: RecentPlan) => {
       try {
-          const parsedData = JSON.parse(plan.data);
+          const effectivePayload = plan.effectiveData || plan.data || "[]";
+          const parsedData = JSON.parse(effectivePayload) as POCase[];
+          const parsedBase = plan.baseData ? (JSON.parse(plan.baseData) as POCase[]) : parsedData;
+
           setPlanResult(parsedData);
-          setPlanSummary(plan.summary);
+          setBasePlanResult(parsedBase);
+          setPlanSummary(summarizePlan(parsedData));
+          setValidationResult(validateAdjustedResult(parsedData, expectedQtyMap));
+          setAdjustmentRecords(Array.isArray(plan.adjustments) ? plan.adjustments : []);
+          setRedoRecords([]);
+          setSelectedCaseKeys({});
+          setIsEditMode(false);
           setSelectedCustomer({ code: plan.customer.name, region: plan.customer.region });
           setActiveStep(3); // Go to Review
           setIsHistoryMode(true);
@@ -103,7 +200,11 @@ export default function PackagingBookingPage() {
 
   // --- Save Plan ---
   const handleSavePlan = async () => {
-      if (!planResult.length || !selectedCustomer || isHistoryMode) return;
+      if (!planResult.length || !selectedCustomer || (isHistoryMode && adjustmentRecords.length === 0)) return;
+      if (validationResult.errors.length > 0) {
+        alert("Please resolve validation errors before saving.");
+        return;
+      }
       setIsSaving(true);
       
       try {
@@ -111,7 +212,12 @@ export default function PackagingBookingPage() {
               customer: { id: selectedCustomer.code, name: selectedCustomer.code, region: selectedCustomer.region },
               summary: planSummary!,
               poList: planResult.map(p => p.po),
-              data: JSON.stringify(planResult)
+              data: JSON.stringify(planResult),
+              baseData: JSON.stringify(basePlanResult.length ? basePlanResult : planResult),
+              effectiveData: JSON.stringify(planResult),
+              adjustments: adjustmentRecords,
+              hasManualAdjustment: adjustmentRecords.length > 0,
+              adjustmentCount: adjustmentRecords.length
           };
           
           const result = await PackagingService.savePackingPlan(dataToSave);
@@ -221,8 +327,14 @@ export default function PackagingBookingPage() {
   const handleGeneratePlan = async () => {
     if (!rawData || !selectedCustomer) return;
     setIsProcessing(true);
+    setBasePlanResult([]);
     setPlanResult([]);
     setPlanSummary(null);
+    setAdjustmentRecords([]);
+    setRedoRecords([]);
+    setSelectedCaseKeys({});
+    setIsEditMode(false);
+    setValidationResult({ errors: [], warnings: [] });
 
     try {
       // 1. Initialize Service
@@ -252,10 +364,6 @@ export default function PackagingBookingPage() {
 
       // 4. Map Output to UI State
       const mappedResults: POCase[] = [];
-      let totalPallets = 0;
-      let totalBoxes = 0;
-      let totalWarps = 0;
-      let totalItems = 0;
 
       output.results.forEach((res) => {
          const allCases = [
@@ -272,27 +380,16 @@ export default function PackagingBookingPage() {
                  cases: allCases
              });
          }
-
-         // Calc counts
-         allCases.forEach(c => {
-             if (c.type.includes("Warp")) totalWarps++;
-             else if (c.type.includes("Pallet")) totalPallets++;
-             else if (c.type.includes("Box")) totalBoxes++;
-             
-             totalItems += c.items.reduce((sum, i) => sum + i.qty, 0);
-         });
       });
 
-      setPlanResult(mappedResults);
-      setPlanSummary({
-          totalPallets,
-          totalBoxes,
-          totalWarps,
-          totalItems,
-          totalM3: 0 // Service doesn't calc total M3 yet
-      });
+      const normalized = clonePlanResult(mappedResults);
+      setBasePlanResult(normalized);
+      setPlanResult(normalized);
+      setPlanSummary(summarizePlan(normalized));
+      setValidationResult(validateAdjustedResult(normalized, expectedQtyMap));
       
       setActiveStep(3);
+      setIsHistoryMode(false);
 
     } catch (error) {
       console.error("Planning Error:", error);
@@ -316,6 +413,10 @@ export default function PackagingBookingPage() {
 
   const handleExportPDF = async () => {
     if (!planResult.length || !selectedCustomer || isExportingPlan) return;
+    if (validationResult.errors.length > 0) {
+      alert("Please resolve validation errors before exporting PDF.");
+      return;
+    }
 
     setIsExportingPlan(true);
     const pdfData = buildPackingPlanPdfData();
@@ -349,10 +450,202 @@ export default function PackagingBookingPage() {
 
   const handleExportPackingDetails = () => {
     if (!planResult.length || !selectedCustomer) return;
+    if (validationResult.errors.length > 0) {
+      alert("Please resolve validation errors before exporting.");
+      return;
+    }
 
     const pdfData = buildPackingPlanPdfData();
     const poList = planResult.map(p => p.po);
     generatePackingDetailsPDF(pdfData, selectedCustomer.code, poList);
+  };
+
+  const handleEnterEditMode = () => {
+    if (!planResult.length) return;
+    if (!basePlanResult.length) {
+      setBasePlanResult(clonePlanResult(planResult));
+    }
+    setIsEditMode(true);
+    setIsHistoryMode(false);
+  };
+
+  const handleExitEditMode = () => {
+    setIsEditMode(false);
+    setSelectedCaseKeys({});
+  };
+
+  const handleUndo = () => {
+    if (adjustmentRecords.length === 0) return;
+
+    const latest = adjustmentRecords[adjustmentRecords.length - 1];
+    const nextRecords = adjustmentRecords.slice(0, -1);
+    const rebuilt = applyAdjustments(basePlanResult, nextRecords.map((r) => r.op));
+
+    setAdjustmentRecords(nextRecords);
+    setRedoRecords((prev) => [latest, ...prev]);
+    updateWorkingPlan(rebuilt);
+  };
+
+  const handleRedo = () => {
+    if (redoRecords.length === 0) return;
+
+    const [nextRecord, ...rest] = redoRecords;
+    const nextAdjustmentRecords = [...adjustmentRecords, nextRecord];
+    const rebuilt = applyAdjustments(basePlanResult, nextAdjustmentRecords.map((r) => r.op));
+
+    setRedoRecords(rest);
+    setAdjustmentRecords(nextAdjustmentRecords);
+    updateWorkingPlan(rebuilt);
+  };
+
+  const handleDiscardChanges = () => {
+    resetAdjustments(basePlanResult.length ? basePlanResult : planResult);
+  };
+
+  const handleToggleCaseSelected = (po: string, caseNo: number, selected: boolean) => {
+    const key = caseKey(po, caseNo);
+    setSelectedCaseKeys((prev) => ({ ...prev, [key]: selected }));
+  };
+
+  const handleUpdateQty = (po: string, caseNo: number, sku: string, qty: number) => {
+    applyOperation({
+      type: "update_item_qty",
+      po,
+      caseNo,
+      sku,
+      qty,
+    });
+  };
+
+  const handleUpdateNote = (po: string, caseNo: number, note: string) => {
+    applyOperation({
+      type: "update_case_note",
+      po,
+      caseNo,
+      note,
+    });
+  };
+
+  const handleChangePackage = (po: string, caseNo: number, packageName: string) => {
+    const packageDef = availablePackages.find((pkg) => pkg.name === packageName);
+    if (!packageDef) return;
+
+    applyOperation({
+      type: "change_case_package",
+      po,
+      caseNo,
+      packageName,
+      dims: packageDef.name,
+      caseType: `Manual ${packageDef.category}`,
+    });
+  };
+
+  const openSplitCase = (po: string, caseNo: number) => {
+    const target = getCase(po, caseNo);
+    if (!target || target.items.length === 0) {
+      alert("Cannot split an empty case.");
+      return;
+    }
+
+    const firstItem = target.items[0];
+    const fallbackPackage = availablePackages.find((pkg) => pkg.name === target.dims)?.name || availablePackages[0]?.name || "";
+    const suggestedQty = Math.max(1, Math.floor(firstItem.qty / 2));
+
+    setSplitDraft({
+      po,
+      caseNo,
+      sku: firstItem.sku,
+      qty: suggestedQty >= firstItem.qty ? 1 : suggestedQty,
+      packageName: fallbackPackage,
+    });
+  };
+
+  const confirmSplitCase = () => {
+    if (!splitDraft) return;
+
+    const sourceCase = getCase(splitDraft.po, splitDraft.caseNo);
+    const sourceItem = sourceCase?.items.find((item) => item.sku === splitDraft.sku);
+    const packageDef = availablePackages.find((pkg) => pkg.name === splitDraft.packageName);
+    if (!sourceCase || !sourceItem || !packageDef) return;
+
+    if (!Number.isFinite(splitDraft.qty) || splitDraft.qty <= 0 || splitDraft.qty >= sourceItem.qty) {
+      alert(`Split qty must be between 1 and ${sourceItem.qty - 1}.`);
+      return;
+    }
+
+    applyOperation({
+      type: "split_case",
+      po: splitDraft.po,
+      caseNo: splitDraft.caseNo,
+      sku: splitDraft.sku,
+      qty: Math.floor(splitDraft.qty),
+      packageName: packageDef.name,
+      dims: packageDef.name,
+      caseType: `Manual Split ${packageDef.category}`,
+    });
+    setSplitDraft(null);
+  };
+
+  const openMergeCases = (po: string) => {
+    const selectedCaseNos = selectedCaseNosByPo(po);
+    if (selectedCaseNos.length < 2) {
+      alert("Select at least 2 cases in the same PO to merge.");
+      return;
+    }
+
+    const firstSelected = getCase(po, selectedCaseNos[0]);
+    setMergeDraft({
+      po,
+      caseNos: selectedCaseNos.sort((a, b) => a - b),
+      packageName: firstSelected?.dims || availablePackages[0]?.name || "",
+    });
+  };
+
+  const confirmMergeCases = () => {
+    if (!mergeDraft) return;
+    const packageDef = availablePackages.find((pkg) => pkg.name === mergeDraft.packageName);
+    if (!packageDef) return;
+
+    applyOperation({
+      type: "merge_cases",
+      po: mergeDraft.po,
+      caseNos: mergeDraft.caseNos,
+      packageName: packageDef.name,
+      dims: packageDef.name,
+      caseType: `Manual Merge ${packageDef.category}`,
+    });
+    setMergeDraft(null);
+  };
+
+  const handleAddCase = (po: string) => {
+    const packageDef = availablePackages.find((pkg) => pkg.category === "Box") || availablePackages[0];
+    if (!packageDef) {
+      alert("No package available for this customer.");
+      return;
+    }
+
+    applyOperation({
+      type: "add_case",
+      po,
+      packageName: packageDef.name,
+      caseType: `Manual ${packageDef.category}`,
+      dims: packageDef.name,
+    });
+  };
+
+  const handleDeleteCase = (po: string, caseNo: number) => {
+    const target = getCase(po, caseNo);
+    if (!target) return;
+    if (target.items.length > 0) {
+      alert("Delete is allowed only for empty case. Move qty out first.");
+      return;
+    }
+
+    applyOperation({
+      type: "delete_case",
+      po,
+      caseNo,
+    });
   };
 
   // --- 4. Steps Navigation ---
@@ -616,6 +909,18 @@ export default function PackagingBookingPage() {
                              <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={Archive} color="buff" />
                              <SummaryCard label="Total Items" value={planSummary.totalItems} icon={Package} color="green" />
                          </div>
+                         <AdjustmentToolbar
+                           isEditMode={isEditMode}
+                           canUndo={adjustmentRecords.length > 0}
+                           canRedo={redoRecords.length > 0}
+                           hasUnsavedChanges={adjustmentRecords.length > 0}
+                           onEnterEditMode={handleEnterEditMode}
+                           onExitEditMode={handleExitEditMode}
+                           onUndo={handleUndo}
+                           onRedo={handleRedo}
+                           onDiscard={handleDiscardChanges}
+                         />
+
                          <div className="flex justify-center">
                             <div className="flex items-center gap-3">
                               <div className="group h-12 px-4 rounded-xl border border-[#E6E6E6] bg-gradient-to-br from-[#FFFFFF] via-[#F5F5F5] to-[#EBEBEB] text-[#4F4B64] font-bold shadow-[8px_8px_16px_rgba(160,160,160,0.25),-6px_-6px_14px_rgba(255,255,255,0.9)] flex items-center gap-2 transition-all hover:border-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:via-[#272635] hover:to-[#1F1D2B] hover:text-[#EFD09E] hover:shadow-[10px_12px_20px_rgba(39,38,53,0.35)]">
@@ -626,102 +931,169 @@ export default function PackagingBookingPage() {
                               </div>
                               <button
                                 onClick={() => setActiveStep(4)}
-                                className={proceedToSaveButtonClass}
+                                disabled={validationResult.errors.length > 0}
+                                className={`${proceedToSaveButtonClass} disabled:opacity-40 disabled:cursor-not-allowed`}
                               >
                                 Proceed to Save <Play className="w-4 h-4 text-[#5a7a1a]" fill="#5a7a1a" />
                               </button>
                             </div>
                          </div>
 
-                         {/* Results Table */}
+                         {basePlanResult.length > 0 ? (
+                           <div className="space-y-3">
+                             <GlassCard className="p-4 rounded-xl border border-[#D4AA7D]/35 bg-[#EFD09E]/35">
+                               <p className="text-xs font-bold uppercase tracking-wider text-[#7E5C4A]">Base vs Adjusted</p>
+                               <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                 <p className="text-[#272727]">Pallet: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.filter((c) => c.type.includes("Pallet")).length, 0)} {"->"} {planSummary.totalPallets}</span></p>
+                                 <p className="text-[#272727]">Box: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.filter((c) => c.type.includes("Box")).length, 0)} {"->"} {planSummary.totalBoxes}</span></p>
+                                 <p className="text-[#272727]">Warp: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.filter((c) => c.type.includes("Warp")).length, 0)} {"->"} {planSummary.totalWarps}</span></p>
+                                 <p className="text-[#272727]">Items: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.reduce((sum, c) => sum + c.items.reduce((itemSum, item) => itemSum + item.qty, 0), 0), 0)} {"->"} {planSummary.totalItems}</span></p>
+                               </div>
+                             </GlassCard>
+
+                             <GlassCard className="p-4 rounded-xl border border-[#D4AA7D]/35 bg-[#EEF2F6]/80">
+                               <p className="text-xs font-bold uppercase tracking-wider text-[#7E5C4A]">Validation Details</p>
+                               <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                 <span className={`rounded-md border px-2 py-1 font-bold ${validationResult.errors.length > 0 ? "border-rose-200 bg-rose-50 text-rose-700" : "border-[#9ACD32]/40 bg-[#9ACD32]/20 text-[#5a7a1a]"}`}>
+                                   {validationResult.errors.length} Errors
+                                 </span>
+                                 <span className={`rounded-md border px-2 py-1 font-bold ${validationResult.warnings.length > 0 ? "border-amber-200 bg-amber-50 text-amber-700" : "border-[#D4AA7D]/45 bg-[#EFD09E]/45 text-[#7E5C4A]"}`}>
+                                   {validationResult.warnings.length} Warnings
+                                 </span>
+                                 <span className={`rounded-md border px-2 py-1 font-bold ${adjustmentRecords.length > 0 ? "border-[#D4AA7D]/45 bg-[#EFD09E]/55 text-[#7E5C4A]" : "border-[#D4AA7D]/35 bg-white/60 text-[#7E5C4A]/80"}`}>
+                                   {adjustmentRecords.length > 0 ? `${adjustmentRecords.length} Unsaved adjustments` : "No unsaved adjustments"}
+                                 </span>
+                               </div>
+                               {validationResult.errors.length === 0 && validationResult.warnings.length === 0 ? (
+                                 <p className="mt-2 text-xs font-bold text-[#5a7a1a]">No blocking issue found.</p>
+                               ) : (
+                                 <div className="mt-2 space-y-1 text-xs">
+                                   {validationResult.errors.map((message, idx) => (
+                                     <p key={`validation-error-${idx}`} className="text-rose-700">- {message}</p>
+                                   ))}
+                                   {validationResult.warnings.map((message, idx) => (
+                                     <p key={`validation-warning-${idx}`} className="text-amber-700">- {message}</p>
+                                   ))}
+                                 </div>
+                               )}
+                             </GlassCard>
+                           </div>
+                         ) : null}
+
                          <div className="space-y-8">
                              {planResult.map((poGroup) => {
-                                 const poQty = poGroup.cases.reduce(
-                                   (sum, c) => sum + c.items.reduce((itemSum, item) => itemSum + item.qty, 0),
-                                   0
-                                 );
+                               const poQty = poGroup.cases.reduce(
+                                 (sum, c) => sum + c.items.reduce((itemSum, item) => itemSum + item.qty, 0),
+                                 0
+                               );
+                               const selectedInPo = selectedCaseNosByPo(poGroup.po);
 
-                                 return (
+                               return (
                                  <div key={poGroup.po} className="overflow-hidden">
-                                     <div className="bg-[#EEF2F6]/90 p-4 border-b border-[#D4AA7D]/30 flex justify-between items-center backdrop-blur-sm rounded-t-2xl">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm">
-                                                PO
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-lg text-[#272727]">{poGroup.po}</h3>
-                                                <p className="text-xs text-[#7E5C4A] font-medium">{poGroup.cases.length} Cases Generated</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm text-[11px]">
-                                                QTY
-                                            </div>
-                                            <div className="w-[72px] text-right">
-                                                <h3 className="font-bold text-lg text-[#272727] tabular-nums">{poQty.toLocaleString()}</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="overflow-x-auto rounded-b-2xl shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)]">
-                                        <table className="w-full text-sm text-left">
-                                            <colgroup>
-                                                <col className="w-[10%]" />
-                                                <col className="w-[16%]" />
-                                                <col className="w-[30%]" />
-                                                <col className="w-[19%]" />
-                                                <col className="w-[25%]" />
-                                            </colgroup>
-                                             <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider">
-                                                 <tr>
-                                                     <th className="px-6 py-3 text-center">Case #</th>
-                                                     <th className="px-6 py-3 text-center">Type</th>
-                                                     <th className="px-6 py-3 text-center">Contents (SKU / Qty)</th>
-                                                     <th className="px-6 py-3 text-center">Dimensions</th>
-                                                     <th className="px-6 py-3 text-center">Note</th>
-                                                 </tr>
-                                             </thead>
-                                             <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
-                                                {poGroup.cases.map((c, idx) => (
-                                                    <tr key={idx} className="hover:bg-[#272727] group transition-colors cursor-pointer">
-                                                        <td className="px-6 py-4 text-center font-mono text-[#7E5C4A] group-hover:text-[#EFD09E]">#{c.caseNo}</td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <Badge type={c.type} />
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="space-y-1">
-                                                                {c.items.map((item, i) => (
-                                                                    <div key={i} className="flex items-center justify-between text-xs max-w-[200px]">
-                                                                        <span className="font-medium text-[#272727] truncate mr-2 group-hover:text-[#EFD09E]" title={item.name || item.sku}>{item.sku}</span>
-                                                                        <span className="font-bold text-[#7E5C4A] bg-[#EFD09E]/70 border border-[#D4AA7D]/35 px-1.5 py-0.5 rounded group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E]">x{item.qty}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-center font-mono text-xs text-[#7E5C4A] group-hover:text-[#EFD09E]/80">
-                                                            {c.dims}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-xs text-[#7E5C4A] italic whitespace-normal break-words group-hover:text-[#EFD09E]/60">
-                                                            {c.note || "-"}
-                                                        </td>
-                                                    </tr>
-                                                 ))}
-                                             </tbody>
-                                         </table>
+                                   <div className="bg-[#EEF2F6]/90 p-4 border-b border-[#D4AA7D]/30 flex flex-wrap gap-4 justify-between items-center backdrop-blur-sm rounded-t-2xl">
+                                     <div className="flex items-center gap-3">
+                                       <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm">
+                                         PO
+                                       </div>
+                                       <div>
+                                         <h3 className="font-bold text-lg text-[#272727]">{poGroup.po}</h3>
+                                         <p className="text-xs text-[#7E5C4A] font-medium">{poGroup.cases.length} Cases Generated</p>
+                                       </div>
                                      </div>
+                                     <div className="flex items-center gap-2">
+                                       {isEditMode ? (
+                                         <>
+                                           <button
+                                             onClick={() => handleAddCase(poGroup.po)}
+                                             className="rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/60 px-3 py-2 text-xs font-bold text-[#7E5C4A]"
+                                           >
+                                             Add Case
+                                           </button>
+                                           <button
+                                             onClick={() => openMergeCases(poGroup.po)}
+                                             disabled={selectedInPo.length < 2}
+                                             className="rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/60 px-3 py-2 text-xs font-bold text-[#7E5C4A] disabled:opacity-40"
+                                           >
+                                             Merge Selected ({selectedInPo.length})
+                                           </button>
+                                         </>
+                                       ) : null}
+                                       <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm text-[11px]">
+                                         QTY
+                                       </div>
+                                       <div className="w-[72px] text-right">
+                                         <h3 className="font-bold text-lg text-[#272727] tabular-nums">{poQty.toLocaleString()}</h3>
+                                       </div>
+                                     </div>
+                                   </div>
+                                   <div className="overflow-x-auto rounded-b-2xl shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)]">
+                                     <table className="w-full text-sm text-left">
+                                       {isEditMode ? (
+                                         <colgroup>
+                                           <col style={{ width: "5%" }} />
+                                           <col style={{ width: "10%" }} />
+                                           <col style={{ width: "14%" }} />
+                                           <col style={{ width: "29%" }} />
+                                           <col style={{ width: "14%" }} />
+                                           <col style={{ width: "18%" }} />
+                                           <col style={{ width: "10%" }} />
+                                         </colgroup>
+                                       ) : (
+                                         <colgroup>
+                                           <col style={{ width: "12%" }} />
+                                           <col style={{ width: "16%" }} />
+                                           <col style={{ width: "34%" }} />
+                                           <col style={{ width: "16%" }} />
+                                           <col style={{ width: "22%" }} />
+                                         </colgroup>
+                                       )}
+                                       <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider">
+                                         <tr>
+                                           {isEditMode ? <th className="px-4 py-3 text-center w-10">Sel</th> : null}
+                                           <th className="px-4 py-3 text-center">Case #</th>
+                                           <th className="px-4 py-3 text-center">Type</th>
+                                           <th className="px-4 py-3 text-center">Contents (SKU / Qty)</th>
+                                           <th className="px-4 py-3 text-center">Dimensions</th>
+                                           <th className="px-4 py-3 text-center">Note</th>
+                                           {isEditMode ? <th className="px-4 py-3 text-center">Actions</th> : null}
+                                         </tr>
+                                       </thead>
+                                       <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
+                                         {poGroup.cases.map((c) => (
+                                           <EditableCaseRow
+                                             key={`${poGroup.po}-${c.caseNo}`}
+                                             po={poGroup.po}
+                                             caseData={c}
+                                             isEditMode={isEditMode}
+                                             packageOptions={availablePackages.map((pkg) => ({ name: pkg.name, category: pkg.category }))}
+                                             selected={Boolean(selectedCaseKeys[caseKey(poGroup.po, c.caseNo)])}
+                                             onToggleSelected={handleToggleCaseSelected}
+                                             onUpdateQty={handleUpdateQty}
+                                             onUpdateNote={handleUpdateNote}
+                                             onChangePackage={handleChangePackage}
+                                             onOpenSplit={openSplitCase}
+                                             onDeleteCase={handleDeleteCase}
+                                           />
+                                         ))}
+                                       </tbody>
+                                     </table>
+                                   </div>
                                  </div>
-                             )})}
+                               );
+                             })}
                          </div>
 
                          <div className="flex justify-center pt-8 gap-4">
                               <button 
-                                  onClick={() => { setActiveStep(2); setPlanResult([]); setIsHistoryMode(false); }}
+                                  onClick={() => { setActiveStep(2); setPlanResult([]); setBasePlanResult([]); setIsHistoryMode(false); setIsEditMode(false); setAdjustmentRecords([]); setRedoRecords([]); setSelectedCaseKeys({}); setValidationResult({ errors: [], warnings: [] }); }}
                                   className="px-6 py-3 border-2 border-[#D4AA7D]/45 text-[#7E5C4A] font-bold rounded-xl hover:border-[#7E5C4A]/60 hover:text-[#272727] hover:bg-gradient-to-br hover:from-[#FFFFFF] hover:to-[#ECECEC] transition-all flex items-center gap-2"
                               >
                                   <RotateCcw className="w-4 h-4"/> Back to Input
                               </button>
                               <button 
                                  onClick={() => setActiveStep(4)}
-                                 className={proceedToSaveButtonClass}
+                                 disabled={validationResult.errors.length > 0}
+                                 className={`${proceedToSaveButtonClass} disabled:opacity-40 disabled:cursor-not-allowed`}
                             >
                                  Proceed to Save <Play className="w-4 h-4 text-[#5a7a1a]" fill="#5a7a1a"/>
                              </button>
@@ -740,18 +1112,28 @@ export default function PackagingBookingPage() {
                               <p className="text-[#7E5C4A] max-w-md">
                                   Your packing plan has been generated successfully. You can now download the PDF report or save this plan to the database.
                               </p>
+                              {adjustmentRecords.length > 0 ? (
+                                <p className="text-xs font-bold text-[#7E5C4A] bg-[#EFD09E]/50 border border-[#D4AA7D]/35 rounded-lg px-3 py-2">
+                                  Manually adjusted: {adjustmentRecords.length} operations
+                                </p>
+                              ) : null}
+                              {validationResult.errors.length > 0 ? (
+                                <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+                                  Save/Export blocked until validation errors are resolved.
+                                </p>
+                              ) : null}
                               
                               <div className="grid grid-cols-2 gap-4 w-full max-w-md mt-4">
                                   <button 
                                       onClick={handleSavePlan}
-                                      disabled={isHistoryMode || isSaving}
+                                      disabled={isSaving || validationResult.errors.length > 0 || (isHistoryMode && adjustmentRecords.length === 0)}
                                       className={`flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 rounded-2xl transition-all group ${
-                                          isHistoryMode || isSaving 
+                                          isSaving || validationResult.errors.length > 0 || (isHistoryMode && adjustmentRecords.length === 0) 
                                           ? 'border-[#D4AA7D]/40 opacity-50 cursor-not-allowed' 
                                           : 'border-[#D4AA7D]/35 hover:border-[#9ACD32] hover:bg-[#EFD09E]/55 cursor-pointer'
                                       }`}
                                   >
-                                      {isHistoryMode ? (
+                                      {isHistoryMode && adjustmentRecords.length === 0 ? (
                                           <>
                                             <CheckCircle2 className="w-8 h-8 text-[#9ACD32]"/>
                                             <span className="font-bold text-[#5a7a1a]">Saved to DB</span>
@@ -768,7 +1150,7 @@ export default function PackagingBookingPage() {
                                   
                                   <button 
                                       onClick={handleExportPDF}
-                                      disabled={isExportingPlan}
+                                      disabled={isExportingPlan || validationResult.errors.length > 0}
                                       className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#7E5C4A]/55 hover:bg-[#EFD09E]/70 transition-all group"
                                   >
                                       <Download className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#272727] transition-colors"/>
@@ -779,6 +1161,7 @@ export default function PackagingBookingPage() {
 
                                   <button 
                                       onClick={handleExportPackingDetails}
+                                      disabled={validationResult.errors.length > 0}
                                       className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#9ACD32]/55 hover:bg-[#EFD09E]/70 transition-all group "
                                   >
                                       <FileText className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#5a7a1a] transition-colors"/>
@@ -799,7 +1182,7 @@ export default function PackagingBookingPage() {
                           </GlassCard>
 
                            <button 
-                               onClick={() => { setActiveStep(1); setPlanResult([]); setIsHistoryMode(false); }}
+                               onClick={() => { setActiveStep(1); setPlanResult([]); setBasePlanResult([]); setPlanSummary(null); setIsHistoryMode(false); setIsEditMode(false); setAdjustmentRecords([]); setRedoRecords([]); setSelectedCaseKeys({}); setValidationResult({ errors: [], warnings: [] }); }}
                                className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-xs"
                            >
                                <RotateCcw className="w-4 h-4"/> Start New Plan
@@ -811,6 +1194,128 @@ export default function PackagingBookingPage() {
 
         </div>
       </section>
+
+      {/* Split Case Modal */}
+      {splitDraft && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm"
+          onClick={() => setSplitDraft(null)}
+        >
+          <div
+            className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-6 max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 className="text-lg font-bold text-[#272727]">Split Case #{splitDraft.caseNo}</h4>
+            <p className="text-sm text-[#7E5C4A] mt-1">PO {splitDraft.po}</p>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-[#7E5C4A] mb-1">SKU</label>
+                <select
+                  value={splitDraft.sku}
+                  onChange={(e) => setSplitDraft((prev) => (prev ? { ...prev, sku: e.target.value } : prev))}
+                  className="w-full rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/45 px-3 py-2 text-sm text-[#272727]"
+                >
+                  {(getCase(splitDraft.po, splitDraft.caseNo)?.items || []).map((item) => (
+                    <option key={item.sku} value={item.sku}>
+                      {item.sku} (qty {item.qty})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Split Qty</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={splitDraft.qty}
+                  onChange={(e) => setSplitDraft((prev) => (prev ? { ...prev, qty: Number(e.target.value || 0) } : prev))}
+                  className="w-full rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/45 px-3 py-2 text-sm text-[#272727]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Target Package</label>
+                <select
+                  value={splitDraft.packageName}
+                  onChange={(e) => setSplitDraft((prev) => (prev ? { ...prev, packageName: e.target.value } : prev))}
+                  className="w-full rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/45 px-3 py-2 text-sm text-[#272727]"
+                >
+                  {availablePackages.map((pkg) => (
+                    <option key={pkg.name} value={pkg.name}>
+                      {pkg.name} ({pkg.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setSplitDraft(null)}
+                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmSplitCase}
+                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#1f1f1f]"
+              >
+                Confirm Split
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Merge Cases Modal */}
+      {mergeDraft && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm"
+          onClick={() => setMergeDraft(null)}
+        >
+          <div
+            className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-6 max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 className="text-lg font-bold text-[#272727]">Merge Cases</h4>
+            <p className="text-sm text-[#7E5C4A] mt-1">
+              PO {mergeDraft.po} | Cases {mergeDraft.caseNos.join(", ")}
+            </p>
+
+            <div className="mt-4">
+              <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Target Package</label>
+              <select
+                value={mergeDraft.packageName}
+                onChange={(e) => setMergeDraft((prev) => (prev ? { ...prev, packageName: e.target.value } : prev))}
+                className="w-full rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/45 px-3 py-2 text-sm text-[#272727]"
+              >
+                {availablePackages.map((pkg) => (
+                  <option key={pkg.name} value={pkg.name}>
+                    {pkg.name} ({pkg.category})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setMergeDraft(null)}
+                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmMergeCases}
+                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#1f1f1f]"
+              >
+                Confirm Merge
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Customer Management Modal */}
       {isCustomerFormOpen && (
@@ -1047,20 +1552,5 @@ function SummaryCard({ label, value, icon: Icon, color }: SummaryCardProps) {
                 <p className="text-2xl font-black text-[#272727] transition-colors group-hover:text-[#1F1D2B]">{value}</p>
             </div>
         </GlassCard>
-    );
-}
-
-function Badge({ type }: { type: string }) {
-    let style = "bg-[#EEF2F6] text-[#7E5C4A] border border-[#D4AA7D]/35 group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
-    if (type.includes("Full Pallet")) style = "bg-[#9ACD32]/20 text-[#5a7a1a] border border-[#9ACD32]/35 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
-    else if (type.includes("Partial")) style = "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
-    else if (type.includes("Mixed")) style = "bg-[#272727]/10 text-[#272727] border border-[#272727]/20 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
-    else if (type.includes("Warp")) style = "bg-rose-50 text-rose-600 border border-rose-100 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
-    else if (type.includes("Unknown")) style = "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
-
-    return (
-        <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${style}`}>
-            {type}
-        </span>
     );
 }
