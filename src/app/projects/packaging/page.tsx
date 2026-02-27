@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -71,6 +72,16 @@ const tiltClasses = [
 ] as const;
 
 export default function PackagingDashboard() {
+  const [isConsoleAutoHover, setIsConsoleAutoHover] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsConsoleAutoHover((prev) => !prev);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#F6EDDE] pt-20">
       <div className="pointer-events-none absolute -top-20 -left-16 h-72 w-72 rounded-full bg-[#D4AA7D]/35 blur-3xl" />
@@ -84,12 +95,17 @@ export default function PackagingDashboard() {
               animate={{ y: [0, -3, 0], boxShadow: ["8px 8px 20px rgba(166,180,200,0.28),-8px -8px 20px rgba(255,255,255,0.92)", "12px 14px 28px rgba(39,38,53,0.22),-8px -8px 20px rgba(255,255,255,0.86)", "8px 8px 20px rgba(166,180,200,0.28),-8px -8px 20px rgba(255,255,255,0.92)"] }}
               transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
               whileHover={{ scale: 1.04, y: -6 }}
-              className="inline-block cursor-default whitespace-nowrap rounded-[1.7rem] border border-white/90 bg-[#EEF2F6]/95 px-8 py-4 text-2xl font-black uppercase tracking-[0.14em] text-[#272727] transition-colors duration-300 hover:border-[#EFD09E]/70 hover:bg-[#272635] hover:text-[#EFD09E] sm:px-10 sm:py-5 sm:text-4xl md:px-12 md:py-6 md:text-6xl"
+              className={cn(
+                "inline-block cursor-default whitespace-nowrap rounded-[1.7rem] border px-8 py-4 text-2xl font-black uppercase tracking-[0.14em] transition-colors duration-500 sm:px-10 sm:py-5 sm:text-4xl md:px-12 md:py-6 md:text-6xl",
+                isConsoleAutoHover
+                  ? "border-[#EFD09E]/70 bg-[#272635] text-[#EFD09E]"
+                  : "border-white/90 bg-[#EEF2F6]/95 text-[#272727]"
+              )}
             >
               Packaging Console
             </motion.h1>
             <p className="max-w-2xl text-sm font-semibold leading-relaxed text-[#7E5C4A] md:text-base">
-              ศูนย์รวมเมนูสำหรับวางแผน ตรวจสอบ และติดตามงานแพ็กกิ้งแบบครบจบในหน้าเดียว
+              A unified workspace for planning, validating, and tracking packaging operations with speed and clarity.
             </p>
           </header>
 
