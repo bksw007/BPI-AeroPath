@@ -61,12 +61,12 @@ function mutatePOCase(poCase: POCase, op: PlanAdjustmentOp): POCase {
       if (!sourceItem) return poCase;
 
       const splitQty = Math.max(1, Math.floor(op.qty));
-      if (splitQty >= sourceItem.qty) return poCase;
+      if (splitQty > sourceItem.qty) return poCase;
 
       source.items = source.items.map((item) => {
         if (item.sku !== op.sku) return item;
         return { ...item, qty: item.qty - splitQty };
-      });
+      }).filter((item) => item.qty > 0);
 
       const nextNo = getNextCaseNo(nextCases);
       nextCases.push({

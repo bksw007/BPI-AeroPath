@@ -170,6 +170,7 @@ export const PackagingService = {
     adjustments?: any[];
     hasManualAdjustment?: boolean;
     adjustmentCount?: number;
+    activityUser?: string;
   }) => {
     try {
       const batch = writeBatch(db);
@@ -190,7 +191,7 @@ export const PackagingService = {
         category: 'Planning',
         targetId: planRef.id,
         targetName: `Plan for ${planData.customer.name}`,
-        user: 'System', // Replace with auth user if available later
+        user: planData.activityUser || 'System',
         details: `Created packing plan with ${planData.summary.totalPallets} pallets and ${planData.summary.totalBoxes} boxes. Adjusted: ${planData.hasManualAdjustment ? "Yes" : "No"} (${planData.adjustmentCount || 0})`
       });
 

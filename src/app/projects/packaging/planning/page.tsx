@@ -35,6 +35,7 @@ import type { AdjustmentValidationResult, POCase, PlanAdjustmentRecord, PlanAdju
 import { createAdjustmentRecord, clonePlanResult, summarizePlan } from "@/lib/planning/adjustments.helpers";
 import { applyAdjustment, applyAdjustments } from "@/lib/planning/adjustments.reducer";
 import { buildExpectedQtyMap, validateAdjustedResult } from "@/lib/planning/adjustments.validation";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 interface PlanSummary {
   totalPallets: number;
@@ -76,6 +77,7 @@ interface MergeDraft {
 }
 
 export default function PackagingBookingPage() {
+  const { user } = useAuth();
   const [customerPackTypeMapping, setCustomerPackTypeMapping] = useState<Record<string, string>>(
     () => ({ ...CUSTOMER_PACK_TYPE_MAPPING })
   );
@@ -217,7 +219,8 @@ export default function PackagingBookingPage() {
               effectiveData: JSON.stringify(planResult),
               adjustments: adjustmentRecords,
               hasManualAdjustment: adjustmentRecords.length > 0,
-              adjustmentCount: adjustmentRecords.length
+              adjustmentCount: adjustmentRecords.length,
+              activityUser: user?.displayName || user?.email || "System"
           };
           
           const result = await PackagingService.savePackingPlan(dataToSave);
@@ -568,8 +571,8 @@ export default function PackagingBookingPage() {
     const packageDef = availablePackages.find((pkg) => pkg.name === splitDraft.packageName);
     if (!sourceCase || !sourceItem || !packageDef) return;
 
-    if (!Number.isFinite(splitDraft.qty) || splitDraft.qty <= 0 || splitDraft.qty >= sourceItem.qty) {
-      alert(`Split qty must be between 1 and ${sourceItem.qty - 1}.`);
+    if (!Number.isFinite(splitDraft.qty) || splitDraft.qty <= 0 || splitDraft.qty > sourceItem.qty) {
+      alert(`Split qty must be between 1 and ${sourceItem.qty}.`);
       return;
     }
 
@@ -615,22 +618,6 @@ export default function PackagingBookingPage() {
       caseType: `Manual Merge ${packageDef.category}`,
     });
     setMergeDraft(null);
-  };
-
-  const handleAddCase = (po: string) => {
-    const packageDef = availablePackages.find((pkg) => pkg.category === "Box") || availablePackages[0];
-    if (!packageDef) {
-      alert("No package available for this customer.");
-      return;
-    }
-
-    applyOperation({
-      type: "add_case",
-      po,
-      packageName: packageDef.name,
-      caseType: `Manual ${packageDef.category}`,
-      dims: packageDef.name,
-    });
   };
 
   const handleDeleteCase = (po: string, caseNo: number) => {
@@ -941,16 +928,6 @@ export default function PackagingBookingPage() {
 
                          {basePlanResult.length > 0 ? (
                            <div className="space-y-3">
-                             <GlassCard className="p-4 rounded-xl border border-[#D4AA7D]/35 bg-[#EFD09E]/35">
-                               <p className="text-xs font-bold uppercase tracking-wider text-[#7E5C4A]">Base vs Adjusted</p>
-                               <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                 <p className="text-[#272727]">Pallet: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.filter((c) => c.type.includes("Pallet")).length, 0)} {"->"} {planSummary.totalPallets}</span></p>
-                                 <p className="text-[#272727]">Box: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.filter((c) => c.type.includes("Box")).length, 0)} {"->"} {planSummary.totalBoxes}</span></p>
-                                 <p className="text-[#272727]">Warp: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.filter((c) => c.type.includes("Warp")).length, 0)} {"->"} {planSummary.totalWarps}</span></p>
-                                 <p className="text-[#272727]">Items: <span className="font-bold">{basePlanResult.reduce((acc, po) => acc + po.cases.reduce((sum, c) => sum + c.items.reduce((itemSum, item) => itemSum + item.qty, 0), 0), 0)} {"->"} {planSummary.totalItems}</span></p>
-                               </div>
-                             </GlassCard>
-
                              <GlassCard className="p-4 rounded-xl border border-[#D4AA7D]/35 bg-[#EEF2F6]/80">
                                <p className="text-xs font-bold uppercase tracking-wider text-[#7E5C4A]">Validation Details</p>
                                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
@@ -1000,15 +977,9 @@ export default function PackagingBookingPage() {
                                          <p className="text-xs text-[#7E5C4A] font-medium">{poGroup.cases.length} Cases Generated</p>
                                        </div>
                                      </div>
-                                     <div className="flex items-center gap-2">
-                                       {isEditMode ? (
+                                       <div className="flex items-center gap-2">
+                                         {isEditMode ? (
                                          <>
-                                           <button
-                                             onClick={() => handleAddCase(poGroup.po)}
-                                             className="rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/60 px-3 py-2 text-xs font-bold text-[#7E5C4A]"
-                                           >
-                                             Add Case
-                                           </button>
                                            <button
                                              onClick={() => openMergeCases(poGroup.po)}
                                              disabled={selectedInPo.length < 2}
@@ -1181,12 +1152,20 @@ export default function PackagingBookingPage() {
                               </div>
                           </GlassCard>
 
-                           <button 
-                               onClick={() => { setActiveStep(1); setPlanResult([]); setBasePlanResult([]); setPlanSummary(null); setIsHistoryMode(false); setIsEditMode(false); setAdjustmentRecords([]); setRedoRecords([]); setSelectedCaseKeys({}); setValidationResult({ errors: [], warnings: [] }); }}
-                               className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-xs"
-                           >
-                               <RotateCcw className="w-4 h-4"/> Start New Plan
-                           </button>
+                           <div className="mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:justify-center">
+                             <button
+                               onClick={() => setActiveStep(3)}
+                               className="px-8 py-3 bg-[#EEF2F6] text-[#5A3F2C] font-bold rounded-xl border border-[#D4AA7D]/45 hover:bg-[#EFD09E]/55 transition-all flex items-center justify-center gap-2 flex-1"
+                             >
+                               <RotateCcw className="w-4 h-4" /> Back to Review Plan
+                             </button>
+                             <button 
+                                 onClick={() => { setActiveStep(1); setPlanResult([]); setBasePlanResult([]); setPlanSummary(null); setIsHistoryMode(false); setIsEditMode(false); setAdjustmentRecords([]); setRedoRecords([]); setSelectedCaseKeys({}); setValidationResult({ errors: [], warnings: [] }); }}
+                                 className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2 flex-1"
+                             >
+                                 <RotateCcw className="w-4 h-4"/> Start New Plan
+                             </button>
+                           </div>
                      </div>
                  )}
              </div>
