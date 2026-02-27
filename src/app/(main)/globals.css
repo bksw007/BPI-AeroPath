@@ -1,10 +1,52 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Noto Sans Thai Local";
+  src: url("/fonts/Noto_Sans_Thai/static/NotoSansThai-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Thai Local";
+  src: url("/fonts/Noto_Sans_Thai/static/NotoSansThai-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Thai Local";
+  src: url("/fonts/Noto_Sans_Thai/static/NotoSansThai-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sarabun Alt Local";
+  src: url("/fonts/Sarabun-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sarabun Alt Local";
+  src: url("/fonts/Sarabun-BoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ===================================
    🎨 CSS Variables & Theme
    =================================== */
 
 :root {
+  --font-noto-sans-thai: "Noto Sans Thai Local";
+  --font-montserrat-alt: "Sarabun Alt Local";
   /* สีหลักของระบบ BPI AeroPath */
   --raisin-black: #272727;
   --buff: #7e5c4a;
