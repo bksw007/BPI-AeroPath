@@ -7,7 +7,7 @@ import {
   Play, 
   Box, 
   Layers, 
-  AlertTriangle,
+  Archive,
   Download,
   CheckCircle2,
   Package,
@@ -363,6 +363,38 @@ export default function PackagingBookingPage() {
     { id: 4, label: "Save Plan", icon: Save },
   ];
 
+  const proceedToSaveButtonClass = "group h-12 px-8 rounded-xl border border-[#E6E6E6] bg-gradient-to-br from-[#FFFFFF] via-[#F5F5F5] to-[#EBEBEB] text-[#4F4B64] font-bold shadow-[8px_8px_16px_rgba(160,160,160,0.25),-6px_-6px_14px_rgba(255,255,255,0.9)] transition-all hover:border-[#EFD09E] hover:text-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:via-[#272635] hover:to-[#1F1D2B] hover:shadow-[10px_12px_20px_rgba(39,38,53,0.35)] flex items-center gap-2";
+
+  const getCaseAccuracyScore = (c: PackedCase): number => {
+    const type = (c.type || "").toLowerCase();
+    const note = (c.note || "").toLowerCase();
+
+    if (type.includes("unknown") || type.includes("warp")) return 100;
+    if (type.includes("mixed")) {
+      if (note.includes("primary:")) return 94;
+      return 80;
+    }
+    return 98;
+  };
+
+  const weightedAccuracy = planResult.reduce(
+    (acc, po) => {
+      po.cases.forEach((c) => {
+        const qty = c.items.reduce((sum, it) => sum + it.qty, 0);
+        const score = getCaseAccuracyScore(c);
+        acc.weightedScore += score * qty;
+        acc.totalQty += qty;
+      });
+      return acc;
+    },
+    { weightedScore: 0, totalQty: 0 }
+  );
+
+  const accuracyRateText =
+    weightedAccuracy.totalQty > 0
+      ? `${(weightedAccuracy.weightedScore / weightedAccuracy.totalQty).toFixed(2)}%`
+      : "N/A";
+
   return (
     <div className="min-h-screen bg-[#F6EDDE] pt-20 pb-20">
       <section className="py-8">
@@ -373,16 +405,6 @@ export default function PackagingBookingPage() {
              description="Generate packing plans from raw PO data."
              backHref="/projects/packaging"
              backLabel="Packaging Console"
-             action={
-                 activeStep === 3 && (
-                      <button 
-                         onClick={() => setActiveStep(4)}
-                         className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all"
-                      >
-                          Proceed to Save <Play className="w-4 h-4"/>
-                      </button>
-                 )
-             }
           >
              {/* Stepper */}
              <div className="mt-8 flex items-center justify-center mb-12">
@@ -506,13 +528,19 @@ export default function PackagingBookingPage() {
                  {activeStep === 2 && (
                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4">
                          <div className="lg:col-span-2">
-                             <GlassCard className="p-6 h-full flex flex-col">
+                             <GlassCard className="relative overflow-hidden p-6 h-full flex flex-col rounded-[1.75rem] border border-[#F3F3F3] bg-gradient-to-br from-[#FBFBFB] via-[#F1F1F1] to-[#E9E9E9] shadow-[12px_12px_26px_rgba(177,177,177,0.3),-8px_-8px_20px_rgba(255,255,255,0.95),inset_2px_2px_1px_rgba(255,255,255,0.92),inset_-3px_-4px_8px_rgba(180,180,180,0.22)]">
+                                 <div className="pointer-events-none absolute -top-12 right-[-36px] h-40 w-40 rounded-full bg-white/70 blur-2xl" />
                                  <div className="flex justify-between items-center mb-4">
-                                     <h3 className="font-bold text-[#272727] flex items-center gap-2">
-                                        <FileSpreadsheet className="w-5 h-5 text-[#7E5C4A]"/>
+                                     <h3 className="font-bold text-[#272727] flex items-center gap-2 relative">
+                                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#EAC9A3] bg-gradient-to-br from-[#FFF0D5] to-[#E7BE8A] shadow-[4px_4px_10px_rgba(166,110,54,0.2),-3px_-3px_8px_rgba(255,245,225,0.75)]">
+                                          <FileSpreadsheet className="w-4 h-4 text-[#7E5C4A]"/>
+                                        </span>
                                         Paste Raw Data
                                     </h3>
-                                    <button onClick={handleSampleData} className="text-xs text-[#7E5C4A] font-bold hover:underline">
+                                    <button
+                                      onClick={handleSampleData}
+                                      className="text-xs px-3 py-1.5 rounded-lg border border-[#D4AA7D]/45 bg-[#F8E3C0]/75 text-[#7E5C4A] font-bold transition-colors hover:bg-[#272635] hover:border-[#EFD09E] hover:text-[#EFD09E]"
+                                    >
                                         Load Sample
                                     </button>
                                 </div>
@@ -520,16 +548,19 @@ export default function PackagingBookingPage() {
                                      value={rawData}
                                      onChange={handleRawInputChange}
                                      placeholder={`Paste form Excel (PO, SKU, QTY)\nExample:\nPO123  SKU001  100\nPO123  SKU002  50`}
-                                     className="flex-1 w-full bg-[#EFD09E]/45 border border-[#D4AA7D]/40 rounded-xl p-4 font-mono text-sm text-[#272727] focus:ring-2 focus:ring-[#9ACD32]/30 outline-none resize-none min-h-[300px]"
+                                     className="flex-1 w-full bg-[#FDF6E8]/80 border border-[#D4AA7D]/45 rounded-2xl p-4 font-mono text-sm text-[#272727] shadow-[inset_2px_2px_3px_rgba(255,255,255,0.8),inset_-4px_-4px_8px_rgba(181,122,61,0.16)] focus:ring-2 focus:ring-[#EFD09E] outline-none resize-none min-h-[300px]"
                                 />
                                 <div className="mt-4 flex justify-between items-center">
-                                    <button onClick={() => setActiveStep(1)} className="text-[#7E5C4A] hover:text-[#272727] font-bold text-sm">
+                                    <button
+                                      onClick={() => setActiveStep(1)}
+                                      className="px-4 py-2 rounded-xl border border-[#D4AA7D]/45 bg-[#F8E3C0]/70 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272635] hover:border-[#EFD09E] font-bold text-sm transition-colors"
+                                    >
                                         Back
                                     </button>
                                     <button 
                                         onClick={handleGeneratePlan}
                                         disabled={!rawData || isProcessing}
-                                        className="px-6 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="px-6 py-3 rounded-xl border border-[#D4AA7D]/45 bg-[#F8E3C0]/70 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272635] hover:border-[#EFD09E] font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                                     >
                                          {isProcessing ? (
                                              <>Processing...</>
@@ -542,30 +573,30 @@ export default function PackagingBookingPage() {
                          </div>
                          
                          <div className="space-y-6">
-                             <GlassCard className="p-6 bg-[#EEF2F6]/95 border border-white/80 shadow-[8px_8px_18px_rgba(166,180,200,0.22),-8px_-8px_18px_rgba(255,255,255,0.9)]">
-                                <h4 className="font-bold text-[#272727] mb-2">Selected Context</h4>
-                                <div className="flex items-center justify-between bg-[#EFD09E]/55 p-3 rounded-lg border border-[#D4AA7D]/35 mb-3">
+                             <GlassCard className="p-6 rounded-[1.5rem] border border-[#F3F3F3] bg-gradient-to-br from-[#FAFAFA] via-[#F2F2F2] to-[#EAEAEA] shadow-[10px_10px_22px_rgba(177,177,177,0.28),-8px_-8px_18px_rgba(255,255,255,0.9),inset_2px_2px_1px_rgba(255,255,255,0.92),inset_-3px_-4px_8px_rgba(180,180,180,0.2)]">
+                                <h4 className="font-bold text-[#272727] mb-3">Selected Context</h4>
+                                <div className="flex items-center justify-between bg-[#F8E3C0]/80 p-3 rounded-xl border border-[#D4AA7D]/40 mb-3 shadow-[inset_1px_1px_0_rgba(255,247,232,0.9)]">
                                     <span className="text-sm text-[#7E5C4A]">Customer</span>
                                     <span className="font-bold text-[#272727] text-lg">{selectedCustomer?.code}</span>
                                 </div>
-                                <div className="flex items-center justify-between bg-[#EFD09E]/55 p-3 rounded-lg border border-[#D4AA7D]/35">
+                                <div className="flex items-center justify-between bg-[#F8E3C0]/80 p-3 rounded-xl border border-[#D4AA7D]/40 shadow-[inset_1px_1px_0_rgba(255,247,232,0.9)]">
                                     <span className="text-sm text-[#7E5C4A]">Region</span>
                                     <span className="font-bold text-[#272727]">{selectedCustomer?.region}</span>
                                 </div>
                             </GlassCard>
 
-                            <GlassCard className="p-6">
+                            <GlassCard className="p-6 rounded-[1.5rem] border border-[#F3F3F3] bg-gradient-to-br from-[#FAFAFA] via-[#F2F2F2] to-[#EAEAEA] shadow-[10px_10px_22px_rgba(177,177,177,0.28),-8px_-8px_18px_rgba(255,255,255,0.9),inset_2px_2px_1px_rgba(255,255,255,0.92),inset_-3px_-4px_8px_rgba(180,180,180,0.2)]">
                                 <h4 className="font-bold text-[#272727] mb-4">Tips</h4>
                                 <ul className="space-y-2 text-sm text-[#7E5C4A]">
-                                    <li className="flex gap-2">
+                                    <li className="flex gap-2 rounded-lg border border-[#D4AA7D]/25 bg-[#F8EEDB]/55 px-3 py-2">
                                         <CheckCircle2 className="w-4 h-4 text-[#9ACD32] shrink-0" />
                                         <span>Copy directly from Excel/Sheets</span>
                                     </li>
-                                    <li className="flex gap-2">
+                                    <li className="flex gap-2 rounded-lg border border-[#D4AA7D]/25 bg-[#F8EEDB]/55 px-3 py-2">
                                         <CheckCircle2 className="w-4 h-4 text-[#9ACD32] shrink-0" />
                                         <span>Ensure columns are PO, SKU, Qty</span>
                                     </li>
-                                    <li className="flex gap-2">
+                                    <li className="flex gap-2 rounded-lg border border-[#D4AA7D]/25 bg-[#F8EEDB]/55 px-3 py-2">
                                         <CheckCircle2 className="w-4 h-4 text-[#9ACD32] shrink-0" />
                                         <span>System auto-fetches specs</span>
                                     </li>
@@ -582,15 +613,37 @@ export default function PackagingBookingPage() {
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                              <SummaryCard label="Total Pallets" value={planSummary.totalPallets} icon={Layers} color="sunset" />
                              <SummaryCard label="Total Boxes" value={planSummary.totalBoxes} icon={Box} color="raisin" />
-                             <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={AlertTriangle} color="buff" />
+                             <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={Archive} color="buff" />
                              <SummaryCard label="Total Items" value={planSummary.totalItems} icon={Package} color="green" />
+                         </div>
+                         <div className="flex justify-center">
+                            <div className="flex items-center gap-3">
+                              <div className="group h-12 px-4 rounded-xl border border-[#E6E6E6] bg-gradient-to-br from-[#FFFFFF] via-[#F5F5F5] to-[#EBEBEB] text-[#4F4B64] font-bold shadow-[8px_8px_16px_rgba(160,160,160,0.25),-6px_-6px_14px_rgba(255,255,255,0.9)] flex items-center gap-2 transition-all hover:border-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:via-[#272635] hover:to-[#1F1D2B] hover:text-[#EFD09E] hover:shadow-[10px_12px_20px_rgba(39,38,53,0.35)]">
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#9ACD32]/30 text-[#272727] transition-colors group-hover:bg-[#3A374F] group-hover:text-[#EFD09E]">
+                                  <CheckCircle2 className="w-4 h-4" />
+                                </span>
+                                Accuracy Rate: <span className="ml-1 text-[#272635] tabular-nums group-hover:text-[#EFD09E]">{accuracyRateText}</span>
+                              </div>
+                              <button
+                                onClick={() => setActiveStep(4)}
+                                className={proceedToSaveButtonClass}
+                              >
+                                Proceed to Save <Play className="w-4 h-4 text-[#5a7a1a]" fill="#5a7a1a" />
+                              </button>
+                            </div>
                          </div>
 
                          {/* Results Table */}
                          <div className="space-y-8">
-                             {planResult.map((poGroup) => (
-                                 <GlassCard key={poGroup.po} className="overflow-hidden">
-                                     <div className="bg-[#EEF2F6]/90 p-4 border-b border-[#D4AA7D]/30 flex justify-between items-center backdrop-blur-sm">
+                             {planResult.map((poGroup) => {
+                                 const poQty = poGroup.cases.reduce(
+                                   (sum, c) => sum + c.items.reduce((itemSum, item) => itemSum + item.qty, 0),
+                                   0
+                                 );
+
+                                 return (
+                                 <div key={poGroup.po} className="overflow-hidden">
+                                     <div className="bg-[#EEF2F6]/90 p-4 border-b border-[#D4AA7D]/30 flex justify-between items-center backdrop-blur-sm rounded-t-2xl">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm">
                                                 PO
@@ -600,23 +653,38 @@ export default function PackagingBookingPage() {
                                                 <p className="text-xs text-[#7E5C4A] font-medium">{poGroup.cases.length} Cases Generated</p>
                                             </div>
                                         </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-10 h-10 rounded-lg bg-[#272727] text-[#EFD09E] flex items-center justify-center font-bold shadow-sm text-[11px]">
+                                                QTY
+                                            </div>
+                                            <div className="w-[72px] text-right">
+                                                <h3 className="font-bold text-lg text-[#272727] tabular-nums">{poQty.toLocaleString()}</h3>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="overflow-x-auto rounded-b-2xl shadow-[8px_8px_20px_rgba(166,180,200,0.30),-8px_-8px_20px_rgba(255,255,255,0.95)]">
                                         <table className="w-full text-sm text-left">
-                                            <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider">
+                                            <colgroup>
+                                                <col className="w-[10%]" />
+                                                <col className="w-[16%]" />
+                                                <col className="w-[30%]" />
+                                                <col className="w-[19%]" />
+                                                <col className="w-[25%]" />
+                                            </colgroup>
+                                             <thead className="bg-[#D4AA7D] text-xs font-black text-[#272727] uppercase tracking-wider">
                                                  <tr>
-                                                     <th className="px-6 py-3">Case #</th>
-                                                     <th className="px-6 py-3">Type</th>
-                                                     <th className="px-6 py-3">Contents (SKU / Qty)</th>
-                                                     <th className="px-6 py-3">Dimensions</th>
-                                                     <th className="px-6 py-3">Note</th>
+                                                     <th className="px-6 py-3 text-center">Case #</th>
+                                                     <th className="px-6 py-3 text-center">Type</th>
+                                                     <th className="px-6 py-3 text-center">Contents (SKU / Qty)</th>
+                                                     <th className="px-6 py-3 text-center">Dimensions</th>
+                                                     <th className="px-6 py-3 text-center">Note</th>
                                                  </tr>
                                              </thead>
                                              <tbody className="divide-y divide-[#D4AA7D]/30 bg-transparent">
                                                 {poGroup.cases.map((c, idx) => (
                                                     <tr key={idx} className="hover:bg-[#272727] group transition-colors cursor-pointer">
-                                                        <td className="px-6 py-4 font-mono text-[#7E5C4A] group-hover:text-[#EFD09E]">#{c.caseNo}</td>
-                                                        <td className="px-6 py-4">
+                                                        <td className="px-6 py-4 text-center font-mono text-[#7E5C4A] group-hover:text-[#EFD09E]">#{c.caseNo}</td>
+                                                        <td className="px-6 py-4 text-center">
                                                             <Badge type={c.type} />
                                                         </td>
                                                         <td className="px-6 py-4">
@@ -629,10 +697,10 @@ export default function PackagingBookingPage() {
                                                                 ))}
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 font-mono text-xs text-[#7E5C4A] group-hover:text-[#EFD09E]/80">
+                                                        <td className="px-6 py-4 text-center font-mono text-xs text-[#7E5C4A] group-hover:text-[#EFD09E]/80">
                                                             {c.dims}
                                                         </td>
-                                                        <td className="px-6 py-4 text-xs text-[#7E5C4A] italic group-hover:text-[#EFD09E]/60">
+                                                        <td className="px-6 py-4 text-xs text-[#7E5C4A] italic whitespace-normal break-words group-hover:text-[#EFD09E]/60">
                                                             {c.note || "-"}
                                                         </td>
                                                     </tr>
@@ -640,22 +708,22 @@ export default function PackagingBookingPage() {
                                              </tbody>
                                          </table>
                                      </div>
-                                 </GlassCard>
-                             ))}
+                                 </div>
+                             )})}
                          </div>
 
                          <div className="flex justify-center pt-8 gap-4">
                               <button 
                                   onClick={() => { setActiveStep(2); setPlanResult([]); setIsHistoryMode(false); }}
-                                  className="px-6 py-3 border-2 border-[#D4AA7D]/45 text-[#7E5C4A] font-bold rounded-xl hover:border-[#7E5C4A]/60 hover:text-[#272727] transition-all flex items-center gap-2"
+                                  className="px-6 py-3 border-2 border-[#D4AA7D]/45 text-[#7E5C4A] font-bold rounded-xl hover:border-[#7E5C4A]/60 hover:text-[#272727] hover:bg-gradient-to-br hover:from-[#FFFFFF] hover:to-[#ECECEC] transition-all flex items-center gap-2"
                               >
                                   <RotateCcw className="w-4 h-4"/> Back to Input
                               </button>
                               <button 
                                  onClick={() => setActiveStep(4)}
-                                 className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center gap-2"
+                                 className={proceedToSaveButtonClass}
                             >
-                                 Proceed to Save <Play className="w-4 h-4"/>
+                                 Proceed to Save <Play className="w-4 h-4 text-[#5a7a1a]" fill="#5a7a1a"/>
                              </button>
                          </div>
                      </div>
@@ -967,33 +1035,28 @@ interface SummaryCardProps {
 }
 
 function SummaryCard({ label, value, icon: Icon, color }: SummaryCardProps) {
-    const colors = {
-        sunset: "bg-[#D4AA7D]/35 text-[#7E5C4A]",
-        raisin: "bg-[#EEF2F6] text-[#272727]",
-        buff: "bg-[#7E5C4A]/20 text-[#7E5C4A]",
-        green: "bg-[#9ACD32]/20 text-[#5a7a1a]",
-    };
+    void color;
 
     return (
-        <GlassCard className="p-4 flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color]} shadow-sm`}>
+        <GlassCard className="p-4 flex items-center gap-4 rounded-[1.25rem] border border-[#EFEFEF] bg-gradient-to-br from-[#FFFFFF] via-[#F5F5F5] to-[#ECECEC] shadow-[8px_8px_18px_rgba(160,160,160,0.22),-7px_-7px_16px_rgba(255,255,255,0.92),inset_2px_2px_1px_rgba(255,255,255,0.9),inset_-3px_-4px_8px_rgba(177,177,177,0.2)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_22px_36px_rgba(39,39,39,0.2)] hover:bg-gradient-to-br hover:from-[#FFFFFF] hover:to-[#EDEDED] group">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[#9ACD32] border border-[#7FAA2B]/45 text-[#272727] shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:bg-[#272635] group-hover:border-[#272635]/80 group-hover:text-[#EFD09E]">
                 <Icon className="w-6 h-6" />
             </div>
             <div>
-                <p className="text-xs font-bold text-[#7E5C4A] uppercase tracking-wider">{label}</p>
-                <p className="text-2xl font-black text-[#272727]">{value}</p>
+                <p className="text-xs font-bold text-[#7E5C4A] uppercase tracking-wider transition-colors group-hover:text-[#6B4D3A]">{label}</p>
+                <p className="text-2xl font-black text-[#272727] transition-colors group-hover:text-[#1F1D2B]">{value}</p>
             </div>
         </GlassCard>
     );
 }
 
 function Badge({ type }: { type: string }) {
-    let style = "bg-[#EEF2F6] text-[#7E5C4A] border border-[#D4AA7D]/35";
-    if (type.includes("Full Pallet")) style = "bg-[#9ACD32]/20 text-[#5a7a1a] border border-[#9ACD32]/35";
-    else if (type.includes("Partial")) style = "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45";
-    else if (type.includes("Mixed")) style = "bg-[#272727]/10 text-[#272727] border border-[#272727]/20";
-    else if (type.includes("Warp")) style = "bg-rose-50 text-rose-600 border border-rose-100";
-    else if (type.includes("Unknown")) style = "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45";
+    let style = "bg-[#EEF2F6] text-[#7E5C4A] border border-[#D4AA7D]/35 group-hover:bg-[#EFD09E]/20 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
+    if (type.includes("Full Pallet")) style = "bg-[#9ACD32]/20 text-[#5a7a1a] border border-[#9ACD32]/35 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
+    else if (type.includes("Partial")) style = "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
+    else if (type.includes("Mixed")) style = "bg-[#272727]/10 text-[#272727] border border-[#272727]/20 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
+    else if (type.includes("Warp")) style = "bg-rose-50 text-rose-600 border border-rose-100 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
+    else if (type.includes("Unknown")) style = "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45 group-hover:bg-[#EFD09E]/25 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45";
 
     return (
         <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${style}`}>
