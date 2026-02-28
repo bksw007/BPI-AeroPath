@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/contexts/AuthContext";
+import { GlobalClickEffect } from "@/components/shared/GlobalClickEffect";
 
 export default function RootLayout({
   children,
@@ -32,6 +33,7 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <AuthProvider>
+          <GlobalClickEffect />
           {children}
         </AuthProvider>
       </body>
