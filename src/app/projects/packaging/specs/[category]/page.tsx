@@ -93,7 +93,6 @@ export default function CategoryDetailPage() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "history">("overview");
   const [searchValue, setSearchValue] = useState("");
-  const [filterValue, setFilterValue] = useState(new Date().getFullYear().toString());
   const [importProgress, setImportProgress] = useState<{status: 'idle' | 'uploading' | 'parsing' | 'complete', percent: number}>({status: 'idle', percent: 0});
   const [products, setProducts] = useState<PackagingProduct[]>([]);
   const [importStats, setImportStats] = useState({ success: 0, updated: 0 }); // Track real stats
@@ -589,10 +588,10 @@ export default function CategoryDetailPage() {
       header: "Item / SKU",
       render: (val) => (
         <div className="flex items-center gap-3 whitespace-nowrap">
-          <div className="w-8 h-8 rounded-lg bg-[#272727]/10 flex items-center justify-center text-[#272727]">
+          <div className="w-8 h-8 rounded-lg bg-[#272727]/10 flex items-center justify-center text-[#272727] group-hover:bg-[#EFD09E]/15 group-hover:text-[#EFD09E]">
             <Zap className="w-4 h-4" />
           </div>
-          <div className="font-bold text-[#272727]">{val}</div>
+          <div className="font-bold text-[#272727] group-hover:text-[#EFD09E]">{val}</div>
         </div>
       )
     },
@@ -603,7 +602,7 @@ export default function CategoryDetailPage() {
       header: "W x L x H (cm)", 
       align: "center",
       render: (_, row) => (
-        <span className="font-medium text-[#7E5C4A] whitespace-nowrap">
+        <span className="font-medium text-[#7E5C4A] group-hover:text-[#EFD09E] whitespace-nowrap">
           {row.width} x {row.length} x {row.height}
         </span>
       )
@@ -612,18 +611,18 @@ export default function CategoryDetailPage() {
       key: "nw", 
       header: "Net Weight (kg)", 
       align: "center",
-      render: (val) => <span className="font-bold text-[#272727]">{val}</span>
+      render: (val) => <span className="font-bold text-[#272727] group-hover:text-[#EFD09E]">{val}</span>
     },
     { 
       key: "gw", 
       header: "Gross Weight (kg)", 
       align: "center",
-      render: (val) => <span className="font-bold text-[#272727]">{val}</span>
+      render: (val) => <span className="font-bold text-[#272727] group-hover:text-[#EFD09E]">{val}</span>
     },
-    { key: "cbm", header: "CBM", align: "center", className: "font-bold text-[#7E5C4A]" },
+    { key: "cbm", header: "CBM", align: "center", className: "font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]" },
     { key: "productType", header: "Product Type", align: "center", render: (val) => (
         <span className={cn(
-          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider",
+          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/35",
           val === "Carton" ? "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45" :
           val === "Carton Case" ? "bg-[#272727]/10 text-[#272727] border border-[#272727]/20" :
           "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45" 
@@ -655,8 +654,7 @@ export default function CategoryDetailPage() {
                   searchValue={searchValue}
                   onSearchChange={setSearchValue}
                   searchPlaceholder={`Search ${categoryId}...`}
-                  filterValue={filterValue}
-                  onFilterChange={setFilterValue}
+                  showFilter={false}
                   primaryButton={{
                     label: <span className="hidden sm:inline">Import</span>,
                     icon: <Upload className="w-4 h-4" />,

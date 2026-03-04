@@ -55,7 +55,12 @@ function Click(props: ClickProps): React.ReactElement | null {
     disabled = false,
   } = props as ClickProps;
   const [items, setItems] = React.useState<Item[]>([]);
+  const [mounted, setMounted] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (disabled) return;
@@ -98,7 +103,7 @@ function Click(props: ClickProps): React.ReactElement | null {
     return () => el.removeEventListener('pointerup', onPointerUp);
   }, [scope, variant, color, size, duration, disabled]);
 
-  const portal = typeof window !== 'undefined' ? document.body : null;
+  const portal = mounted ? document.body : null;
 
   return (
     <>

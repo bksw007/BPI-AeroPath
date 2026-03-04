@@ -30,6 +30,7 @@ interface SearchToolbarProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
+  showFilter?: boolean;
   filterValue?: string;
   onFilterChange?: (value: string) => void;
   filterOptions?: string[];
@@ -43,6 +44,7 @@ export function SearchToolbar({
   searchValue = "",
   onSearchChange,
   searchPlaceholder = "Search...",
+  showFilter = true,
   filterValue,
   onFilterChange,
   filterOptions,
@@ -103,37 +105,39 @@ export function SearchToolbar({
         </div>
 
         {/* Filter Dropdown */}
-        <div ref={filterRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/45 border border-[#D4AA7D]/40 rounded-lg text-sm text-[#7E5C4A] hover:bg-[#EFD09E]/65 transition-colors"
-          >
-            <Filter className="w-4 h-4" />
-            <span>{selectedFilter === "All" ? "All Years" : selectedFilter}</span>
-            <ChevronDown className={cn("w-4 h-4 transition-transform", isFilterOpen && "rotate-180")} />
-          </button>
+        {showFilter && (
+          <div ref={filterRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#EFD09E]/45 border border-[#D4AA7D]/40 rounded-lg text-sm text-[#7E5C4A] hover:bg-[#EFD09E]/65 transition-colors"
+            >
+              <Filter className="w-4 h-4" />
+              <span>{selectedFilter === "All" ? "All Years" : selectedFilter}</span>
+              <ChevronDown className={cn("w-4 h-4 transition-transform", isFilterOpen && "rotate-180")} />
+            </button>
 
-          {isFilterOpen && (
-            <div className="absolute z-[100] mt-1 w-36 bg-[#EFD09E] border border-[#D4AA7D]/45 rounded-lg shadow-2xl overflow-hidden">
-              {yearOptions.map((year) => (
-                <button
-                  key={year}
-                  onClick={() => {
-                    onFilterChange?.(year);
-                    setIsFilterOpen(false);
-                  }}
-                  className={cn(
-                    "w-full px-4 py-2 text-left text-sm text-[#272727] hover:bg-[#F6EDDE]",
-                    selectedFilter === year && "bg-[#D4AA7D]/60 text-[#272727] font-semibold"
-                  )}
-                >
-                  {year === "All" ? "All Years" : year}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            {isFilterOpen && (
+              <div className="absolute z-[100] mt-1 w-36 bg-[#EFD09E] border border-[#D4AA7D]/45 rounded-lg shadow-2xl overflow-hidden">
+                {yearOptions.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => {
+                      onFilterChange?.(year);
+                      setIsFilterOpen(false);
+                    }}
+                    className={cn(
+                      "w-full px-4 py-2 text-left text-sm text-[#272727] hover:bg-[#F6EDDE]",
+                      selectedFilter === year && "bg-[#D4AA7D]/60 text-[#272727] font-semibold"
+                    )}
+                  >
+                    {year === "All" ? "All Years" : year}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         
         {/* Custom Children (Extra Filters) */}
         {children}
@@ -156,4 +160,3 @@ export function SearchToolbar({
     </div>
   );
 }
-
