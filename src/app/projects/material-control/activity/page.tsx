@@ -73,10 +73,11 @@ export default function ActivityPage() {
       header: "Action", 
       align: "center",
       render: (val) => {
-        const style = getActionStyle(val);
+        const action = typeof val === "string" ? val : String(val ?? "");
+        const style = getActionStyle(action);
         return (
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${style.color}`}>
-            {style.icon} {val}
+            {style.icon} {action || "-"}
           </span>
         );
       }
@@ -85,11 +86,14 @@ export default function ActivityPage() {
       key: "module", 
       header: "Module", 
       align: "center",
-      render: (val) => (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#EFD09E]/70 text-[#272727] border border-[#D4AA7D]/35">
-          {val}
-        </span>
-      )
+      render: (val) => {
+        const module = typeof val === "string" ? val : String(val ?? "-");
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#EFD09E]/70 text-[#272727] border border-[#D4AA7D]/35">
+            {module}
+          </span>
+        );
+      }
     },
     { key: "targetName", header: "Target" },
     { key: "user", header: "User", align: "center" },

@@ -26,7 +26,7 @@ export interface Column<T> {
   header: string;
   align?: "left" | "center" | "right";
   type?: "text" | "date" | "badge";
-  render?: (value: unknown, row: T) => React.ReactNode;
+  render?: (value: any, row: T) => React.ReactNode;
   className?: string;
 }
 
@@ -39,7 +39,7 @@ interface DataTableProps<T> {
   className?: string;
 }
 
-export function DataTable<T extends Record<string, unknown>>({
+export function DataTable<T extends object>({
   columns,
   data,
   onRowClick,
@@ -48,7 +48,7 @@ export function DataTable<T extends Record<string, unknown>>({
   className,
 }: DataTableProps<T>) {
   // Helper: Get cell value
-  const getCellValue = (row: T, column: Column<T>) => {
+  const getCellValue = (row: T, column: Column<T>): React.ReactNode => {
     const rawValue = row[column.key as keyof T];
 
     // Custom render function
@@ -58,11 +58,27 @@ export function DataTable<T extends Record<string, unknown>>({
 
     // Date formatting
     if (column.type === "date" && rawValue) {
-      return formatDate(rawValue);
+      if (
+        rawValue instanceof Date ||
+        typeof rawValue === "string" ||
+        typeof rawValue === "number"
+      ) {
+        return formatDate(rawValue);
+      }
+      return String(rawValue);
     }
 
     // Default: return as-is
-    return rawValue ?? "-";
+    if (rawValue === null || rawValue === undefined) {
+      return "-";
+    }
+    if (typeof rawValue === "string" || typeof rawValue === "number") {
+      return rawValue;
+    }
+    if (typeof rawValue === "boolean") {
+      return rawValue ? "Yes" : "No";
+    }
+    return String(rawValue);
   };
 
   // Helper: Get alignment class
