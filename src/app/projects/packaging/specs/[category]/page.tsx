@@ -56,10 +56,10 @@ export interface PackagingProduct {
 }
 
 // Helper Component for Packing Standards
-const PackingCard = ({ title, layers, perLayer, totalQty, className }: { title: string, layers: number | string, perLayer: number | string, totalQty: number | string, className?: string }) => (
+const PackingCard = ({ title, layers, perLayer, totalQty, className, titleClassName }: { title: string, layers: number | string, perLayer: number | string, totalQty: number | string, className?: string, titleClassName?: string }) => (
   <div className={cn("bg-[#EEF2F6]/95 border border-white/80 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all", className)}>
-    <div className="bg-[#EFD09E]/45 px-4 py-2 border-b border-[#D4AA7D]/35 flex justify-center items-center">
-      <span className="text-xs font-black text-[#7E5C4A] uppercase tracking-wider">{title}</span>
+    <div className={cn("bg-[#272727] px-4 py-2 border-b border-[#7E5C4A]/45 flex justify-center items-center", titleClassName)}>
+      <span className="text-xs font-black text-[#EFD09E] uppercase tracking-wider">{title}</span>
     </div>
     <div className="p-4 grid grid-cols-2 gap-4 text-center">
       <div>
@@ -619,10 +619,15 @@ export default function CategoryDetailPage() {
       align: "center",
       render: (val) => <span className="font-bold text-[#272727] group-hover:text-[#EFD09E]">{val}</span>
     },
-    { key: "cbm", header: "CBM", align: "center", className: "font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]" },
+    {
+      key: "cbm",
+      header: "CBM",
+      align: "center",
+      render: (val) => <span className="font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]">{val}</span>
+    },
     { key: "productType", header: "Product Type", align: "center", render: (val) => (
         <span className={cn(
-          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/35",
+          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider group-hover:text-[#272727]",
           val === "Carton" ? "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45" :
           val === "Carton Case" ? "bg-[#272727]/10 text-[#272727] border border-[#272727]/20" :
           "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45" 
@@ -631,7 +636,12 @@ export default function CategoryDetailPage() {
         </span>
       )
     },
-    { key: "stackingLimit", header: "Stack Limit", align: "center", className: "font-semibold" },
+    {
+      key: "stackingLimit",
+      header: "Stack Limit",
+      align: "center",
+      render: (val) => <span className="font-semibold">{val}</span>
+    },
 
     { key: "lastUpdated", header: "Last Update", align: "center", type: "date", className: "whitespace-nowrap" },
   ];
@@ -674,6 +684,7 @@ export default function CategoryDetailPage() {
                       <button
                         onClick={() => {
                            setIsEditing(false);
+                           setHiddenFields({});
                            setNewItem({ 
                              sku: '', name: '', width: 0, length: 0, height: 0, nw: 0, gw: 0, productType: 'Carton', stackingLimit: 0, sideBoxWeight: '',
                              packingRules: { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }
@@ -885,12 +896,15 @@ export default function CategoryDetailPage() {
       {/* Unified Add New Item Modal (Two Columns) */}
       <Modal
         isOpen={isAddNewModalOpen}
-        onClose={() => setIsAddNewModalOpen(false)}
+        onClose={() => {
+          setIsAddNewModalOpen(false);
+          setHiddenFields({});
+        }}
         title="Add New Packaging Specification"
         className="max-w-6xl"
       >
         <form onSubmit={handleAddNewSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-h-[75vh] overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pr-2">
             
             {/* Left Column: Basic Info */}
             <div className="space-y-6 border-r border-[#D4AA7D]/30 pr-4">
@@ -1016,39 +1030,62 @@ export default function CategoryDetailPage() {
                     "42x46x68", "47x66x68", "57x64x84", "68x74x86", "70x100x90"
                   ].map((size) => {
                     const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.boxes?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
+                    const uiKey = `Add_Box_${size}`;
+                    const isHidden = hiddenFields[uiKey];
                     return (
-                      <div key={size} className="flex items-center gap-3 p-2 bg-[#EFD09E]/45 rounded-lg border border-[#D4AA7D]/35">
-                        <span className="w-24 text-xs font-bold text-[#7E5C4A]">{size.replace(/x/g, ' x ')}</span>
+                      <div
+                        key={size}
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-lg border transition-colors",
+                          isHidden
+                            ? "bg-[#EFD09E]/35 border-[#D4AA7D]/25 opacity-60"
+                            : "bg-[#EEF2F6]/85 border-[#D4AA7D]/35"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 w-28 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setHiddenFields((prev) => ({ ...prev, [uiKey]: !prev[uiKey] }))}
+                            className="text-[#7E5C4A]/80 hover:text-[#272727] transition-colors"
+                            title={isHidden ? "Unhide" : "Hide"}
+                          >
+                            {isHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                          <span className="text-[10px] font-bold text-[#272727] whitespace-nowrap">{size.replace(/x/g, ' x ')}</span>
+                        </div>
                         <div className="flex-1 grid grid-cols-3 gap-2">
                           <input 
-                            type="number" placeholder="Lyr"
+                            type="number" placeholder="Layers"
+                            disabled={isHidden}
                             value={rule.layers || ''}
                             onChange={e => {
                               const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                               rules.boxes = { ...rules.boxes, [size]: { ...rule, layers: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727]"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                           />
                           <input 
-                            type="number" placeholder="P/L"
+                            type="number" placeholder="Pieces per Layer"
+                            disabled={isHidden}
                             value={rule.perLayer || ''}
                             onChange={e => {
                               const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                               rules.boxes = { ...rules.boxes, [size]: { ...rule, perLayer: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727]"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                           />
                           <input 
-                            type="number" placeholder="Tot"
+                            type="number" placeholder="Total Qty"
+                            disabled={isHidden}
                             value={rule.totalQty || ''}
                             onChange={e => {
                               const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                               rules.boxes = { ...rules.boxes, [size]: { ...rule, totalQty: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-[10px] font-bold text-[#7E5C4A] bg-[#EFD09E]/55"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-[10px] font-bold text-[#7E5C4A] bg-[#EFD09E]/55 disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                           />
                         </div>
                       </div>
@@ -1063,39 +1100,62 @@ export default function CategoryDetailPage() {
                     "80x120x65", "80x120x90", "80x120x115", "110x110x65", "110x110x90", "110x110x115"
                   ].map((size) => {
                     const rule = (newItem.packingRules as unknown as PackagingProduct['packingRules'])?.pallets?.[size] || { layers: 0, perLayer: 0, totalQty: 0 };
+                    const uiKey = `Add_Pallet_${size}`;
+                    const isHidden = hiddenFields[uiKey];
                     return (
-                      <div key={size} className="flex items-center gap-3 p-2 bg-[#9ACD32]/10 rounded-lg border border-[#9ACD32]/30">
-                        <span className="w-24 text-[10px] font-bold text-[#5a7a1a]">{size.replace(/x/g, ' x ')}</span>
+                      <div
+                        key={size}
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-lg border transition-colors",
+                          isHidden
+                            ? "bg-[#EFD09E]/35 border-[#D4AA7D]/25 opacity-60"
+                            : "bg-[#EEF2F6]/85 border-[#D4AA7D]/35"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 w-28 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setHiddenFields((prev) => ({ ...prev, [uiKey]: !prev[uiKey] }))}
+                            className="text-[#7E5C4A]/80 hover:text-[#272727] transition-colors"
+                            title={isHidden ? "Unhide" : "Hide"}
+                          >
+                            {isHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                          <span className="text-[10px] font-bold text-[#272727] whitespace-nowrap">{size.replace(/x/g, ' x ')}</span>
+                        </div>
                         <div className="flex-1 grid grid-cols-3 gap-2">
                           <input 
-                            type="number" placeholder="Lyr"
+                            type="number" placeholder="Layers"
+                            disabled={isHidden}
                             value={rule.layers || ''}
                             onChange={e => {
                               const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                               rules.pallets = { ...rules.pallets, [size]: { ...rule, layers: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-[#9ACD32]/35 bg-[#F6EDDE] text-[10px] text-[#272727]"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                           />
                           <input 
-                            type="number" placeholder="P/L"
+                            type="number" placeholder="Pieces per Layer"
+                            disabled={isHidden}
                             value={rule.perLayer || ''}
                             onChange={e => {
                               const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                               rules.pallets = { ...rules.pallets, [size]: { ...rule, perLayer: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-[#9ACD32]/35 bg-[#F6EDDE] text-[10px] text-[#272727]"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-[10px] text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                           />
                           <input 
-                            type="number" placeholder="Tot"
+                            type="number" placeholder="Total Qty"
+                            disabled={isHidden}
                             value={rule.totalQty || ''}
                             onChange={e => {
                               const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                               rules.pallets = { ...rules.pallets, [size]: { ...rule, totalQty: Number(e.target.value) } };
                               setNewItem({ ...newItem, packingRules: rules });
                             }}
-                            className="px-2 py-1 rounded border border-[#9ACD32]/35 text-[10px] font-bold text-[#5a7a1a] bg-[#EFD09E]/55"
+                            className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-[10px] font-bold text-[#7E5C4A] bg-[#EFD09E]/55 disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                           />
                         </div>
                       </div>
@@ -1105,20 +1165,38 @@ export default function CategoryDetailPage() {
 
                 {/* RTN & Warp */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-[#EFD09E]/55 rounded-lg border border-[#D4AA7D]/35 space-y-2">
-                    <h5 className="text-[10px] font-black text-[#7E5C4A] uppercase tracking-widest flex items-center gap-1">
-                      <HistoryIcon className="w-3 h-3" /> RTN (Returnable)
-                    </h5>
+                  <div
+                    className={cn(
+                      "p-3 rounded-lg border space-y-2 transition-colors",
+                      hiddenFields["Add_RTN_Standard"]
+                        ? "bg-[#EFD09E]/35 border-[#D4AA7D]/25 opacity-60"
+                        : "bg-[#EEF2F6]/85 border-[#D4AA7D]/35"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-[10px] font-black text-[#272727] uppercase tracking-widest flex items-center gap-1">
+                        <HistoryIcon className="w-3 h-3" /> RTN (Returnable)
+                      </h5>
+                      <button
+                        type="button"
+                        onClick={() => setHiddenFields((prev) => ({ ...prev, Add_RTN_Standard: !prev.Add_RTN_Standard }))}
+                        className="text-[#7E5C4A]/80 hover:text-[#272727] transition-colors"
+                        title={hiddenFields["Add_RTN_Standard"] ? "Unhide" : "Hide"}
+                      >
+                        {hiddenFields["Add_RTN_Standard"] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                     <div className="grid grid-cols-1 gap-2">
                        <input 
                           type="number" placeholder="Total RTN Qty"
+                          disabled={!!hiddenFields["Add_RTN_Standard"]}
                           value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.totalQty || ''}
                           onChange={e => {
                             const rules = { ...(newItem.packingRules as unknown as PackagingProduct['packingRules'] || { boxes: {}, pallets: {}, rtn: { layers: 0, perLayer: 0, totalQty: 0 }, warp: false }) };
                             rules.rtn = { ...rules.rtn, totalQty: Number(e.target.value) };
                             setNewItem({ ...newItem, packingRules: rules });
                           }}
-                          className="w-full px-3 py-1.5 rounded border border-[#D4AA7D]/40 text-xs font-bold text-[#7E5C4A] bg-[#F6EDDE]"
+                          className="w-full px-3 py-1.5 rounded border border-[#D4AA7D]/40 text-xs font-bold text-[#7E5C4A] bg-[#F6EDDE] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                        />
                     </div>
                   </div>
@@ -1171,7 +1249,7 @@ export default function CategoryDetailPage() {
                 className={`py-4 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${
                   activeTab === 'overview' 
                   ? 'border-[#272727] text-[#272727] bg-[#EFD09E]/55' 
-                  : 'border-transparent text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/35'
+                  : 'border-transparent text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272727]'
                 }`}
               >
                 <Info className="w-4 h-4" /> Dimension & Basic Info
@@ -1181,7 +1259,7 @@ export default function CategoryDetailPage() {
                 className={`py-4 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${
                   activeTab === 'history' 
                   ? 'border-[#272727] text-[#272727] bg-[#EFD09E]/55' 
-                  : 'border-transparent text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/35'
+                  : 'border-transparent text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272727]'
                 }`}
               >
                 <Boxes className="w-4 h-4" /> Packing Standards
@@ -1192,8 +1270,8 @@ export default function CategoryDetailPage() {
               {activeTab === "overview" ? (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {/* Product Header */}
-                  <div className="p-5 bg-[#EEF2F6]/95 rounded-2xl border border-white/80 flex items-center gap-6 shadow-md">
-                    <div className="w-20 h-20 bg-[#EFD09E]/55 rounded-2xl shadow-sm border border-[#D4AA7D]/35 flex items-center justify-center text-[#272727]">
+                  <div className="group p-5 bg-[#EEF2F6]/95 rounded-2xl border border-white/80 flex items-center gap-6 shadow-md">
+                    <div className="w-20 h-20 bg-[#EFD09E]/55 rounded-2xl shadow-sm border border-[#D4AA7D]/35 flex items-center justify-center text-[#272727] group-hover:bg-[#272727] group-hover:text-[#EFD09E] group-hover:border-[#7E5C4A]/55 transition-colors">
                       <Zap className="w-10 h-10" />
                     </div>
                     <div>
@@ -1352,18 +1430,18 @@ export default function CategoryDetailPage() {
                        )}
                        
                        {/* Warp */}
-                       <div className="bg-[#F7DC6F]/95 border border-white/80 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all flex flex-col">
-                          <div className="bg-[#F7DC6F]/45 px-4 py-2 border-b border-[#F2C464]/35 flex justify-center">
-                             <span className="text-xs font-black text-[#7E5C4A] uppercase tracking-wider">Warp Packaging</span>
+                       <div className="bg-[#272727]/95 border border-[#7E5C4A]/45 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all flex flex-col">
+                          <div className="bg-[#272727] px-4 py-2 border-b border-[#7E5C4A]/45 flex justify-center">
+                             <span className="text-xs font-black text-[#EFD09E] uppercase tracking-wider">Warp Packaging</span>
                           </div>
                           <div className="flex-1 flex flex-col items-center justify-center p-6 gap-2">
                              <div className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-colors", 
-                                selectedItem.packingRules.warp ? "bg-[#9ACD32]/25 text-[#5a7a1a]" : "bg-[#F2C464]/30 text-[#7E5C4A]"
+                                selectedItem.packingRules.warp ? "bg-rose-500/20 text-rose-600" : "bg-emerald-500/20 text-emerald-600"
                              )}>
                                 <CheckCircle2 className="w-6 h-6" />
                              </div>
                              <p className={cn("text-sm font-bold uppercase tracking-tight", 
-                                selectedItem.packingRules.warp ? "text-[#5a7a1a]" : "text-[#7E5C4A]"
+                                selectedItem.packingRules.warp ? "text-rose-600" : "text-emerald-600"
                              )}>
                                 {selectedItem.packingRules.warp ? "Required" : "Not Required"}
                              </p>
@@ -1380,7 +1458,7 @@ export default function CategoryDetailPage() {
             <div className="pt-6 border-t border-[#F2C464]/30 flex gap-4">
               <button 
                 onClick={() => selectedItem && generatePackagingSpecPDF(selectedItem as PackagingProduct)}
-                className="flex-1 py-4 bg-[#F7DC6F]/70 hover:bg-[#F7DC6F] text-[#7E5C4A] rounded-2xl border border-[#F2C464]/40 font-black text-sm transition-all uppercase tracking-widest hover:shadow-md flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-[#F6EDDE] hover:bg-[#272727] text-[#7E5C4A] hover:text-[#EFD09E] rounded-2xl border border-[#D4AA7D]/45 hover:border-[#7E5C4A]/55 font-black text-sm transition-all uppercase tracking-widest hover:shadow-md flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" /> Download PDF Spec
               </button>
@@ -1407,7 +1485,7 @@ export default function CategoryDetailPage() {
                       setIsBasicInfoModalOpen(true);
                     }
                   }}
-                  className="flex-2 py-4 bg-[#272727] hover:bg-[#1f1f1f] text-[#F7DC6F] rounded-2xl border border-[#F7DC6F]/20 font-black text-sm transition-all shadow-lg shadow-[#272727]/25 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-2 py-4 bg-[#D4AA7D]/80 hover:bg-[#272727] text-[#7E5C4A] hover:text-[#EFD09E] rounded-2xl border border-[#D4AA7D]/45 hover:border-[#7E5C4A]/55 font-black text-sm transition-all shadow-lg shadow-[#D4AA7D]/20 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
                 >
                   Edit Basic Info
                 </button>
@@ -1424,7 +1502,7 @@ export default function CategoryDetailPage() {
                          setIsPackingStandardsModalOpen(true);
                       }
                    }}
-                   className="flex-2 py-4 bg-[#7E5C4A] hover:bg-[#6b4d3f] text-[#F7DC6F] rounded-2xl border border-[#F7DC6F]/20 font-black text-sm transition-all shadow-lg shadow-[#7E5C4A]/25 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
+                   className="flex-2 py-4 bg-[#D4AA7D]/80 hover:bg-[#272727] text-[#7E5C4A] hover:text-[#EFD09E] rounded-2xl border border-[#D4AA7D]/45 hover:border-[#7E5C4A]/55 font-black text-sm transition-all shadow-lg shadow-[#D4AA7D]/20 flex items-center justify-center gap-2 uppercase tracking-widest hover:scale-[1.02] active:scale-95"
                 >
                    <Boxes className="w-4 h-4" /> Edit Packing Standards
                 </button>
@@ -1450,7 +1528,7 @@ export default function CategoryDetailPage() {
                {/* Standard Boxes (ALL Sizes) */}
                <div className="space-y-4">
                   <h4 className="text-sm font-black text-[#272727] uppercase tracking-wide flex items-center gap-2">
-                     <Boxes className="w-4 h-4" /> Standard Boxes
+                     <div className="w-4 h-4 bg-[#9ACD32] rounded-sm" /> Standard Boxes
                   </h4>
                    {[
                      "42x46x68",
@@ -1465,7 +1543,7 @@ export default function CategoryDetailPage() {
 
                      return (
                      <div key={size} className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
-                        isHidden ? "bg-[#F7DC6F]/35 border-[#F2C464]/25 opacity-60" : "bg-[#F7DC6F]/85 border-[#F2C464]/35"
+                        isHidden ? "bg-[#EFD09E]/35 border-[#D4AA7D]/25 opacity-60" : "bg-[#EEF2F6]/85 border-[#D4AA7D]/35"
                      )}>
                         <div className="flex items-center gap-3 w-32">
                            <button
@@ -1476,7 +1554,7 @@ export default function CategoryDetailPage() {
                            >
                               {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                            </button>
-                           <span className="font-bold text-[#272727] text-sm whitespace-normal leading-tight">
+                           <span className="font-bold text-[#272727] text-xs whitespace-nowrap leading-tight">
                               {size.replace(/x/g, ' x ')}
                            </span>
                         </div>
@@ -1493,11 +1571,11 @@ export default function CategoryDetailPage() {
                                  newBoxes[size] = { ...rule, layers: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
                               }}
-                              className="px-2 py-1 rounded border border-[#F2C464]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#F7DC6F]/35 disabled:text-[#7E5C4A]/60"
+                              className="px-2 py-1 rounded border border-[#D4AA7D]/40 bg-[#F6EDDE] text-xs text-[#272727] disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60"
                            />
                            <input 
                               type="number" 
-                              placeholder="Per Layer"
+                              placeholder="Pieces per Layer"
                               disabled={isHidden}
                               value={rule.perLayer || ''}
                               onChange={e => {
@@ -1510,7 +1588,7 @@ export default function CategoryDetailPage() {
                            />
                            <input 
                               type="number" 
-                              placeholder="Total"
+                              placeholder="Total Qty"
                               disabled={isHidden}
                               value={rule.totalQty || ''}
                               onChange={e => {
@@ -1519,7 +1597,7 @@ export default function CategoryDetailPage() {
                                  newBoxes[size] = { ...rule, totalQty: Number(e.target.value) };
                                  setNewItem({ ...newItem, packingRules: { ...currentRules, boxes: newBoxes } });
                               }}
-                              className="px-2 py-1 rounded border border-[#F2C464]/40 text-xs font-bold text-[#7E5C4A] bg-[#F7DC6F]/55 disabled:bg-[#F7DC6F]/35 disabled:text-[#7E5C4A]/60 disabled:border-[#F2C464]/30"
+                              className="px-2 py-1 rounded border border-[#D4AA7D]/40 text-xs font-bold text-[#7E5C4A] bg-[#EFD09E]/55 disabled:bg-[#EFD09E]/35 disabled:text-[#7E5C4A]/60 disabled:border-[#D4AA7D]/30"
                            />
                         </div>
                      </div>
@@ -1557,7 +1635,7 @@ export default function CategoryDetailPage() {
                            >
                               {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                            </button>
-                           <span className="font-bold text-[#272727] text-xs whitespace-normal leading-tight">
+                           <span className="font-bold text-[#272727] text-xs whitespace-nowrap leading-tight">
                               {size.replace(/x/g, ' x ')}
                            </span>
                         </div>
@@ -1578,7 +1656,7 @@ export default function CategoryDetailPage() {
                            />
                            <input 
                               type="number" 
-                              placeholder="Per Layer"
+                              placeholder="Pieces per Layer"
                               disabled={isHidden}
                               value={rule.perLayer || ''}
                               onChange={e => {
@@ -1591,7 +1669,7 @@ export default function CategoryDetailPage() {
                            />
                            <input 
                               type="number" 
-                              placeholder="Total"
+                              placeholder="Total Qty"
                               disabled={isHidden}
                               value={rule.totalQty || ''}
                               onChange={e => {
@@ -1611,13 +1689,13 @@ export default function CategoryDetailPage() {
                 {/* RTN Section - Reconfigured to match Box/Pallet style */}
                <div className="space-y-4">
                   <h4 className="text-sm font-black text-[#272727] uppercase tracking-wide flex items-center gap-2">
-                    <HistoryIcon className="w-4 h-4 text-[#7E5C4A]" /> RTN (Returnable)
+                    <div className="w-4 h-4 bg-[#9ACD32] rounded-sm" /> RTN (Returnable)
                   </h4>
                   {(() => {
                      const isHidden = hiddenFields['RTN_Standard'];
                      return (
                         <div className={cn("p-3 border rounded-lg flex items-center gap-4 transition-colors", 
-                           isHidden ? "bg-[#F7DC6F]/35 border-[#F2C464]/25 opacity-60" : "bg-[#F7DC6F]/85 border-[#F2C464]/35"
+                           isHidden ? "bg-[#EFD09E]/35 border-[#D4AA7D]/25 opacity-60" : "bg-[#EEF2F6]/85 border-[#D4AA7D]/35"
                         )}>
                            <div className="flex items-center gap-3 w-32">
                               <button
@@ -1628,7 +1706,7 @@ export default function CategoryDetailPage() {
                               >
                                  {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
-                               <span className="font-bold text-[#272727] text-sm whitespace-normal leading-tight">
+                               <span className="font-bold text-[#272727] text-sm whitespace-nowrap leading-tight">
                                  Standard RTN
                                </span>
                            </div>
@@ -1647,7 +1725,7 @@ export default function CategoryDetailPage() {
                               />
                               <input 
                                  type="number" 
-                                 placeholder="Per Layer"
+                                 placeholder="Pieces per Layer"
                                  disabled={isHidden}
                                  value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.perLayer || ''}
                                  onChange={e => {
@@ -1658,7 +1736,7 @@ export default function CategoryDetailPage() {
                               />
                               <input 
                                  type="number" 
-                                 placeholder="Total"
+                                 placeholder="Total Qty"
                                  disabled={isHidden}
                                  value={(newItem.packingRules as unknown as PackagingProduct['packingRules'])?.rtn?.totalQty || ''}
                                  onChange={e => {
