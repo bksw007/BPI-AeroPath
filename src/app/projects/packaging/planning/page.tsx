@@ -94,6 +94,7 @@ export default function PackagingBookingPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedCaseKeys, setSelectedCaseKeys] = useState<Record<string, boolean>>({});
   const [splitDraft, setSplitDraft] = useState<SplitDraft | null>(null);
+  const [splitQtyInput, setSplitQtyInput] = useState("");
   const [mergeDraft, setMergeDraft] = useState<MergeDraft | null>(null);
   const [recentPlans, setRecentPlans] = useState<RecentPlan[]>([]);
   const [isHistoryMode, setIsHistoryMode] = useState(false);
@@ -554,13 +555,15 @@ export default function PackagingBookingPage() {
     const fallbackPackage = availablePackages.find((pkg) => pkg.name === target.dims)?.name || availablePackages[0]?.name || "";
     const suggestedQty = Math.max(1, Math.floor(firstItem.qty / 2));
 
+    const initialQty = suggestedQty >= firstItem.qty ? 1 : suggestedQty;
     setSplitDraft({
       po,
       caseNo,
       sku: firstItem.sku,
-      qty: suggestedQty >= firstItem.qty ? 1 : suggestedQty,
+      qty: initialQty,
       packageName: fallbackPackage,
     });
+    setSplitQtyInput(String(initialQty));
   };
 
   const confirmSplitCase = () => {
@@ -571,7 +574,8 @@ export default function PackagingBookingPage() {
     const packageDef = availablePackages.find((pkg) => pkg.name === splitDraft.packageName);
     if (!sourceCase || !sourceItem || !packageDef) return;
 
-    if (!Number.isFinite(splitDraft.qty) || splitDraft.qty <= 0 || splitDraft.qty > sourceItem.qty) {
+    const parsedQty = Number(splitQtyInput);
+    if (!Number.isFinite(parsedQty) || parsedQty <= 0 || parsedQty > sourceItem.qty) {
       alert(`Split qty must be between 1 and ${sourceItem.qty}.`);
       return;
     }
@@ -581,12 +585,13 @@ export default function PackagingBookingPage() {
       po: splitDraft.po,
       caseNo: splitDraft.caseNo,
       sku: splitDraft.sku,
-      qty: Math.floor(splitDraft.qty),
+      qty: Math.floor(parsedQty),
       packageName: packageDef.name,
       dims: packageDef.name,
       caseType: `Manual Split ${packageDef.category}`,
     });
     setSplitDraft(null);
+    setSplitQtyInput("");
   };
 
   const openMergeCases = (po: string) => {
@@ -1178,7 +1183,6 @@ export default function PackagingBookingPage() {
       {splitDraft && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#272727]/45 backdrop-blur-sm"
-          onClick={() => setSplitDraft(null)}
         >
           <div
             className="bg-[#EEF2F6]/95 border border-white/80 rounded-2xl shadow-2xl p-6 max-w-md w-full"
@@ -1192,7 +1196,19 @@ export default function PackagingBookingPage() {
                 <label className="block text-xs font-bold text-[#7E5C4A] mb-1">SKU</label>
                 <select
                   value={splitDraft.sku}
-                  onChange={(e) => setSplitDraft((prev) => (prev ? { ...prev, sku: e.target.value } : prev))}
+                  onChange={(e) => {
+                    const nextSku = e.target.value;
+                    const sourceCase = getCase(splitDraft.po, splitDraft.caseNo);
+                    const nextItem = sourceCase?.items.find((item) => item.sku === nextSku);
+                    const currentQty = Number(splitQtyInput);
+                    const maxQty = nextItem?.qty || 1;
+                    const normalizedQty = Number.isFinite(currentQty) && currentQty > 0
+                      ? Math.min(Math.floor(currentQty), maxQty)
+                      : Math.max(1, Math.floor(maxQty / 2));
+
+                    setSplitDraft((prev) => (prev ? { ...prev, sku: nextSku, qty: normalizedQty } : prev));
+                    setSplitQtyInput(String(normalizedQty));
+                  }}
                   className="w-full rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/45 px-3 py-2 text-sm text-[#272727]"
                 >
                   {(getCase(splitDraft.po, splitDraft.caseNo)?.items || []).map((item) => (
@@ -1206,12 +1222,35 @@ export default function PackagingBookingPage() {
               <div>
                 <label className="block text-xs font-bold text-[#7E5C4A] mb-1">Split Qty</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   min={1}
-                  value={splitDraft.qty}
-                  onChange={(e) => setSplitDraft((prev) => (prev ? { ...prev, qty: Number(e.target.value || 0) } : prev))}
+                  max={getCase(splitDraft.po, splitDraft.caseNo)?.items.find((item) => item.sku === splitDraft.sku)?.qty || 1}
+                  value={splitQtyInput}
+                  onFocus={(e) => {
+                    if (e.target.value === "0") setSplitQtyInput("");
+                  }}
+                  onChange={(e) => {
+                    const digitsOnly = e.target.value.replace(/[^\d]/g, "");
+                    setSplitQtyInput(digitsOnly);
+                  }}
+                  onBlur={() => {
+                    const selectedItemQty =
+                      getCase(splitDraft.po, splitDraft.caseNo)?.items.find((item) => item.sku === splitDraft.sku)?.qty || 1;
+                    const parsed = Number(splitQtyInput);
+                    if (!Number.isFinite(parsed) || parsed <= 0) {
+                      setSplitQtyInput("1");
+                      return;
+                    }
+                    const normalized = Math.min(Math.floor(parsed), selectedItemQty);
+                    setSplitQtyInput(String(normalized));
+                  }}
                   className="w-full rounded-lg border border-[#D4AA7D]/45 bg-[#EFD09E]/45 px-3 py-2 text-sm text-[#272727]"
                 />
+                <p className="mt-1 text-[11px] text-[#7E5C4A]/80">
+                  Max for selected SKU:{" "}
+                  {getCase(splitDraft.po, splitDraft.caseNo)?.items.find((item) => item.sku === splitDraft.sku)?.qty || 0}
+                </p>
               </div>
 
               <div>
@@ -1232,7 +1271,10 @@ export default function PackagingBookingPage() {
 
             <div className="mt-5 flex gap-3">
               <button
-                onClick={() => setSplitDraft(null)}
+                onClick={() => {
+                  setSplitDraft(null);
+                  setSplitQtyInput("");
+                }}
                 className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
               >
                 Cancel
