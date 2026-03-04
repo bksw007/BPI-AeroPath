@@ -625,12 +625,12 @@ export default function CategoryDetailPage() {
       align: "center",
       render: (val) => <span className="font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]">{val}</span>
     },
-    { key: "productType", header: "Product Type", align: "center", render: (val) => (
+    { key: "productType", header: "Product Type", align: "center", className: "whitespace-nowrap", render: (val) => (
         <span className={cn(
-          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider group-hover:text-[#272727]",
+          "inline-flex items-center justify-center whitespace-nowrap min-w-[92px] px-2.5 py-1 rounded text-[10px] leading-none font-black uppercase tracking-wider",
           val === "Carton" ? "bg-[#EFD09E] text-[#7E5C4A] border border-[#D4AA7D]/45" :
-          val === "Carton Case" ? "bg-[#272727]/10 text-[#272727] border border-[#272727]/20" :
-          "bg-[#D4AA7D]/30 text-[#7E5C4A] border border-[#D4AA7D]/45" 
+          val === "Carton Case" ? "bg-[#EEF2F6] text-[#272727] border border-[#D4AA7D]/45" :
+          "bg-[#D4AA7D]/55 text-[#7E5C4A] border border-[#D4AA7D]/45 group-hover:text-white" 
         )}>
           {val}
         </span>
@@ -659,7 +659,7 @@ export default function CategoryDetailPage() {
             backLabel="Data Specifications"
           >
             <div className="space-y-6 mt-12">
-              <div className="sticky top-24 z-30 -mx-4 px-4 py-2">
+              <div className="sticky top-14 z-30 -mx-4 px-4 py-2">
                 <SearchToolbar
                   searchValue={searchValue}
                   onSearchChange={setSearchValue}
