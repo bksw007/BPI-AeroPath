@@ -133,7 +133,7 @@ export function EditableCaseRow({
           <div className="flex items-center gap-2 justify-end">
             <button
               onClick={() => onOpenSplit(po, caseData.caseNo)}
-              className="rounded-md border border-[#D4AA7D]/45 bg-[#EFD09E]/60 px-2 py-1 text-[11px] font-bold text-[#7E5C4A]"
+              className="rounded-md border border-[#D4AA7D]/45 bg-[#EFD09E]/60 px-2 py-1 text-[11px] font-bold text-[#7E5C4A] transition-all duration-200 group-hover:bg-white group-hover:text-[#272727] group-hover:border-white group-hover:-translate-y-0.5 group-hover:shadow-sm hover:bg-white hover:text-[#272727] hover:border-white hover:-translate-y-0.5"
             >
               Split
             </button>

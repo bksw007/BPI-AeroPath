@@ -13,6 +13,9 @@ interface PackingReportRow {
   shipment: string;
   mode: string;
   product: string;
+  customerName?: string;
+  consigneeName?: string;
+  transportMode?: string;
   siQty: number;
   qty: number;
   totalPackages: number;
@@ -24,26 +27,56 @@ interface PackingReportRow {
   ratioBoxes: number;
   ratioWarp: number;
   ratioReturnable: number;
+  packagingBreakdown?: Record<PackagingBreakdownKey, number>;
   remark: string;
 }
 
 interface AddRecordForm {
   date: string;
-  shipment: string;
-  mode: string;
+  customerName: string;
   product: string;
+  consigneeName: string;
+  transportMode: string;
   siQty: string;
-  qty: string;
-  standardTotal: string;
-  boxesTotal: string;
-  warpTotal: string;
-  returnableTotal: string;
-  ratioStandard: string;
-  ratioBoxes: string;
-  ratioWarp: string;
-  ratioReturnable: string;
+  totalProductQty: string;
+  qty110x110x115: string;
+  qty110x110x90: string;
+  qty110x110x65: string;
+  qty80x120x115: string;
+  qty80x120x90: string;
+  qty80x120x65: string;
+  returnableQty: string;
+  qty42x46x68: string;
+  qty47x66x68: string;
+  qty53x53x58: string;
+  qty57x64x84: string;
+  qty68x74x86: string;
+  qty70x100x90: string;
+  qty27x27x22: string;
+  qty53x53x19: string;
+  warpQty: string;
+  unitQty: string;
   remark: string;
 }
+
+type PackagingBreakdownKey =
+  | "qty110x110x115"
+  | "qty110x110x90"
+  | "qty110x110x65"
+  | "qty80x120x115"
+  | "qty80x120x90"
+  | "qty80x120x65"
+  | "returnableQty"
+  | "qty42x46x68"
+  | "qty47x66x68"
+  | "qty53x53x58"
+  | "qty57x64x84"
+  | "qty68x74x86"
+  | "qty70x100x90"
+  | "qty27x27x22"
+  | "qty53x53x19"
+  | "warpQty"
+  | "unitQty";
 
 function CountingNumber({
   value,
@@ -100,6 +133,73 @@ const MONTHS = [
   { value: "12", label: "December" },
 ];
 
+const SHIPMENT_DETAIL_FIELDS: Array<{ key: keyof AddRecordForm; label: string; type: "text" | "number" }> = [
+  { key: "date", label: "Date", type: "text" },
+  { key: "customerName", label: "Customer Name", type: "text" },
+  { key: "product", label: "Product", type: "text" },
+  { key: "consigneeName", label: "Consignee Name", type: "text" },
+  { key: "transportMode", label: "Transport Mode", type: "text" },
+  { key: "siQty", label: "SI QTY", type: "number" },
+  { key: "totalProductQty", label: "Total Product QTY", type: "number" },
+];
+
+const PACKAGING_BREAKDOWN_FIELDS: Array<{
+  key: PackagingBreakdownKey;
+  label: string;
+  group: "standard" | "returnable" | "warp" | "unit";
+}> = [
+  { key: "qty110x110x115", label: "110x110x115 QTY", group: "standard" },
+  { key: "qty110x110x90", label: "110x110x90 QTY", group: "standard" },
+  { key: "qty110x110x65", label: "110x110x65 QTY", group: "standard" },
+  { key: "qty80x120x115", label: "80X120X115 QTY", group: "standard" },
+  { key: "qty80x120x90", label: "80X120X90 QTY", group: "standard" },
+  { key: "qty80x120x65", label: "80X120X65 QTY", group: "standard" },
+  { key: "returnableQty", label: "RETURNABLE QTY", group: "returnable" },
+  { key: "qty42x46x68", label: "42X46X68 QTY", group: "standard" },
+  { key: "qty47x66x68", label: "47X66X68 QTY", group: "standard" },
+  { key: "qty53x53x58", label: "53X53X58 QTY", group: "standard" },
+  { key: "qty57x64x84", label: "57X64X84 QTY", group: "standard" },
+  { key: "qty68x74x86", label: "68X74X86 QTY", group: "standard" },
+  { key: "qty70x100x90", label: "70X100X90 QTY", group: "standard" },
+  { key: "qty27x27x22", label: "27X27X22 QTY", group: "standard" },
+  { key: "qty53x53x19", label: "53X53X19 QTY", group: "standard" },
+  { key: "warpQty", label: "WARP QTY", group: "warp" },
+  { key: "unitQty", label: "UNIT QTY", group: "unit" },
+];
+
+const buildInitialAddForm = (date = ""): AddRecordForm => ({
+  date,
+  customerName: "",
+  product: "",
+  consigneeName: "",
+  transportMode: "",
+  siQty: "",
+  totalProductQty: "",
+  qty110x110x115: "",
+  qty110x110x90: "",
+  qty110x110x65: "",
+  qty80x120x115: "",
+  qty80x120x90: "",
+  qty80x120x65: "",
+  returnableQty: "",
+  qty42x46x68: "",
+  qty47x66x68: "",
+  qty53x53x58: "",
+  qty57x64x84: "",
+  qty68x74x86: "",
+  qty70x100x90: "",
+  qty27x27x22: "",
+  qty53x53x19: "",
+  warpQty: "",
+  unitQty: "",
+  remark: "",
+});
+
+const parseNumberInput = (value: string): number => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
 const parseDateDDMMYYYY = (value: string): Date | null => {
   if (!value) return null;
   const [d, m, y] = value.split("-");
@@ -155,6 +255,9 @@ const parsePackingCsv = (csvText: string): PackingReportRow[] => {
       shipment: cols[1] || "-",
       mode: cols[2] || "-",
       product: cols[3] || "-",
+      customerName: cols[1] || "-",
+      transportMode: cols[2] || "-",
+      consigneeName: cols[15] || "-",
       siQty: Number(cols[4]) || 0,
       qty: Number(cols[5]) || 0,
       totalPackages: Number(cols[6]) || 0,
@@ -166,9 +269,38 @@ const parsePackingCsv = (csvText: string): PackingReportRow[] => {
       ratioBoxes: Number(cols[12]) || 0,
       ratioWarp: Number(cols[13]) || 0,
       ratioReturnable: Number(cols[14]) || 0,
+      packagingBreakdown: undefined,
       remark: cols[32] || "",
     };
   });
+};
+
+const calculatePackagingTotals = (form: AddRecordForm) => {
+  const packagingBreakdown = PACKAGING_BREAKDOWN_FIELDS.reduce<Record<PackagingBreakdownKey, number>>(
+    (acc, field) => {
+      acc[field.key] = parseNumberInput(form[field.key]);
+      return acc;
+    },
+    {} as Record<PackagingBreakdownKey, number>
+  );
+
+  const standardTotal = PACKAGING_BREAKDOWN_FIELDS.filter((field) => field.group === "standard").reduce(
+    (sum, field) => sum + packagingBreakdown[field.key],
+    0
+  );
+  const returnableTotal = packagingBreakdown.returnableQty;
+  const warpTotal = packagingBreakdown.warpQty;
+  const boxesTotal = packagingBreakdown.unitQty;
+  const totalPackages = standardTotal + returnableTotal + warpTotal + boxesTotal;
+
+  return {
+    packagingBreakdown,
+    standardTotal,
+    returnableTotal,
+    warpTotal,
+    boxesTotal,
+    totalPackages,
+  };
 };
 
 export default function PackagingReportsPage() {
@@ -184,26 +316,11 @@ export default function PackagingReportsPage() {
   const [selectedProduct, setSelectedProduct] = useState("All");
   const [selectedMode, setSelectedMode] = useState("All");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isReviewingAddRecord, setIsReviewingAddRecord] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<PackingReportRow | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [addForm, setAddForm] = useState<AddRecordForm>({
-    date: "",
-    shipment: "",
-    mode: "",
-    product: "",
-    siQty: "0",
-    qty: "0",
-    standardTotal: "0",
-    boxesTotal: "0",
-    warpTotal: "0",
-    returnableTotal: "0",
-    ratioStandard: "0",
-    ratioBoxes: "0",
-    ratioWarp: "0",
-    ratioReturnable: "0",
-    remark: "",
-  });
+  const [addForm, setAddForm] = useState<AddRecordForm>(buildInitialAddForm());
 
   useEffect(() => {
     const loadCsv = async () => {
@@ -292,13 +409,15 @@ export default function PackagingReportsPage() {
     return { totalRows, sumSiQty, sumQty, sumPackages };
   }, [filteredRows]);
 
+  const reviewTotals = useMemo(() => calculatePackagingTotals(addForm), [addForm]);
+
   const columns: Column<PackingReportRow>[] = [
     { key: "date", header: "Date", align: "center" },
-    { key: "shipment", header: "Shipment", align: "center" },
-    { key: "mode", header: "Mode", align: "center" },
+    { key: "shipment", header: "Consignee Name", align: "center" },
+    { key: "mode", header: "Transport Mode", align: "center" },
     { key: "product", header: "Product", align: "center" },
     { key: "siQty", header: "SI QTY", align: "center" },
-    { key: "qty", header: "QTY", align: "center" },
+    { key: "qty", header: "Total Product QTY", align: "center" },
     { key: "totalPackages", header: "Total Pkg", align: "center" },
   ];
 
@@ -307,11 +426,11 @@ export default function PackagingReportsPage() {
 
     const header = [
       "Date",
-      "Shipment",
-      "Mode",
+      "Customer Name",
+      "Transport Mode",
       "Product",
       "SI QTY",
-      "QTY",
+      "Total Product QTY",
       "Total Packages",
       "Standard Total",
       "Boxes Total",
@@ -376,64 +495,72 @@ export default function PackagingReportsPage() {
   const openAddModal = () => {
     const now = new Date();
     const date = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
-    setAddForm({
-      date,
-      shipment: "",
-      mode: "",
-      product: "",
-      siQty: "0",
-      qty: "0",
-      standardTotal: "0",
-      boxesTotal: "0",
-      warpTotal: "0",
-      returnableTotal: "0",
-      ratioStandard: "0",
-      ratioBoxes: "0",
-      ratioWarp: "0",
-      ratioReturnable: "0",
-      remark: "",
-    });
+    setAddForm(buildInitialAddForm(date));
+    setIsReviewingAddRecord(false);
     setAddError(null);
     setIsAddModalOpen(true);
   };
 
   const closeAddModal = () => {
     setIsAddModalOpen(false);
+    setIsReviewingAddRecord(false);
     setAddError(null);
   };
 
-  const handleSaveRecord = () => {
+  const validateAddRecord = () => {
     if (!parseDateDDMMYYYY(addForm.date)) {
       setAddError("Date format ต้องเป็น DD-MM-YYYY");
-      return;
+      return false;
     }
-    if (!addForm.shipment.trim() || !addForm.mode.trim() || !addForm.product.trim()) {
-      setAddError("กรอก Shipment, Mode และ Product ให้ครบ");
-      return;
+    if (
+      !addForm.customerName.trim() ||
+      !addForm.product.trim() ||
+      !addForm.consigneeName.trim() ||
+      !addForm.transportMode.trim()
+    ) {
+      setAddError("กรอก Customer Name, Product, Consignee Name และ Transport Mode ให้ครบ");
+      return false;
     }
+    setAddError(null);
+    return true;
+  };
 
-    const standardTotal = Number(addForm.standardTotal) || 0;
-    const boxesTotal = Number(addForm.boxesTotal) || 0;
-    const warpTotal = Number(addForm.warpTotal) || 0;
-    const returnableTotal = Number(addForm.returnableTotal) || 0;
+  const handleReviewRecord = () => {
+    if (!validateAddRecord()) return;
+    setIsReviewingAddRecord(true);
+  };
+
+  const handleSaveRecord = () => {
+    if (!validateAddRecord()) return;
+
+    const { packagingBreakdown, standardTotal, boxesTotal, warpTotal, returnableTotal, totalPackages } =
+      calculatePackagingTotals(addForm);
+    const ratioBase = totalPackages > 0 ? totalPackages : 1;
+
+    const customerName = addForm.customerName.trim();
+    const transportMode = addForm.transportMode.trim();
 
     const newRow: PackingReportRow = {
       id: `${Date.now()}`,
       date: addForm.date.trim(),
-      shipment: addForm.shipment.trim(),
-      mode: addForm.mode.trim(),
+      shipment: customerName,
+      mode: transportMode,
       product: addForm.product.trim(),
-      siQty: Number(addForm.siQty) || 0,
-      qty: Number(addForm.qty) || 0,
-      totalPackages: standardTotal + boxesTotal + warpTotal + returnableTotal,
+      customerName,
+      consigneeName: addForm.consigneeName.trim(),
+      transportMode,
+      siQty: parseNumberInput(addForm.siQty),
+      qty: parseNumberInput(addForm.totalProductQty),
+      totalPackages,
       standardTotal,
       boxesTotal,
       warpTotal,
       returnableTotal,
-      ratioStandard: Number(addForm.ratioStandard) || 0,
-      ratioBoxes: Number(addForm.ratioBoxes) || 0,
-      ratioWarp: Number(addForm.ratioWarp) || 0,
-      ratioReturnable: Number(addForm.ratioReturnable) || 0,
+      ratioStandard: (standardTotal / ratioBase) * 100,
+      ratioBoxes: (boxesTotal / ratioBase) * 100,
+      ratioWarp: (warpTotal / ratioBase) * 100,
+      ratioReturnable: (returnableTotal / ratioBase) * 100,
+      packagingBreakdown,
       remark: addForm.remark.trim(),
     };
 
@@ -709,7 +836,7 @@ export default function PackagingReportsPage() {
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
         title="Add Packing Record"
-        className="max-w-3xl"
+        className="max-w-5xl"
       >
         <div className="space-y-4">
           {addError && (
@@ -718,94 +845,197 @@ export default function PackagingReportsPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">Date (DD-MM-YYYY)</label>
-              <input
-                value={addForm.date}
-                onChange={(event) => setAddForm((prev) => ({ ...prev, date: event.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">Shipment</label>
-              <input
-                value={addForm.shipment}
-                onChange={(event) => setAddForm((prev) => ({ ...prev, shipment: event.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">Mode</label>
-              <input
-                value={addForm.mode}
-                onChange={(event) => setAddForm((prev) => ({ ...prev, mode: event.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">Product</label>
-              <input
-                value={addForm.product}
-                onChange={(event) => setAddForm((prev) => ({ ...prev, product: event.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-              />
-            </div>
-          </div>
+          {!isReviewingAddRecord ? (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-4">
+                <div className="rounded-2xl border border-[#D4AA7D]/35 bg-white/55 p-4 space-y-3">
+                  <div className="pb-1 border-b border-[#D4AA7D]/30">
+                    <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
+                      Shipment Details
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {SHIPMENT_DETAIL_FIELDS.map((field) => (
+                      (() => {
+                        const unitSuffix =
+                          field.key === "siQty" ? "Si." : field.key === "totalProductQty" ? "Pcs." : null;
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {[
-              { key: "siQty", label: "SI QTY" },
-              { key: "qty", label: "QTY" },
-              { key: "standardTotal", label: "Standard Total" },
-              { key: "boxesTotal", label: "Boxes Total" },
-              { key: "warpTotal", label: "Warp Total" },
-              { key: "returnableTotal", label: "Returnable Total" },
-              { key: "ratioStandard", label: "Ratio Standard" },
-              { key: "ratioBoxes", label: "Ratio Boxes" },
-              { key: "ratioWarp", label: "Ratio Warp" },
-              { key: "ratioReturnable", label: "Ratio Returnable" },
-            ].map((field) => (
-              <div key={field.key}>
-                <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">{field.label}</label>
-                <input
-                  type="number"
-                  step="any"
-                  value={addForm[field.key as keyof AddRecordForm] as string}
-                  onChange={(event) =>
-                    setAddForm((prev) => ({ ...prev, [field.key]: event.target.value }))
-                  }
-                  className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-                />
+                        return (
+                          <div
+                            key={field.key}
+                            className={
+                              field.key === "siQty" || field.key === "totalProductQty"
+                                ? ""
+                                : "md:col-span-2"
+                            }
+                          >
+                            <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">
+                              {field.label}
+                              {field.key === "date" ? " (DD-MM-YYYY)" : ""}
+                            </label>
+                            {unitSuffix ? (
+                              <div className="relative">
+                                <input
+                                  type={field.type}
+                                  step={field.type === "number" ? "any" : undefined}
+                                  value={addForm[field.key] as string}
+                                  onChange={(event) =>
+                                    setAddForm((prev) => ({ ...prev, [field.key]: event.target.value }))
+                                  }
+                                  className="w-full pl-3 pr-12 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-right outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                                />
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-bold text-[#7E5C4A]/75">
+                                  {unitSuffix}
+                                </span>
+                              </div>
+                            ) : (
+                              <input
+                                type={field.type}
+                                step={field.type === "number" ? "any" : undefined}
+                                value={addForm[field.key] as string}
+                                onChange={(event) =>
+                                  setAddForm((prev) => ({ ...prev, [field.key]: event.target.value }))
+                                }
+                                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                              />
+                            )}
+                          </div>
+                        );
+                      })()
+                    ))}
+                    <div className="md:col-span-2">
+                      <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">Remark</label>
+                      <textarea
+                        value={addForm.remark}
+                        onChange={(event) => setAddForm((prev) => ({ ...prev, remark: event.target.value }))}
+                        rows={3}
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35 resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-[#D4AA7D]/35 bg-white/55 p-4 space-y-3">
+                  <div className="pb-1 border-b border-[#D4AA7D]/30">
+                    <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
+                      Packaging Breakdown
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {PACKAGING_BREAKDOWN_FIELDS.map((field) => (
+                      <div key={field.key}>
+                        <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">{field.label}</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            step="1"
+                            min="0"
+                            value={addForm[field.key]}
+                            onChange={(event) =>
+                              setAddForm((prev) => ({ ...prev, [field.key]: event.target.value }))
+                            }
+                            className="w-full pl-3 pr-12 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-right outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-bold text-[#7E5C4A]/75">
+                            Pkg.
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">Remark</label>
-            <textarea
-              value={addForm.remark}
-              onChange={(event) => setAddForm((prev) => ({ ...prev, remark: event.target.value }))}
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/80 text-sm outline-none focus:ring-2 focus:ring-[#D4AA7D]/35 resize-none"
-            />
-          </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  onClick={closeAddModal}
+                  className="px-4 py-2 rounded-lg border border-[#D4AA7D]/35 text-[#7E5C4A] text-sm font-semibold hover:bg-white/70 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReviewRecord}
+                  className="px-4 py-2 rounded-lg bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] text-sm font-semibold transition-colors"
+                >
+                  Review Data
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-4">
+                <div className="rounded-2xl border border-[#D4AA7D]/35 bg-white/65 p-4 space-y-2">
+                  <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
+                    Shipment Details (Review)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {[
+                      { label: "Date", value: addForm.date || "-", compact: false },
+                      { label: "Customer Name", value: addForm.customerName || "-", compact: false },
+                      { label: "Product", value: addForm.product || "-", compact: false },
+                      { label: "Consignee Name", value: addForm.consigneeName || "-", compact: false },
+                      { label: "Transport Mode", value: addForm.transportMode || "-", compact: false },
+                      { label: "SI QTY", value: addForm.siQty || "-", compact: true },
+                      { label: "Total Product QTY", value: addForm.totalProductQty || "-", compact: true },
+                      { label: "Remark", value: addForm.remark || "-", compact: false },
+                    ].map((field) => (
+                      <div
+                        key={field.label}
+                        className={`rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2 ${
+                          field.compact ? "" : "md:col-span-2"
+                        }`}
+                      >
+                        <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{field.label}</p>
+                        <p className="text-sm font-medium text-[#272727] mt-1 break-words">{field.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              onClick={closeAddModal}
-              className="px-4 py-2 rounded-lg border border-[#D4AA7D]/35 text-[#7E5C4A] text-sm font-semibold hover:bg-white/70 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveRecord}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] text-sm font-semibold transition-colors"
-            >
-              <Save className="w-4 h-4" />
-              Save Record
-            </button>
-          </div>
+                <div className="rounded-2xl border border-[#D4AA7D]/35 bg-white/65 p-4 space-y-2">
+                  <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
+                    Packaging Breakdown (Review)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {PACKAGING_BREAKDOWN_FIELDS.map((field) => (
+                      <div key={field.key} className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
+                        <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{field.label}</p>
+                        <p className="text-sm font-semibold text-[#272727] mt-1">
+                          {reviewTotals.packagingBreakdown[field.key].toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">Standard Total</p>
+                      <p className="text-sm font-semibold text-[#272727] mt-1">{reviewTotals.standardTotal.toLocaleString()}</p>
+                    </div>
+                    <div className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">Total Packages</p>
+                      <p className="text-sm font-semibold text-[#272727] mt-1">{reviewTotals.totalPackages.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  onClick={() => setIsReviewingAddRecord(false)}
+                  className="px-4 py-2 rounded-lg border border-[#D4AA7D]/35 text-[#7E5C4A] text-sm font-semibold hover:bg-white/70 transition-colors"
+                >
+                  Back to Edit
+                </button>
+                <button
+                  onClick={handleSaveRecord}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] text-sm font-semibold transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  Confirm Save
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
 
@@ -820,11 +1050,12 @@ export default function PackagingReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 { label: "Date", value: selectedRow.date },
-                { label: "Shipment", value: selectedRow.shipment },
-                { label: "Mode", value: selectedRow.mode },
+                { label: "Customer Name", value: selectedRow.customerName || selectedRow.shipment },
+                { label: "Consignee Name", value: selectedRow.consigneeName || "-" },
+                { label: "Transport Mode", value: selectedRow.transportMode || selectedRow.mode },
                 { label: "Product", value: selectedRow.product },
                 { label: "SI QTY", value: selectedRow.siQty },
-                { label: "QTY", value: selectedRow.qty },
+                { label: "Total Product QTY", value: selectedRow.qty },
                 { label: "Total Packages", value: selectedRow.totalPackages },
                 { label: "Standard Total", value: selectedRow.standardTotal },
                 { label: "Boxes Total", value: selectedRow.boxesTotal },
@@ -841,6 +1072,22 @@ export default function PackagingReportsPage() {
                 </div>
               ))}
             </div>
+
+            {selectedRow.packagingBreakdown && (
+              <div className="space-y-2">
+                <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">Packaging Breakdown</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {PACKAGING_BREAKDOWN_FIELDS.map((field) => (
+                    <div key={field.key} className="rounded-xl border border-[#D4AA7D]/35 bg-white/70 px-3 py-2">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{field.label}</p>
+                      <p className="text-sm font-semibold text-[#272727] mt-1">
+                        {selectedRow.packagingBreakdown?.[field.key]?.toLocaleString() || 0}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/70 px-3 py-2">
               <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">Remark</p>
