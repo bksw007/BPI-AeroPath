@@ -625,21 +625,6 @@ export default function PackagingBookingPage() {
     setMergeDraft(null);
   };
 
-  const handleDeleteCase = (po: string, caseNo: number) => {
-    const target = getCase(po, caseNo);
-    if (!target) return;
-    if (target.items.length > 0) {
-      alert("Delete is allowed only for empty case. Move qty out first.");
-      return;
-    }
-
-    applyOperation({
-      type: "delete_case",
-      po,
-      caseNo,
-    });
-  };
-
   // --- 4. Steps Navigation ---
   const steps = [
     { id: 1, label: "Select Customer", icon: Users },
@@ -1048,7 +1033,6 @@ export default function PackagingBookingPage() {
                                              onUpdateNote={handleUpdateNote}
                                              onChangePackage={handleChangePackage}
                                              onOpenSplit={openSplitCase}
-                                             onDeleteCase={handleDeleteCase}
                                            />
                                          ))}
                                        </tbody>

@@ -16,7 +16,6 @@ interface EditableCaseRowProps {
   onUpdateNote: (po: string, caseNo: number, note: string) => void;
   onChangePackage: (po: string, caseNo: number, packageName: string) => void;
   onOpenSplit: (po: string, caseNo: number) => void;
-  onDeleteCase: (po: string, caseNo: number) => void;
 }
 
 function toDisplayTypeLabel(type: string): string {
@@ -49,7 +48,6 @@ export function EditableCaseRow({
   onUpdateNote,
   onChangePackage,
   onOpenSplit,
-  onDeleteCase,
 }: EditableCaseRowProps) {
   const currentPackage = packageOptions.find((pkg) => pkg.name === caseData.dims);
   const displayType = toDisplayTypeLabel(caseData.type);
@@ -136,12 +134,6 @@ export function EditableCaseRow({
               className="rounded-md border border-[#D4AA7D]/45 bg-[#EFD09E]/60 px-2 py-1 text-[11px] font-bold text-[#7E5C4A] transition-all duration-200 group-hover:bg-white group-hover:text-[#272727] group-hover:border-white group-hover:-translate-y-0.5 group-hover:shadow-sm hover:bg-white hover:text-[#272727] hover:border-white hover:-translate-y-0.5"
             >
               Split
-            </button>
-            <button
-              onClick={() => onDeleteCase(po, caseData.caseNo)}
-              className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-bold text-rose-700"
-            >
-              Delete
             </button>
           </div>
         </td>
