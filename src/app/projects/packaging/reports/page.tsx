@@ -255,7 +255,7 @@ const parsePackingCsv = (csvText: string): PackingReportRow[] => {
       shipment: cols[1] || "-",
       mode: cols[2] || "-",
       product: cols[3] || "-",
-      customerName: cols[1] || "-",
+      customerName: "FMT",
       transportMode: cols[2] || "-",
       consigneeName: cols[15] || "-",
       siQty: Number(cols[4]) || 0,
@@ -321,6 +321,7 @@ export default function PackagingReportsPage() {
   const [selectedRow, setSelectedRow] = useState<PackingReportRow | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [addForm, setAddForm] = useState<AddRecordForm>(buildInitialAddForm());
+  const filterAreaRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const loadCsv = async () => {
@@ -350,6 +351,20 @@ export default function PackagingReportsPage() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isFilterExpanded) return;
+
+    const onPointerDownOutside = (event: MouseEvent) => {
+      const targetNode = event.target as Node | null;
+      if (!targetNode) return;
+      if (filterAreaRef.current?.contains(targetNode)) return;
+      setIsFilterExpanded(false);
+    };
+
+    document.addEventListener("mousedown", onPointerDownOutside);
+    return () => document.removeEventListener("mousedown", onPointerDownOutside);
+  }, [isFilterExpanded]);
 
   const filterOptions = useMemo(() => {
     const years = new Set<string>();
@@ -426,7 +441,7 @@ export default function PackagingReportsPage() {
 
     const header = [
       "Date",
-      "Customer Name",
+      "Consignee Name",
       "Transport Mode",
       "Product",
       "SI QTY",
@@ -538,16 +553,17 @@ export default function PackagingReportsPage() {
     const ratioBase = totalPackages > 0 ? totalPackages : 1;
 
     const customerName = addForm.customerName.trim();
+    const consigneeName = addForm.consigneeName.trim();
     const transportMode = addForm.transportMode.trim();
 
     const newRow: PackingReportRow = {
       id: `${Date.now()}`,
       date: addForm.date.trim(),
-      shipment: customerName,
+      shipment: consigneeName,
       mode: transportMode,
       product: addForm.product.trim(),
       customerName,
-      consigneeName: addForm.consigneeName.trim(),
+      consigneeName,
       transportMode,
       siQty: parseNumberInput(addForm.siQty),
       qty: parseNumberInput(addForm.totalProductQty),
@@ -584,14 +600,14 @@ export default function PackagingReportsPage() {
             backLabel="Packaging Console"
           >
             <div className="mt-8 space-y-6">
-              <div>
+              <div ref={filterAreaRef}>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setIsFilterExpanded((prev) => !prev)}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                       isFilterExpanded
                         ? "bg-[#272727] text-[#EFD09E]"
-                        : "bg-white/70 text-[#7E5C4A] hover:bg-white border border-white/60"
+                        : "bg-white/70 text-[#7E5C4A] hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] border border-white/60"
                     }`}
                   >
                     <Filter className="w-3.5 h-3.5" />
@@ -660,14 +676,14 @@ export default function PackagingReportsPage() {
                   <div className="ml-auto flex items-center gap-2">
                     <button
                       onClick={openAddModal}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#9ACD32]/25 text-[#5a7a1a] hover:bg-[#9ACD32]/35 rounded-full text-xs font-semibold transition-all border border-[#9ACD32]/40"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/70 text-[#7E5C4A] hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] rounded-full text-xs font-semibold transition-all border border-white"
                     >
                       <PlusCircle className="w-3.5 h-3.5" />
                       Add Record
                     </button>
                     <button
                       onClick={() => window.location.reload()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/70 text-[#7E5C4A] hover:bg-white rounded-full text-xs font-semibold transition-all border border-white"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/70 text-[#7E5C4A] hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] rounded-full text-xs font-semibold transition-all border border-white"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Refresh
@@ -1050,8 +1066,8 @@ export default function PackagingReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 { label: "Date", value: selectedRow.date },
-                { label: "Customer Name", value: selectedRow.customerName || selectedRow.shipment },
-                { label: "Consignee Name", value: selectedRow.consigneeName || "-" },
+                { label: "Customer Name", value: "FMT" },
+                { label: "Consignee Name", value: selectedRow.shipment },
                 { label: "Transport Mode", value: selectedRow.transportMode || selectedRow.mode },
                 { label: "Product", value: selectedRow.product },
                 { label: "SI QTY", value: selectedRow.siQty },
