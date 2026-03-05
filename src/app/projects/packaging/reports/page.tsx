@@ -21,10 +21,12 @@ interface PackingReportRow {
   totalPackages: number;
   standardTotal: number;
   boxesTotal: number;
+  cartonTotal: number;
   warpTotal: number;
   returnableTotal: number;
   ratioStandard: number;
   ratioBoxes: number;
+  ratioCarton: number;
   ratioWarp: number;
   ratioReturnable: number;
   packagingBreakdown?: Record<PackagingBreakdownKey, number>;
@@ -136,8 +138,8 @@ const MONTHS = [
 const SHIPMENT_DETAIL_FIELDS: Array<{ key: keyof AddRecordForm; label: string; type: "text" | "number" }> = [
   { key: "date", label: "Date", type: "text" },
   { key: "customerName", label: "Customer Name", type: "text" },
-  { key: "product", label: "Product", type: "text" },
   { key: "consigneeName", label: "Consignee Name", type: "text" },
+  { key: "product", label: "Product", type: "text" },
   { key: "transportMode", label: "Transport Mode", type: "text" },
   { key: "siQty", label: "SI QTY", type: "number" },
   { key: "totalProductQty", label: "Total Product QTY", type: "number" },
@@ -166,6 +168,62 @@ const PACKAGING_BREAKDOWN_FIELDS: Array<{
   { key: "warpQty", label: "WARP QTY", group: "warp" },
   { key: "unitQty", label: "UNIT QTY", group: "unit" },
 ];
+
+const STANDARD_KEYS: PackagingBreakdownKey[] = [
+  "qty110x110x115",
+  "qty110x110x90",
+  "qty110x110x65",
+  "qty80x120x115",
+  "qty80x120x90",
+  "qty80x120x65",
+];
+
+const BOXES_KEYS: PackagingBreakdownKey[] = [
+  "qty42x46x68",
+  "qty47x66x68",
+  "qty53x53x58",
+  "qty57x64x84",
+  "qty68x74x86",
+  "qty70x100x90",
+];
+
+const CARTON_KEYS: PackagingBreakdownKey[] = ["qty27x27x22", "qty53x53x19"];
+
+const PACKAGING_GROUPS: Array<{ title: string; keys: PackagingBreakdownKey[] }> = [
+  { title: "Standard", keys: STANDARD_KEYS },
+  { title: "Boxes", keys: BOXES_KEYS },
+  { title: "Carton", keys: CARTON_KEYS },
+  { title: "Warp / Unit", keys: ["warpQty", "unitQty"] },
+  { title: "Returnable", keys: ["returnableQty"] },
+];
+
+const PACKAGING_FIELD_BY_KEY: Record<PackagingBreakdownKey, { label: string }> = PACKAGING_BREAKDOWN_FIELDS.reduce(
+  (acc, field) => {
+    acc[field.key] = { label: field.label };
+    return acc;
+  },
+  {} as Record<PackagingBreakdownKey, { label: string }>
+);
+
+const BATCH_PACKAGING_KEY_MAP: Record<string, PackagingBreakdownKey> = {
+  "PALLET 42X46X68": "qty42x46x68",
+  "PALLET 47X66X68": "qty47x66x68",
+  "PALLET 57X64X84": "qty57x64x84",
+  "PALLET 68X74X86": "qty68x74x86",
+  "PALLET 70X100X90": "qty70x100x90",
+  "PALLET 53X53X58": "qty53x53x58",
+  "CARTON 27X27X22": "qty27x27x22",
+  "CARTON 53X53X19": "qty53x53x19",
+  "PALLET 110X110X65": "qty110x110x65",
+  "PALLET 110X110X90": "qty110x110x90",
+  "PALLET 110X110X115": "qty110x110x115",
+  "PALLET 80X120X65": "qty80x120x65",
+  "PALLET 80X120X90": "qty80x120x90",
+  "PALLET 80X120X115": "qty80x120x115",
+  "WOODEN CASE 96X219X83": "warpQty",
+  "RETURNABLE P110X110X110": "returnableQty",
+  PALLET: "warpQty",
+};
 
 const buildInitialAddForm = (date = ""): AddRecordForm => ({
   date,
@@ -246,31 +304,96 @@ const parsePackingCsv = (csvText: string): PackingReportRow[] => {
   const lines = csvText.split(/\r?\n/).filter(Boolean);
   if (lines.length <= 1) return [];
 
+  const headerCols = splitCsvLine(lines[0]).map((col) => col.trim().toLowerCase());
+  const findColIndex = (header: string, fallback: number) => {
+    const idx = headerCols.indexOf(header.toLowerCase());
+    return idx >= 0 ? idx : fallback;
+  };
+  const readCol = (cols: string[], idx: number) => (idx >= 0 && idx < cols.length ? cols[idx] : "");
+
+  const columnIndex = {
+    date: findColIndex("Date", 0),
+    customerName: findColIndex("Customer Name", 1),
+    consigneeName: findColIndex("Consignee Name", 2),
+    mode: findColIndex("Mode", 3),
+    product: findColIndex("Product", 4),
+    siQty: findColIndex("SI QTY", 5),
+    qty: findColIndex("QTY", 6),
+    qty110x110x115: findColIndex("110x110x115 QTY", 16),
+    qty110x110x90: findColIndex("110x110x90 QTY", 17),
+    qty110x110x65: findColIndex("110x110x65 QTY", 18),
+    qty80x120x115: findColIndex("80X120X115 QTY", 19),
+    qty80x120x90: findColIndex("80X120X90 QTY", 20),
+    qty80x120x65: findColIndex("80X120X65 QTY", 21),
+    qty42x46x68: findColIndex("42X46X68 QTY", 22),
+    qty47x66x68: findColIndex("47X66X68 QTY", 23),
+    qty53x53x58: findColIndex("53X53X58 QTY", 24),
+    qty57x64x84: findColIndex("57X64X84 QTY", 25),
+    qty68x74x86: findColIndex("68X74X86 QTY", 26),
+    qty70x100x90: findColIndex("70X100X90 QTY", 27),
+    qty27x27x22: findColIndex("27X27X22 QTY", 28),
+    qty53x53x19: findColIndex("53X53X19 QTY", 29),
+    warpQty: findColIndex("WARP QTY", 30),
+    unitQty: findColIndex("UNIT QTY", 31),
+    returnableQty: findColIndex("RETURNABLE QTY", 32),
+    remark: findColIndex("Remark", 33),
+  };
+
   return lines.slice(1).map((line, index) => {
     const cols = splitCsvLine(line);
+    const customerName = readCol(cols, columnIndex.customerName).trim();
+    const consigneeName = readCol(cols, columnIndex.consigneeName).trim();
+    const transportMode = readCol(cols, columnIndex.mode).trim();
+    const packagingBreakdown: Record<PackagingBreakdownKey, number> = {
+      qty110x110x115: Number(readCol(cols, columnIndex.qty110x110x115)) || 0,
+      qty110x110x90: Number(readCol(cols, columnIndex.qty110x110x90)) || 0,
+      qty110x110x65: Number(readCol(cols, columnIndex.qty110x110x65)) || 0,
+      qty80x120x115: Number(readCol(cols, columnIndex.qty80x120x115)) || 0,
+      qty80x120x90: Number(readCol(cols, columnIndex.qty80x120x90)) || 0,
+      qty80x120x65: Number(readCol(cols, columnIndex.qty80x120x65)) || 0,
+      returnableQty: Number(readCol(cols, columnIndex.returnableQty)) || 0,
+      qty42x46x68: Number(readCol(cols, columnIndex.qty42x46x68)) || 0,
+      qty47x66x68: Number(readCol(cols, columnIndex.qty47x66x68)) || 0,
+      qty53x53x58: Number(readCol(cols, columnIndex.qty53x53x58)) || 0,
+      qty57x64x84: Number(readCol(cols, columnIndex.qty57x64x84)) || 0,
+      qty68x74x86: Number(readCol(cols, columnIndex.qty68x74x86)) || 0,
+      qty70x100x90: Number(readCol(cols, columnIndex.qty70x100x90)) || 0,
+      qty27x27x22: Number(readCol(cols, columnIndex.qty27x27x22)) || 0,
+      qty53x53x19: Number(readCol(cols, columnIndex.qty53x53x19)) || 0,
+      warpQty: Number(readCol(cols, columnIndex.warpQty)) || 0,
+      unitQty: Number(readCol(cols, columnIndex.unitQty)) || 0,
+    };
+    const standardTotal = STANDARD_KEYS.reduce((sum, key) => sum + packagingBreakdown[key], 0);
+    const boxesTotal = BOXES_KEYS.reduce((sum, key) => sum + packagingBreakdown[key], 0);
+    const cartonTotal = CARTON_KEYS.reduce((sum, key) => sum + packagingBreakdown[key], 0);
+    const warpTotal = packagingBreakdown.warpQty + packagingBreakdown.unitQty;
+    const returnableTotal = packagingBreakdown.returnableQty;
+    const totalPackages = Object.values(packagingBreakdown).reduce((sum, qty) => sum + qty, 0);
 
     return {
       id: `${index + 1}`,
-      date: cols[0] || "",
-      shipment: cols[1] || "-",
-      mode: cols[2] || "-",
-      product: cols[3] || "-",
-      customerName: "FMT",
-      transportMode: cols[2] || "-",
-      consigneeName: cols[15] || "-",
-      siQty: Number(cols[4]) || 0,
-      qty: Number(cols[5]) || 0,
-      totalPackages: Number(cols[6]) || 0,
-      standardTotal: Number(cols[7]) || 0,
-      boxesTotal: Number(cols[8]) || 0,
-      warpTotal: Number(cols[9]) || 0,
-      returnableTotal: Number(cols[10]) || 0,
-      ratioStandard: Number(cols[11]) || 0,
-      ratioBoxes: Number(cols[12]) || 0,
-      ratioWarp: Number(cols[13]) || 0,
-      ratioReturnable: Number(cols[14]) || 0,
-      packagingBreakdown: undefined,
-      remark: cols[32] || "",
+      date: readCol(cols, columnIndex.date),
+      shipment: consigneeName || "-",
+      mode: transportMode || "-",
+      product: readCol(cols, columnIndex.product) || "-",
+      customerName: customerName || "-",
+      transportMode: transportMode || "-",
+      consigneeName: consigneeName || "-",
+      siQty: Number(readCol(cols, columnIndex.siQty)) || 0,
+      qty: Number(readCol(cols, columnIndex.qty)) || 0,
+      totalPackages,
+      standardTotal,
+      boxesTotal,
+      cartonTotal,
+      warpTotal,
+      returnableTotal,
+      ratioStandard: standardTotal / 1,
+      ratioBoxes: boxesTotal / 3,
+      ratioCarton: cartonTotal / 30,
+      ratioWarp: warpTotal / 10,
+      ratioReturnable: returnableTotal / 2,
+      packagingBreakdown,
+      remark: readCol(cols, columnIndex.remark) || "",
     };
   });
 };
@@ -284,22 +407,26 @@ const calculatePackagingTotals = (form: AddRecordForm) => {
     {} as Record<PackagingBreakdownKey, number>
   );
 
-  const standardTotal = PACKAGING_BREAKDOWN_FIELDS.filter((field) => field.group === "standard").reduce(
-    (sum, field) => sum + packagingBreakdown[field.key],
-    0
-  );
+  const standardTotal = STANDARD_KEYS.reduce((sum, key) => sum + packagingBreakdown[key], 0);
+  const boxesTotal = BOXES_KEYS.reduce((sum, key) => sum + packagingBreakdown[key], 0);
+  const cartonTotal = CARTON_KEYS.reduce((sum, key) => sum + packagingBreakdown[key], 0);
   const returnableTotal = packagingBreakdown.returnableQty;
-  const warpTotal = packagingBreakdown.warpQty;
-  const boxesTotal = packagingBreakdown.unitQty;
-  const totalPackages = standardTotal + returnableTotal + warpTotal + boxesTotal;
+  const warpTotal = packagingBreakdown.warpQty + packagingBreakdown.unitQty;
+  const totalPackages = Object.values(packagingBreakdown).reduce((sum, qty) => sum + qty, 0);
 
   return {
     packagingBreakdown,
     standardTotal,
+    boxesTotal,
+    cartonTotal,
     returnableTotal,
     warpTotal,
-    boxesTotal,
     totalPackages,
+    ratioStandard: standardTotal / 1,
+    ratioBoxes: boxesTotal / 3,
+    ratioCarton: cartonTotal / 30,
+    ratioWarp: warpTotal / 10,
+    ratioReturnable: returnableTotal / 2,
   };
 };
 
@@ -317,6 +444,9 @@ export default function PackagingReportsPage() {
   const [selectedMode, setSelectedMode] = useState("All");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReviewingAddRecord, setIsReviewingAddRecord] = useState(false);
+  const [isBatchInputOpen, setIsBatchInputOpen] = useState(false);
+  const [batchInputText, setBatchInputText] = useState("");
+  const [batchInputError, setBatchInputError] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<PackingReportRow | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -328,7 +458,7 @@ export default function PackagingReportsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch("/files/packing_export_2026-02-27_23-23.csv");
+        const res = await fetch("/files/packing_export_2026-02-27_23_update.csv");
         if (!res.ok) throw new Error(`CSV load failed (${res.status})`);
         const csvText = await res.text();
         setRows(parsePackingCsv(csvText));
@@ -449,10 +579,12 @@ export default function PackagingReportsPage() {
       "Total Packages",
       "Standard Total",
       "Boxes Total",
+      "Carton Total",
       "Warp Total",
       "Returnable Total",
       "Ratio Standard",
       "Ratio Boxes",
+      "Ratio Carton",
       "Ratio Warp",
       "Ratio Returnable",
       "Remark",
@@ -471,10 +603,12 @@ export default function PackagingReportsPage() {
           row.totalPackages,
           row.standardTotal,
           row.boxesTotal,
+          row.cartonTotal,
           row.warpTotal,
           row.returnableTotal,
           row.ratioStandard.toFixed(2),
           row.ratioBoxes.toFixed(2),
+          row.ratioCarton.toFixed(2),
           row.ratioWarp.toFixed(2),
           row.ratioReturnable.toFixed(2),
           row.remark,
@@ -512,6 +646,9 @@ export default function PackagingReportsPage() {
     const date = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
     setAddForm(buildInitialAddForm(date));
     setIsReviewingAddRecord(false);
+    setIsBatchInputOpen(false);
+    setBatchInputText("");
+    setBatchInputError(null);
     setAddError(null);
     setIsAddModalOpen(true);
   };
@@ -519,7 +656,58 @@ export default function PackagingReportsPage() {
   const closeAddModal = () => {
     setIsAddModalOpen(false);
     setIsReviewingAddRecord(false);
+    setIsBatchInputOpen(false);
+    setBatchInputText("");
+    setBatchInputError(null);
     setAddError(null);
+  };
+
+  const applyBatchPackagingInput = () => {
+    const lines = batchInputText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) {
+      setBatchInputError("กรุณาวางข้อมูลก่อนกด Apply");
+      return;
+    }
+
+    const nextValues = PACKAGING_BREAKDOWN_FIELDS.reduce<Record<PackagingBreakdownKey, number>>((acc, field) => {
+      acc[field.key] = 0;
+      return acc;
+    }, {} as Record<PackagingBreakdownKey, number>);
+
+    let matchedLines = 0;
+
+    lines.forEach((line) => {
+      const parsed = line.match(/^(.*?)[\t ]+(-?\d+(?:\.\d+)?)$/);
+      if (!parsed) return;
+
+      const rawKey = parsed[1].trim().replace(/\s+/g, " ").toUpperCase();
+      const qty = Number(parsed[2]);
+      if (!Number.isFinite(qty)) return;
+
+      const mappedKey = BATCH_PACKAGING_KEY_MAP[rawKey];
+      if (!mappedKey) return;
+
+      matchedLines += 1;
+      nextValues[mappedKey] += qty;
+    });
+
+    if (matchedLines === 0) {
+      setBatchInputError("ไม่พบข้อมูลที่ map ได้ กรุณาตรวจรูปแบบชื่อและตัวเลข");
+      return;
+    }
+
+    setAddForm((prev) => ({
+      ...prev,
+      ...Object.fromEntries(
+        PACKAGING_BREAKDOWN_FIELDS.map((field) => [field.key, String(nextValues[field.key])])
+      ),
+    }));
+    setBatchInputError(null);
+    setIsBatchInputOpen(false);
   };
 
   const validateAddRecord = () => {
@@ -548,9 +736,20 @@ export default function PackagingReportsPage() {
   const handleSaveRecord = () => {
     if (!validateAddRecord()) return;
 
-    const { packagingBreakdown, standardTotal, boxesTotal, warpTotal, returnableTotal, totalPackages } =
-      calculatePackagingTotals(addForm);
-    const ratioBase = totalPackages > 0 ? totalPackages : 1;
+    const {
+      packagingBreakdown,
+      standardTotal,
+      boxesTotal,
+      cartonTotal,
+      warpTotal,
+      returnableTotal,
+      totalPackages,
+      ratioStandard,
+      ratioBoxes,
+      ratioCarton,
+      ratioWarp,
+      ratioReturnable,
+    } = calculatePackagingTotals(addForm);
 
     const customerName = addForm.customerName.trim();
     const consigneeName = addForm.consigneeName.trim();
@@ -570,12 +769,14 @@ export default function PackagingReportsPage() {
       totalPackages,
       standardTotal,
       boxesTotal,
+      cartonTotal,
       warpTotal,
       returnableTotal,
-      ratioStandard: (standardTotal / ratioBase) * 100,
-      ratioBoxes: (boxesTotal / ratioBase) * 100,
-      ratioWarp: (warpTotal / ratioBase) * 100,
-      ratioReturnable: (returnableTotal / ratioBase) * 100,
+      ratioStandard,
+      ratioBoxes,
+      ratioCarton,
+      ratioWarp,
+      ratioReturnable,
       packagingBreakdown,
       remark: addForm.remark.trim(),
     };
@@ -595,7 +796,7 @@ export default function PackagingReportsPage() {
         <div className="container-custom">
           <ModuleHeader
             title="Packing Reports"
-            description="Report source: packing_export_2026-02-27_23-23.csv"
+            description="Report source: packing_export_2026-02-27_23_update.csv"
             backHref="/projects/packaging"
             backLabel="Packaging Console"
           >
@@ -880,7 +1081,10 @@ export default function PackagingReportsPage() {
                           <div
                             key={field.key}
                             className={
-                              field.key === "siQty" || field.key === "totalProductQty"
+                              field.key === "product" ||
+                              field.key === "transportMode" ||
+                              field.key === "siQty" ||
+                              field.key === "totalProductQty"
                                 ? ""
                                 : "md:col-span-2"
                             }
@@ -932,29 +1136,83 @@ export default function PackagingReportsPage() {
                 </div>
 
                 <div className="rounded-2xl border border-[#D4AA7D]/35 bg-white/55 p-4 space-y-3">
-                  <div className="pb-1 border-b border-[#D4AA7D]/30">
+                  <div className="pb-1 border-b border-[#D4AA7D]/30 flex items-center justify-between gap-2">
                     <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
                       Packaging Breakdown
                     </p>
+                    <button
+                      onClick={() => {
+                        setIsBatchInputOpen((prev) => !prev);
+                        setBatchInputError(null);
+                      }}
+                      className="px-2.5 py-1 rounded-md border border-[#D4AA7D]/45 bg-[#EFD09E]/55 text-[11px] font-bold text-[#7E5C4A] hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] transition-all"
+                    >
+                      Batch Paste
+                    </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {PACKAGING_BREAKDOWN_FIELDS.map((field) => (
-                      <div key={field.key}>
-                        <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">{field.label}</label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={addForm[field.key]}
-                            onChange={(event) =>
-                              setAddForm((prev) => ({ ...prev, [field.key]: event.target.value }))
-                            }
-                            className="w-full pl-3 pr-12 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-right outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-                          />
-                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-bold text-[#7E5C4A]/75">
-                            Pkg.
-                          </span>
+                  {isBatchInputOpen && (
+                    <div className="space-y-2 rounded-xl border border-[#D4AA7D]/35 bg-white/80 p-3">
+                      <p className="text-[11px] font-semibold text-[#7E5C4A]">
+                        Paste from Excel (Label + QTY) แล้วกด Apply
+                      </p>
+                      <textarea
+                        value={batchInputText}
+                        onChange={(event) => setBatchInputText(event.target.value)}
+                        rows={6}
+                        placeholder={`PALLET\t2\nPALLET 110x110x115\t6\nPALLET 110x110x90\t20`}
+                        className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white text-xs text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35 resize-y"
+                      />
+                      {batchInputError && (
+                        <p className="text-[11px] font-semibold text-rose-700">{batchInputError}</p>
+                      )}
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setBatchInputText("");
+                            setBatchInputError(null);
+                          }}
+                          className="px-3 py-1.5 rounded-md border border-[#D4AA7D]/35 text-[#7E5C4A] text-xs font-semibold hover:bg-white transition-colors"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={applyBatchPackagingInput}
+                          className="px-3 py-1.5 rounded-md bg-[#272727] text-[#EFD09E] text-xs font-semibold hover:bg-[#1f1f1f] transition-colors"
+                        >
+                          Apply to Fields
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    {PACKAGING_GROUPS.map((group) => (
+                      <div key={group.title} className="rounded-xl border border-[#D4AA7D]/30 bg-white/55 p-3">
+                        <p className="text-[11px] font-black uppercase tracking-wide text-[#7E5C4A] mb-2">
+                          {group.title}
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {group.keys.map((key) => (
+                            <div key={key}>
+                              <label className="block text-[11px] font-bold text-[#7E5C4A] mb-1">
+                                {PACKAGING_FIELD_BY_KEY[key].label}
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  value={addForm[key]}
+                                  onChange={(event) =>
+                                    setAddForm((prev) => ({ ...prev, [key]: event.target.value }))
+                                  }
+                                  className="w-full pl-3 pr-12 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-right outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                                />
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-bold text-[#7E5C4A]/75">
+                                  Pkg.
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -1012,25 +1270,40 @@ export default function PackagingReportsPage() {
                   <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
                     Packaging Breakdown (Review)
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {PACKAGING_BREAKDOWN_FIELDS.map((field) => (
-                      <div key={field.key} className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
-                        <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{field.label}</p>
-                        <p className="text-sm font-semibold text-[#272727] mt-1">
-                          {reviewTotals.packagingBreakdown[field.key].toLocaleString()}
-                        </p>
+                  <div className="rounded-xl border border-[#D4AA7D]/25 bg-white/80 px-3 py-2 space-y-1 max-h-[460px] overflow-auto">
+                    {PACKAGING_GROUPS.flatMap((group) => group.keys)
+                      .filter((key) => reviewTotals.packagingBreakdown[key] > 0)
+                      .map((key) => (
+                        <div key={key} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
+                          <span className="text-xs font-semibold text-[#7E5C4A]">{PACKAGING_FIELD_BY_KEY[key].label}</span>
+                          <span className="text-sm font-bold text-[#272727] tabular-nums">
+                            {reviewTotals.packagingBreakdown[key].toLocaleString()} Pkg.
+                          </span>
+                        </div>
+                      ))}
+                    <div className="pt-2 mt-2 border-t border-[#D4AA7D]/25">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-[#272727] mb-1.5">
+                        Group Totals
+                      </p>
+                    </div>
+                    {[
+                      { label: "Standard Total", value: reviewTotals.standardTotal },
+                      { label: "Boxes Total", value: reviewTotals.boxesTotal },
+                      { label: "Carton Total", value: reviewTotals.cartonTotal },
+                      { label: "Warp Total", value: reviewTotals.warpTotal },
+                      { label: "Returnable Total", value: reviewTotals.returnableTotal },
+                      { label: "Total Packages", value: reviewTotals.totalPackages },
+                    ]
+                      .filter((item) => item.value > 0)
+                      .map((item) => (
+                      <div key={item.label} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
+                        <span className="text-xs font-black uppercase tracking-wide text-[#7E5C4A]">{item.label}</span>
+                        <span className="text-sm font-black text-[#272727] tabular-nums">{item.value.toLocaleString()}</span>
                       </div>
                     ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    <div className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">Standard Total</p>
-                      <p className="text-sm font-semibold text-[#272727] mt-1">{reviewTotals.standardTotal.toLocaleString()}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">Total Packages</p>
-                      <p className="text-sm font-semibold text-[#272727] mt-1">{reviewTotals.totalPackages.toLocaleString()}</p>
-                    </div>
+                    {reviewTotals.totalPackages === 0 && (
+                      <p className="text-xs font-medium text-[#7E5C4A]/70 py-1">No package quantity.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1066,7 +1339,7 @@ export default function PackagingReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 { label: "Date", value: selectedRow.date },
-                { label: "Customer Name", value: "FMT" },
+                { label: "Customer Name", value: selectedRow.customerName || "-" },
                 { label: "Consignee Name", value: selectedRow.shipment },
                 { label: "Transport Mode", value: selectedRow.transportMode || selectedRow.mode },
                 { label: "Product", value: selectedRow.product },
@@ -1075,10 +1348,12 @@ export default function PackagingReportsPage() {
                 { label: "Total Packages", value: selectedRow.totalPackages },
                 { label: "Standard Total", value: selectedRow.standardTotal },
                 { label: "Boxes Total", value: selectedRow.boxesTotal },
+                { label: "Carton Total", value: selectedRow.cartonTotal },
                 { label: "Warp Total", value: selectedRow.warpTotal },
                 { label: "Returnable Total", value: selectedRow.returnableTotal },
                 { label: "Ratio Standard", value: selectedRow.ratioStandard.toFixed(2) },
                 { label: "Ratio Boxes", value: selectedRow.ratioBoxes.toFixed(2) },
+                { label: "Ratio Carton", value: selectedRow.ratioCarton.toFixed(2) },
                 { label: "Ratio Warp", value: selectedRow.ratioWarp.toFixed(2) },
                 { label: "Ratio Returnable", value: selectedRow.ratioReturnable.toFixed(2) },
               ].map((field) => (
@@ -1092,13 +1367,24 @@ export default function PackagingReportsPage() {
             {selectedRow.packagingBreakdown && (
               <div className="space-y-2">
                 <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">Packaging Breakdown</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {PACKAGING_BREAKDOWN_FIELDS.map((field) => (
-                    <div key={field.key} className="rounded-xl border border-[#D4AA7D]/35 bg-white/70 px-3 py-2">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{field.label}</p>
-                      <p className="text-sm font-semibold text-[#272727] mt-1">
-                        {selectedRow.packagingBreakdown?.[field.key]?.toLocaleString() || 0}
+                <div className="space-y-2">
+                  {PACKAGING_GROUPS.map((group) => (
+                    <div key={group.title} className="rounded-xl border border-[#D4AA7D]/30 bg-white/70 p-2.5">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80 mb-1.5">
+                        {group.title}
                       </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {group.keys.map((key) => (
+                          <div key={key} className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
+                            <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">
+                              {PACKAGING_FIELD_BY_KEY[key].label}
+                            </p>
+                            <p className="text-sm font-semibold text-[#272727] mt-1">
+                              {selectedRow.packagingBreakdown?.[key]?.toLocaleString() || 0}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
