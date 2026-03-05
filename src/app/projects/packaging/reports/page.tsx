@@ -80,6 +80,8 @@ type PackagingBreakdownKey =
   | "warpQty"
   | "unitQty";
 
+type ShipmentDropdownFieldKey = "customerName" | "consigneeName" | "product" | "transportMode";
+
 function CountingNumber({
   value,
   duration = 1000,
@@ -269,6 +271,22 @@ const parseDateDDMMYYYY = (value: string): Date | null => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const convertDateToIsoInput = (value: string): string => {
+  const parsed = parseDateDDMMYYYY(value);
+  if (!parsed) return "";
+  const y = parsed.getFullYear();
+  const m = String(parsed.getMonth() + 1).padStart(2, "0");
+  const d = String(parsed.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+const convertIsoInputToDate = (value: string): string => {
+  if (!value) return "";
+  const [y, m, d] = value.split("-");
+  if (!y || !m || !d) return "";
+  return `${d}-${m}-${y}`;
+};
+
 const splitCsvLine = (line: string): string[] => {
   const result: string[] = [];
   let current = "";
@@ -450,8 +468,15 @@ export default function PackagingReportsPage() {
   const [addError, setAddError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<PackingReportRow | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [manualShipmentOptions, setManualShipmentOptions] = useState<Record<ShipmentDropdownFieldKey, string[]>>({
+    customerName: [],
+    consigneeName: [],
+    product: [],
+    transportMode: [],
+  });
   const [addForm, setAddForm] = useState<AddRecordForm>(buildInitialAddForm());
   const filterAreaRef = useRef<HTMLDivElement | null>(null);
+  const dateInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const loadCsv = async () => {
@@ -517,6 +542,33 @@ export default function PackagingReportsPage() {
       modes: Array.from(modes).sort(),
     };
   }, [rows]);
+
+  const shipmentDropdownOptions = useMemo(() => {
+    const uniqueSorted = (values: string[]) =>
+      Array.from(
+        new Set(
+          values
+            .map((value) => value.trim())
+            .filter((value) => value !== "" && value !== "-")
+        )
+      ).sort((a, b) => a.localeCompare(b));
+
+    return {
+      customerName: uniqueSorted([
+        ...rows.map((row) => row.customerName || ""),
+        ...manualShipmentOptions.customerName,
+      ]),
+      consigneeName: uniqueSorted([
+        ...rows.map((row) => row.consigneeName || row.shipment || ""),
+        ...manualShipmentOptions.consigneeName,
+      ]),
+      product: uniqueSorted([...rows.map((row) => row.product || ""), ...manualShipmentOptions.product]),
+      transportMode: uniqueSorted([
+        ...rows.map((row) => row.transportMode || row.mode || ""),
+        ...manualShipmentOptions.transportMode,
+      ]),
+    };
+  }, [rows, manualShipmentOptions]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
@@ -660,6 +712,18 @@ export default function PackagingReportsPage() {
     setBatchInputText("");
     setBatchInputError(null);
     setAddError(null);
+  };
+
+  const addShipmentDropdownOption = (fieldKey: ShipmentDropdownFieldKey, label: string) => {
+    const inputValue = window.prompt(`Add ${label}`, "");
+    const nextValue = inputValue?.trim() || "";
+    if (!nextValue) return;
+
+    setManualShipmentOptions((prev) => {
+      if (prev[fieldKey].includes(nextValue)) return prev;
+      return { ...prev, [fieldKey]: [...prev[fieldKey], nextValue] };
+    });
+    setAddForm((prev) => ({ ...prev, [fieldKey]: nextValue }));
   };
 
   const applyBatchPackagingInput = () => {
@@ -1066,23 +1130,40 @@ export default function PackagingReportsPage() {
             <>
               <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-4">
                 <div className="rounded-2xl border border-[#D4AA7D]/35 bg-white/55 p-4 space-y-3">
-                  <div className="pb-1 border-b border-[#D4AA7D]/30">
+                  <div className="pb-1 border-b border-[#D4AA7D]/30 flex items-center justify-between gap-2">
                     <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">
                       Shipment Details
                     </p>
+                    <span className="px-2.5 py-1 text-[11px] font-bold invisible select-none">Batch Paste</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {SHIPMENT_DETAIL_FIELDS.map((field) => (
                       (() => {
                         const unitSuffix =
                           field.key === "siQty" ? "Si." : field.key === "totalProductQty" ? "Pcs." : null;
+                        const dropdownFieldKey =
+                          field.key === "customerName" ||
+                          field.key === "consigneeName" ||
+                          field.key === "product" ||
+                          field.key === "transportMode"
+                            ? (field.key as ShipmentDropdownFieldKey)
+                            : null;
+                        const dropdownOptions =
+                          dropdownFieldKey
+                            ? Array.from(
+                                new Set(
+                                  [
+                                    ...shipmentDropdownOptions[dropdownFieldKey],
+                                    (addForm[dropdownFieldKey] as string).trim(),
+                                  ].filter(Boolean)
+                                )
+                              ).sort((a, b) => a.localeCompare(b))
+                            : [];
 
                         return (
                           <div
                             key={field.key}
                             className={
-                              field.key === "product" ||
-                              field.key === "transportMode" ||
                               field.key === "siQty" ||
                               field.key === "totalProductQty"
                                 ? ""
@@ -1093,7 +1174,61 @@ export default function PackagingReportsPage() {
                               {field.label}
                               {field.key === "date" ? " (DD-MM-YYYY)" : ""}
                             </label>
-                            {unitSuffix ? (
+                            {field.key === "date" ? (
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const target = dateInputRef.current as
+                                      | (HTMLInputElement & { showPicker?: () => void })
+                                      | null;
+                                    target?.showPicker?.();
+                                    target?.focus();
+                                  }}
+                                  className="w-full px-3 py-2 text-left rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                                >
+                                  {addForm.date || "Select date"}
+                                </button>
+                                <input
+                                  ref={dateInputRef}
+                                  type="date"
+                                  value={convertDateToIsoInput(addForm.date)}
+                                  onChange={(event) =>
+                                    setAddForm((prev) => ({
+                                      ...prev,
+                                      date: convertIsoInputToDate(event.target.value),
+                                    }))
+                                  }
+                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                              </div>
+                            ) : dropdownFieldKey ? (
+                              <div className="flex items-center gap-2">
+                                <select
+                                  value={addForm[dropdownFieldKey]}
+                                  onChange={(event) =>
+                                    setAddForm((prev) => ({ ...prev, [dropdownFieldKey]: event.target.value }))
+                                  }
+                                  className="flex-1 px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                                >
+                                  <option value="">Select {field.label}</option>
+                                  {dropdownOptions.map((option) => (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() => addShipmentDropdownOption(dropdownFieldKey, field.label)}
+                                  className="w-8 h-8 rounded-md border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] text-base font-black leading-none hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] transition-colors"
+                                  aria-label={`Add ${field.label}`}
+                                  title={`Add ${field.label}`}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : unitSuffix ? (
                               <div className="relative">
                                 <input
                                   type={field.type}
