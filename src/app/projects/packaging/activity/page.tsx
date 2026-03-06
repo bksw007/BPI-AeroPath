@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { Modal } from "@/components/shared/Modal";
@@ -15,7 +15,10 @@ import {
   FileText,
   History,
   ArrowRight,
-  Upload
+  ArrowUp,
+  Upload,
+  CalendarDays,
+  ChevronDown
 } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatters";
 import { PackagingService, IActivityLog } from "@/lib/firebase/services/packaging.service";
@@ -24,8 +27,46 @@ export default function PackagingActivityPage() {
   const [activities, setActivities] = useState<IActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
-  const [filterAction, setFilterAction] = useState("All");
+  const [filterYear, setFilterYear] = useState("All");
+  const [filterMonth, setFilterMonth] = useState("All");
   const [selectedActivity, setSelectedActivity] = useState<IActivityLog | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const monthOptions = [
+    { value: "All", label: "All Months" },
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
+  const getActivityDate = (activity: IActivityLog): Date | null => {
+    const ts = activity.timestamp as { toDate?: () => Date } | Date | string | number | null | undefined;
+    const date =
+      ts && typeof ts === "object" && "toDate" in ts && typeof ts.toDate === "function"
+        ? ts.toDate()
+        : new Date(ts as Date | string | number);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const yearOptions = useMemo(() => {
+    const years = Array.from(
+      new Set(
+        activities
+          .map((activity) => getActivityDate(activity))
+          .filter((date): date is Date => !!date)
+          .map((date) => String(date.getFullYear()))
+      )
+    ).sort((a, b) => Number(b) - Number(a));
+    return ["All", ...years];
+  }, [activities]);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -41,6 +82,20 @@ export default function PackagingActivityPage() {
     };
     fetchActivities();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 280);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Action icon and color mapping
   const getActionStyle = (action: string) => {
@@ -74,8 +129,8 @@ export default function PackagingActivityPage() {
           : new Date(v as Date | string | number);
         return (
           <div>
-            <p className="font-bold text-[#272727]">{formatDate(date)}</p>
-            <p className="text-xs text-[#7E5C4A]/80 font-medium">
+            <p className="font-bold text-[#272727] group-hover:text-[#EFD09E] transition-colors">{formatDate(date)}</p>
+            <p className="text-xs text-[#7E5C4A]/80 font-medium group-hover:text-[#EFD09E]/80 transition-colors">
               {date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </p>
           </div>
@@ -89,7 +144,7 @@ export default function PackagingActivityPage() {
       render: (val) => {
         const style = getActionStyle(val as string);
         return (
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border uppercase tracking-wider ${style.color}`}>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border uppercase tracking-wider transition-colors group-hover:bg-[#EFD09E]/15 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/40 ${style.color}`}>
             {style.icon} {val as string}
           </span>
         );
@@ -100,7 +155,7 @@ export default function PackagingActivityPage() {
       header: "Project", 
       align: "center",
       render: (val) => (
-        <span className="px-2 py-1 bg-[#EFD09E]/60 text-[#7E5C4A] rounded-lg text-[10px] font-black uppercase tracking-tight border border-[#D4AA7D]/35">
+        <span className="px-2 py-1 bg-[#EFD09E]/60 text-[#7E5C4A] rounded-lg text-[10px] font-black uppercase tracking-tight border border-[#D4AA7D]/35 transition-colors group-hover:bg-[#EFD09E]/15 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/40">
           {val as string}
         </span>
       )
@@ -111,12 +166,12 @@ export default function PackagingActivityPage() {
       render: (val, row) => (
         <div>
           <div className="flex items-center gap-2">
-            <p className="font-bold text-[#272727]">{val as string}</p>
-            <span className="px-1.5 py-0.5 bg-[#D4AA7D]/35 text-[#7E5C4A] rounded text-[10px] font-bold border border-[#D4AA7D]/35">
+            <p className="font-bold text-[#272727] group-hover:text-[#EFD09E] transition-colors">{val as string}</p>
+            <span className="px-1.5 py-0.5 bg-[#D4AA7D]/35 text-[#7E5C4A] rounded text-[10px] font-bold border border-[#D4AA7D]/35 transition-colors group-hover:bg-[#EFD09E]/15 group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/40">
               {row.category}
             </span>
           </div>
-          <p className="text-xs text-[#7E5C4A]/80 font-mono">ID: {row.targetId}</p>
+          <p className="text-xs text-[#7E5C4A]/80 font-mono group-hover:text-[#EFD09E]/75 transition-colors">ID: {row.targetId}</p>
         </div>
       )
     },
@@ -125,30 +180,35 @@ export default function PackagingActivityPage() {
       header: "Performed By", 
       align: "center",
       render: (val) => (
-        <span className="font-bold text-[#7E5C4A]">{val as string}</span>
+        <span className="font-bold text-[#7E5C4A] group-hover:text-[#EFD09E] transition-colors">{val as string}</span>
       )
     },
   ];
 
   // Filter logic
   const filteredData = activities.filter((activity) => {
+    const date = getActivityDate(activity);
+    const activityYear = date ? String(date.getFullYear()) : "";
+    const activityMonth = date ? String(date.getMonth() + 1).padStart(2, "0") : "";
     const matchesSearch = 
       activity.targetName?.toLowerCase().includes(searchValue.toLowerCase()) ||
       activity.targetId?.toLowerCase().includes(searchValue.toLowerCase()) ||
       activity.user?.toLowerCase().includes(searchValue.toLowerCase());
-    const matchesAction = filterAction === "All" || activity.action === filterAction;
-    return matchesSearch && matchesAction;
+    const matchesYear = filterYear === "All" || activityYear === filterYear;
+    const matchesMonth = filterMonth === "All" || activityMonth === filterMonth;
+    return matchesSearch && matchesYear && matchesMonth;
   });
 
   // Stats
   const today = new Date().toDateString();
   const todayCount = activities.filter(a => {
-    const d = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
-    return d.toDateString() === today;
+    const d = getActivityDate(a);
+    return !!d && d.toDateString() === today;
   }).length;
 
   const thisWeekCount = activities.filter(a => {
-    const d = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
+    const d = getActivityDate(a);
+    if (!d) return false;
     const now = new Date();
     const diff = now.getTime() - d.getTime();
     return diff < 7 * 24 * 60 * 60 * 1000;
@@ -205,23 +265,33 @@ export default function PackagingActivityPage() {
               <SearchToolbar
                 searchValue={searchValue}
                 onSearchChange={setSearchValue}
-                searchPlaceholder="Search by SKU, Product or User..."
-                filterValue={filterAction}
-                onFilterChange={setFilterAction}
-                filterOptions={[
-                  "All",
-                  "Create",
-                  "Update",
-                  "Delete",
-                  "Import",
-                  "Export",
-                ]}
+                searchPlaceholder="Search by Product, ID or User..."
+                filterValue={filterYear}
+                onFilterChange={setFilterYear}
+                filterOptions={yearOptions}
+                className="gap-3 md:gap-4"
                 primaryButton={{
                   label: "Refresh Log",
                   icon: <History className="w-4 h-4" />,
                   onClick: () => window.location.reload(),
                 }}
-              />
+              >
+                <div className="relative w-full sm:w-[180px]">
+                  <CalendarDays className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7E5C4A]/70" />
+                  <select
+                    value={filterMonth}
+                    onChange={(event) => setFilterMonth(event.target.value)}
+                    className="w-full pl-10 pr-9 py-2 appearance-none bg-[#FDF6EC] border border-[#E8DCC9] rounded-lg text-sm text-[#7E5C4A] hover:bg-[#F6EDDE] transition-colors outline-none focus:ring-2 focus:ring-[#D4AA7D]/35 focus:border-[#D4AA7D]/50"
+                  >
+                    {monthOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7E5C4A]/70" />
+                </div>
+              </SearchToolbar>
             </div>
 
             {/* Data Table */}
@@ -316,8 +386,20 @@ export default function PackagingActivityPage() {
             </div>
           )}
         </Modal>
+
+        <button
+          type="button"
+          onClick={handleScrollToTop}
+          aria-label="Back to top"
+          className={`fixed bottom-6 right-6 z-40 inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#3A3A3A] text-[#EFD09E] border border-[#EFD09E]/25 shadow-lg shadow-[#272727]/25 hover:bg-[#272727] transition-all duration-300 ${
+            showScrollTop
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 translate-y-2 pointer-events-none"
+          }`}
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
 }
-
