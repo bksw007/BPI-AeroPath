@@ -280,31 +280,45 @@ const parseNumberInput = (value: string): number => {
   return Number.isFinite(numberValue) ? numberValue : 0;
 };
 
-const parseDateDDMMYYYY = (value: string): Date | null => {
-  if (!value) return null;
-  const [d, m, y] = value.split("-");
-  const day = Number(d);
-  const month = Number(m);
-  const year = Number(y);
-  if (!day || !month || !year) return null;
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const LEGACY_DDMMYYYY_PATTERN = /^(\d{2})-(\d{2})-(\d{4})$/;
 
-const convertDateToIsoInput = (value: string): string => {
-  const parsed = parseDateDDMMYYYY(value);
-  if (!parsed) return "";
-  const y = parsed.getFullYear();
-  const m = String(parsed.getMonth() + 1).padStart(2, "0");
-  const d = String(parsed.getDate()).padStart(2, "0");
+const toIsoDate = (date: Date): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 };
 
-const convertIsoInputToDate = (value: string): string => {
-  if (!value) return "";
-  const [y, m, d] = value.split("-");
-  if (!y || !m || !d) return "";
-  return `${d}-${m}-${y}`;
+const parseDateString = (value: string): Date | null => {
+  if (!value) return null;
+  const trimmed = value.trim();
+
+  const isoMatch = ISO_DATE_PATTERN.exec(trimmed);
+  if (isoMatch) {
+    const year = Number(isoMatch[1]);
+    const month = Number(isoMatch[2]);
+    const day = Number(isoMatch[3]);
+    const date = new Date(year, month - 1, day);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const legacyMatch = LEGACY_DDMMYYYY_PATTERN.exec(trimmed);
+  if (legacyMatch) {
+    const day = Number(legacyMatch[1]);
+    const month = Number(legacyMatch[2]);
+    const year = Number(legacyMatch[3]);
+    const date = new Date(year, month - 1, day);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const fallback = new Date(trimmed);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+};
+
+const normalizeDateToIso = (value: string): string => {
+  const parsed = parseDateString(value);
+  return parsed ? toIsoDate(parsed) : "";
 };
 
 const formatTimelineLabel = (date: Date): string =>
@@ -413,7 +427,7 @@ const parsePackingCsv = (csvText: string): PackingReportRow[] => {
 
     return {
       id: `${index + 1}`,
-      date: readCol(cols, columnIndex.date),
+      date: normalizeDateToIso(readCol(cols, columnIndex.date)),
       shipment: consigneeName || "-",
       mode: transportMode || "-",
       product: readCol(cols, columnIndex.product) || "-",
@@ -474,7 +488,7 @@ const calculatePackagingTotals = (form: AddRecordForm) => {
 const mapRowToAddForm = (row: PackingReportRow): AddRecordForm => {
   const breakdown = row.packagingBreakdown;
   return {
-    date: row.date || "",
+    date: normalizeDateToIso(row.date || ""),
     customerName: row.customerName || "",
     product: row.product || "",
     consigneeName: row.shipment || row.consigneeName || "",
@@ -527,7 +541,7 @@ const mapAnyToPackingReportRow = (id: string, source: unknown): PackingReportRow
 
   return {
     id,
-    date: data.date || "",
+    date: normalizeDateToIso(data.date || ""),
     shipment: data.shipment || data.consigneeName || "-",
     mode: data.mode || data.transportMode || "-",
     product: data.product || "-",
@@ -644,7 +658,29 @@ export default function PackagingReportsPage() {
           snapshot = await getDocs(colRef);
         }
 
-        setRows(snapshot.docs.map((item) => mapAnyToPackingReportRow(item.id, item.data())));
+        const rowsFromSnapshot = snapshot.docs.map((item) => mapAnyToPackingReportRow(item.id, item.data()));
+        const datesToNormalize = snapshot.docs
+          .map((item) => {
+            const rawDate = String((item.data() as { date?: unknown })?.date || "").trim();
+            const normalizedDate = normalizeDateToIso(rawDate);
+            if (!rawDate || !normalizedDate || rawDate === normalizedDate) return null;
+            return { id: item.id, date: normalizedDate };
+          })
+          .filter((item): item is { id: string; date: string } => !!item);
+
+        if (datesToNormalize.length > 0) {
+          const chunkSize = 450;
+          for (let i = 0; i < datesToNormalize.length; i += chunkSize) {
+            const batch = writeBatch(db);
+            const chunk = datesToNormalize.slice(i, i + chunkSize);
+            chunk.forEach((item) => {
+              batch.update(doc(colRef, item.id), { date: item.date });
+            });
+            await batch.commit();
+          }
+        }
+
+        setRows(rowsFromSnapshot);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setError(message);
@@ -699,7 +735,7 @@ export default function PackagingReportsPage() {
     const modes = new Set<string>();
 
     rows.forEach((row) => {
-      const parsed = parseDateDDMMYYYY(row.date);
+      const parsed = parseDateString(row.date);
       if (parsed) years.add(String(parsed.getFullYear()));
       if (row.customerName && row.customerName !== "-") customers.add(row.customerName);
       const consigneeLabel = row.consigneeName || row.shipment;
@@ -747,7 +783,7 @@ export default function PackagingReportsPage() {
   const filteredRows = useMemo(() => {
     return rows
       .filter((row) => {
-        const parsed = parseDateDDMMYYYY(row.date);
+        const parsed = parseDateString(row.date);
         const year = parsed ? String(parsed.getFullYear()) : "";
         const month = parsed ? String(parsed.getMonth() + 1) : "";
 
@@ -770,8 +806,8 @@ export default function PackagingReportsPage() {
         );
       })
       .sort((a, b) => {
-        const aDate = parseDateDDMMYYYY(a.date);
-        const bDate = parseDateDDMMYYYY(b.date);
+        const aDate = parseDateString(a.date);
+        const bDate = parseDateString(b.date);
         if (aDate && bDate) return aDate.getTime() - bDate.getTime();
         if (aDate && !bDate) return -1;
         if (!aDate && bDate) return 1;
@@ -805,7 +841,7 @@ export default function PackagingReportsPage() {
     >();
 
     filteredRows.forEach((row) => {
-      const parsed = parseDateDDMMYYYY(row.date);
+      const parsed = parseDateString(row.date);
       const key = parsed ? parsed.toISOString().slice(0, 10) : row.date;
       const current = dateMap.get(key);
 
@@ -1121,8 +1157,7 @@ export default function PackagingReportsPage() {
   };
 
   const openAddModal = () => {
-    const now = new Date();
-    const date = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
+    const date = toIsoDate(new Date());
     setAddForm(buildInitialAddForm(date));
     setEditingRowId(null);
     setIsReviewingAddRecord(false);
@@ -1212,8 +1247,8 @@ export default function PackagingReportsPage() {
   };
 
   const validateAddRecord = () => {
-    if (!parseDateDDMMYYYY(addForm.date)) {
-      setAddError("Date format ต้องเป็น DD-MM-YYYY");
+    if (!parseDateString(addForm.date)) {
+      setAddError("Date format ต้องเป็น YYYY-MM-DD");
       return false;
     }
     if (
@@ -1260,7 +1295,7 @@ export default function PackagingReportsPage() {
     const targetRowId = editingRowId || doc(collection(db, REPORTS_COLLECTION)).id;
     const newRow: PackingReportRow = {
       id: targetRowId,
-      date: addForm.date.trim(),
+      date: normalizeDateToIso(addForm.date.trim()),
       shipment: consigneeName,
       mode: transportMode,
       product: addForm.product.trim(),
@@ -2006,18 +2041,18 @@ export default function PackagingReportsPage() {
                               className="block text-[11px] font-bold text-[#7E5C4A] mb-1"
                             >
                               {field.label}
-                              {field.key === "date" ? " (DD-MM-YYYY)" : ""}
+                              {field.key === "date" ? " (YYYY-MM-DD)" : ""}
                             </label>
                             {field.key === "date" ? (
                               <input
                                 id="add-record-date"
                                 ref={dateInputRef}
                                 type="date"
-                                value={convertDateToIsoInput(addForm.date)}
+                                value={normalizeDateToIso(addForm.date)}
                                 onChange={(event) =>
                                   setAddForm((prev) => ({
                                     ...prev,
-                                    date: convertIsoInputToDate(event.target.value),
+                                    date: normalizeDateToIso(event.target.value),
                                   }))
                                 }
                                 onClick={(event) => {

@@ -8,13 +8,32 @@ import { format } from "date-fns";
  */
 export const formatDate = (date: Date | string | number | null | undefined): string => {
   if (!date) return "-";
-  const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+  let d: Date;
+  if (typeof date === "string") {
+    const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date.trim());
+    if (isoMatch) {
+      d = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+    } else {
+      const legacyMatch = /^(\d{2})-(\d{2})-(\d{4})$/.exec(date.trim());
+      if (legacyMatch) {
+        d = new Date(Number(legacyMatch[3]), Number(legacyMatch[2]) - 1, Number(legacyMatch[1]));
+      } else {
+        d = new Date(date);
+      }
+    }
+  } else if (typeof date === "number") {
+    d = new Date(date);
+  } else {
+    d = date;
+  }
+  if (Number.isNaN(d.getTime())) return "-";
   return format(d, "dd-MM-yyyy");
 };
 
 export const formatDateTime = (date: Date | string | number | null | undefined): string => {
   if (!date) return "-";
   const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "-";
   return format(d, "dd-MM-yyyy HH:mm");
 };
 
