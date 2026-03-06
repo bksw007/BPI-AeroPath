@@ -870,7 +870,7 @@ export default function PackagingReportsPage() {
     const radius = 66;
     const circumference = 2 * Math.PI * radius;
     let offset = 0;
-    const colors = ["#B6896E", "#CFAE8E", "#F2D9A8", "#EEDDBF"];
+    const colors = ["#9A7656", "#D7B894", "#E9C46A", "#CDB79E"];
 
     return {
       total,
@@ -902,7 +902,7 @@ export default function PackagingReportsPage() {
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
     const maxValue = Math.max(...items.map((item) => item.value), 1);
-    const colors = ["#B6896E", "#D9B08C", "#EBC88F", "#E8DAB8", "#C9A780"];
+    const colors = ["#9A7656", "#D7B894", "#E9C46A", "#CDB79E", "#B98E63"];
 
     return items.map((item, index) => ({
       ...item,
@@ -967,6 +967,15 @@ export default function PackagingReportsPage() {
       barWidth: (card.packagesUsed / maxUsed) * 100,
     }));
   }, [packageTypeUsage]);
+
+  const claySurfaceClass =
+    "bg-[#F0F4F8] border border-[#E7EDF5] shadow-[8px_8px_18px_rgba(166,180,200,0.35),-8px_-8px_18px_rgba(255,255,255,0.9)]";
+  const clayChartCardClass = `p-5 ${claySurfaceClass}`;
+  const clayBadgeCardClass = `group p-5 ${claySurfaceClass} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`;
+  const clayChartInnerCardClass =
+    "rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-3 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)]";
+  const clayChartMiniCardClass =
+    "rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-4 space-y-2 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)]";
 
   const reviewTotals = useMemo(() => calculatePackagingTotals(addForm), [addForm]);
 
@@ -1491,7 +1500,7 @@ export default function PackagingReportsPage() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <GlassCard className="group p-5 bg-[#EEF2F6]/95 border border-white/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <GlassCard className={clayBadgeCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]/75">Records</p>
@@ -1504,7 +1513,7 @@ export default function PackagingReportsPage() {
                     </span>
                   </div>
                 </GlassCard>
-                <GlassCard className="group p-5 bg-[#EEF2F6]/95 border border-white/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <GlassCard className={clayBadgeCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]/75">SI QTY</p>
@@ -1517,7 +1526,7 @@ export default function PackagingReportsPage() {
                     </span>
                   </div>
                 </GlassCard>
-                <GlassCard className="group p-5 bg-[#EEF2F6]/95 border border-white/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <GlassCard className={clayBadgeCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]/75">QTY</p>
@@ -1530,7 +1539,7 @@ export default function PackagingReportsPage() {
                     </span>
                   </div>
                 </GlassCard>
-                <GlassCard className="group p-5 bg-[#EEF2F6]/95 border border-white/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <GlassCard className={clayBadgeCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]/75">Total Packages</p>
@@ -1547,10 +1556,10 @@ export default function PackagingReportsPage() {
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-4">
-                  <GlassCard className="p-5 border border-white/80 bg-gradient-to-br from-[#F3E5D1]/95 via-[#F8EEDC]/92 to-[#EFE2CD]/92">
+                  <GlassCard className={clayChartCardClass}>
                     <div className="flex items-center gap-2 mb-3">
-                      <Database className="w-4 h-4 text-[#9A6F52]" />
-                      <h3 className="text-lg font-black text-[#3B2E23] tracking-tight">Packing Volume Timeline</h3>
+                      <Database className="w-4 h-4 text-[#5D6D7E]" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Packing Volume Timeline</h3>
                     </div>
                     {timelineChart.hasData ? (
                       <div className="overflow-x-auto">
@@ -1562,15 +1571,15 @@ export default function PackagingReportsPage() {
                             const y = 14 + (212 - (tick / Math.max(...timelineChart.yTicks, 1)) * 212);
                             return (
                               <g key={tick}>
-                                <line x1="40" x2="904" y1={y} y2={y} stroke="#D8C3AA" strokeDasharray="4 6" />
-                                <text x="12" y={y + 4} fontSize="11" fill="#9A7D63">
+                                <line x1="40" x2="904" y1={y} y2={y} stroke="#D6DEE8" strokeDasharray="4 6" />
+                                <text x="12" y={y + 4} fontSize="11" fill="#8C9AAA">
                                   {tick}
                                 </text>
                               </g>
                             );
                           })}
-                          <path d={timelineChart.packagePath} fill="none" stroke="#B6896E" strokeWidth="3" />
-                          <path d={timelineChart.productPath} fill="none" stroke="#D9B08C" strokeWidth="3" />
+                          <path d={timelineChart.packagePath} fill="none" stroke="#9A7656" strokeWidth="3" />
+                          <path d={timelineChart.productPath} fill="none" stroke="#E9C46A" strokeWidth="3" />
                           {timelineChart.points.map((point) => (
                             <text
                               key={point.x}
@@ -1578,7 +1587,7 @@ export default function PackagingReportsPage() {
                               y={246}
                               textAnchor="middle"
                               fontSize="10"
-                              fill="#8E715B"
+                              fill="#8C9AAA"
                             >
                               {point.label}
                             </text>
@@ -1586,28 +1595,28 @@ export default function PackagingReportsPage() {
                         </svg>
                       </div>
                     ) : (
-                      <p className="text-sm text-[#7E5C4A]/70 py-6">No timeline data</p>
+                      <p className="text-sm text-[#5D6D7E]/70 py-6">No timeline data</p>
                     )}
                     <div className="flex flex-wrap items-center gap-4 text-sm font-bold pt-1">
-                      <span className="inline-flex items-center gap-1.5 text-[#B6896E]">
-                        <span className="h-2.5 w-2.5 rounded-full bg-[#B6896E]" />
+                      <span className="inline-flex items-center gap-1.5 text-[#5D6D7E]">
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#9A7656]" />
                         Packages Used
                       </span>
-                      <span className="inline-flex items-center gap-1.5 text-[#D9B08C]">
-                        <span className="h-2.5 w-2.5 rounded-full bg-[#D9B08C]" />
+                      <span className="inline-flex items-center gap-1.5 text-[#5D6D7E]">
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#E9C46A]" />
                         Products (QTY)
                       </span>
                     </div>
                   </GlassCard>
 
-                  <GlassCard className="p-5 border border-white/80 bg-gradient-to-br from-[#F1E4CF]/95 via-[#F8EEDC]/92 to-[#EEDFC9]/92">
+                  <GlassCard className={clayChartCardClass}>
                     <div className="flex items-center gap-2 mb-3">
-                      <Package className="w-4 h-4 text-[#9A6F52]" />
-                      <h3 className="text-lg font-black text-[#3B2E23] tracking-tight">Transport Mode</h3>
+                      <Package className="w-4 h-4 text-[#5D6D7E]" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Transport Mode</h3>
                     </div>
                     <div className="flex items-center justify-center py-2">
                       <svg viewBox="0 0 180 180" className="w-[210px] h-[210px]">
-                        <circle cx="90" cy="90" r="66" fill="none" stroke="#E7D4BD" strokeWidth="20" />
+                        <circle cx="90" cy="90" r="66" fill="none" stroke="#EEE2D2" strokeWidth="20" />
                         {transportModeChart.segments.map((segment) => (
                           <circle
                             key={segment.label}
@@ -1623,17 +1632,17 @@ export default function PackagingReportsPage() {
                             transform="rotate(-90 90 90)"
                           />
                         ))}
-                        <text x="90" y="88" textAnchor="middle" className="fill-[#3B2E23]" fontSize="26" fontWeight="700">
+                        <text x="90" y="88" textAnchor="middle" className="fill-[#34495E]" fontSize="26" fontWeight="700">
                           {transportModeChart.total}
                         </text>
-                        <text x="90" y="106" textAnchor="middle" className="fill-[#8F755E]" fontSize="10" fontWeight="600">
+                        <text x="90" y="106" textAnchor="middle" className="fill-[#8C9AAA]" fontSize="10" fontWeight="600">
                           records
                         </text>
                       </svg>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm font-bold">
                       {transportModeChart.segments.map((segment) => (
-                        <span key={segment.label} className="inline-flex items-center gap-1.5 text-[#7E5C4A]">
+                        <span key={segment.label} className="inline-flex items-center gap-1.5 text-[#5D6D7E]">
                           <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: segment.color }} />
                           {segment.label}
                         </span>
@@ -1643,20 +1652,20 @@ export default function PackagingReportsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_2fr] gap-4">
-                  <GlassCard className="p-5 border border-white/80 bg-gradient-to-br from-[#F3E5D1]/95 via-[#F8EEDC]/92 to-[#EFE2CD]/92">
+                  <GlassCard className={clayChartCardClass}>
                     <div className="flex items-center gap-2 mb-4">
-                      <Boxes className="w-4 h-4 text-[#9A6F52]" />
-                      <h3 className="text-lg font-black text-[#3B2E23] tracking-tight">Top Customers</h3>
+                      <Boxes className="w-4 h-4 text-[#5D6D7E]" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Top Customers</h3>
                     </div>
                     <div className="space-y-4">
                       {topCustomersChart.length > 0 ? (
                         topCustomersChart.map((customer) => (
                           <div key={customer.label} className="space-y-1.5">
-                            <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#7E5C4A]">
+                            <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#5D6D7E]">
                               <span>{customer.label}</span>
                               <span>{customer.value.toLocaleString()}</span>
                             </div>
-                            <div className="h-3 rounded-full bg-white/65 border border-[#DBC4A8]/35 overflow-hidden">
+                            <div className="h-3 rounded-full bg-[#EFF3F8] border border-[#D6DEE8] overflow-hidden">
                               <div
                                 className="h-full rounded-full transition-all duration-500"
                                 style={{ width: `${Math.max(customer.widthPct, 8)}%`, backgroundColor: customer.color }}
@@ -1665,97 +1674,97 @@ export default function PackagingReportsPage() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-[#7E5C4A]/70">No customer data</p>
+                        <p className="text-sm text-[#5D6D7E]/70">No customer data</p>
                       )}
                     </div>
                   </GlassCard>
 
-                  <GlassCard className="p-5 border border-white/80 bg-gradient-to-br from-[#F1E4CF]/95 via-[#F8EEDC]/92 to-[#EEDFC9]/92">
+                  <GlassCard className={clayChartCardClass}>
                     <div className="flex items-center gap-2 mb-4">
-                      <Package className="w-4 h-4 text-[#9A6F52]" />
-                      <h3 className="text-lg font-black text-[#3B2E23] tracking-tight">Package Type Usage</h3>
+                      <Package className="w-4 h-4 text-[#5D6D7E]" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Package Type Usage</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-[#DBC4A8]/45 bg-white/60 p-3">
+                      <div className={clayChartInnerCardClass}>
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-black text-[#3B2E23]">STANDARD PACKAGE</p>
-                          <span className="text-xs font-black text-[#7E5C4A]">Total: {packageTypeUsage.standard.total.toLocaleString()}</span>
+                          <p className="text-sm font-black text-[#34495E]">STANDARD PACKAGE</p>
+                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.standard.total.toLocaleString()}</span>
                         </div>
                         <div className="space-y-2">
                           {packageTypeUsage.standard.items.map((item) => (
                             <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-2">
-                              <p className="text-xs font-semibold text-[#7E5C4A]">{item.label}</p>
-                              <p className="text-xs font-black text-[#3B2E23]">{item.value.toLocaleString()}</p>
-                              <div className="col-span-2 h-2 rounded-full bg-[#E9D9C4] overflow-hidden">
-                                <div className="h-full rounded-full bg-[#B6896E]" style={{ width: `${(item.value / packageTypeUsage.standard.max) * 100}%` }} />
+                              <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
+                              <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
+                              <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                                <div className="h-full rounded-full bg-[#9A7656]" style={{ width: `${(item.value / packageTypeUsage.standard.max) * 100}%` }} />
                               </div>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-[#DBC4A8]/45 bg-white/60 p-3">
+                      <div className={clayChartInnerCardClass}>
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-black text-[#3B2E23]">BOXES PACKAGE</p>
-                          <span className="text-xs font-black text-[#7E5C4A]">Total: {packageTypeUsage.boxes.total.toLocaleString()}</span>
+                          <p className="text-sm font-black text-[#34495E]">BOXES PACKAGE</p>
+                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.boxes.total.toLocaleString()}</span>
                         </div>
                         <div className="space-y-2">
                           {packageTypeUsage.boxes.items.map((item) => (
                             <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-2">
-                              <p className="text-xs font-semibold text-[#7E5C4A]">{item.label}</p>
-                              <p className="text-xs font-black text-[#3B2E23]">{item.value.toLocaleString()}</p>
-                              <div className="col-span-2 h-2 rounded-full bg-[#E9D9C4] overflow-hidden">
-                                <div className="h-full rounded-full bg-[#D9B08C]" style={{ width: `${(item.value / packageTypeUsage.boxes.max) * 100}%` }} />
+                              <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
+                              <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
+                              <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                                <div className="h-full rounded-full bg-[#D7B894]" style={{ width: `${(item.value / packageTypeUsage.boxes.max) * 100}%` }} />
                               </div>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-[#DBC4A8]/45 bg-white/60 p-3">
+                      <div className={clayChartInnerCardClass}>
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-black text-[#3B2E23]">RETURNABLE PACKAGE</p>
-                          <span className="text-xs font-black text-[#7E5C4A]">Total: {packageTypeUsage.returnable.total.toLocaleString()}</span>
+                          <p className="text-sm font-black text-[#34495E]">RETURNABLE PACKAGE</p>
+                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.returnable.total.toLocaleString()}</span>
                         </div>
-                        <div className="mt-3 h-2 rounded-full bg-[#E9D9C4] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#EBC88F]" style={{ width: `${Math.min(packageTypeUsage.returnable.total, 100)}%` }} />
+                        <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                          <div className="h-full rounded-full bg-[#E9C46A]" style={{ width: `${Math.min(packageTypeUsage.returnable.total, 100)}%` }} />
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-[#DBC4A8]/45 bg-white/60 p-3">
+                      <div className={clayChartInnerCardClass}>
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-black text-[#3B2E23]">WARP PACKAGE</p>
-                          <span className="text-xs font-black text-[#7E5C4A]">Total: {packageTypeUsage.warp.total.toLocaleString()}</span>
+                          <p className="text-sm font-black text-[#34495E]">WARP PACKAGE</p>
+                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.warp.total.toLocaleString()}</span>
                         </div>
-                        <div className="mt-3 h-2 rounded-full bg-[#E9D9C4] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#C9A780]" style={{ width: `${Math.min(packageTypeUsage.warp.total, 100)}%` }} />
+                        <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                          <div className="h-full rounded-full bg-[#CDB79E]" style={{ width: `${Math.min(packageTypeUsage.warp.total, 100)}%` }} />
                         </div>
                       </div>
                     </div>
                   </GlassCard>
                 </div>
 
-                <GlassCard className="p-5 border border-white/80 bg-gradient-to-br from-[#F1E4CF]/95 via-[#F8EEDC]/92 to-[#EEDFC9]/92">
+                <GlassCard className={clayChartCardClass}>
                   <div className="flex items-center gap-2 mb-4">
-                    <Hash className="w-4 h-4 text-[#9A6F52]" />
-                    <h3 className="text-lg font-black text-[#3B2E23] tracking-tight">Ratio Analysis (Product Capacity)</h3>
+                    <Hash className="w-4 h-4 text-[#5D6D7E]" />
+                    <h3 className="text-lg font-black text-[#34495E] tracking-tight">Ratio Analysis (Product Capacity)</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                     {ratioAnalysis.map((card) => (
-                      <div key={card.title} className="rounded-2xl border border-[#DBC4A8]/45 bg-white/65 p-4 space-y-2">
-                        <p className="text-xs font-black text-[#7E5C4A]">{card.title}</p>
-                        <p className="text-3xl font-black text-[#272727] leading-none">
+                      <div key={card.title} className={clayChartMiniCardClass}>
+                        <p className="text-xs font-black text-[#5D6D7E]">{card.title}</p>
+                        <p className="text-3xl font-black text-[#34495E] leading-none">
                           {card.capacity.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                          <span className="text-sm font-bold text-[#9A7D63] ml-1">units capacity</span>
+                          <span className="text-sm font-bold text-[#8C9AAA] ml-1">units capacity</span>
                         </p>
-                        <div className="flex items-center justify-between text-xs font-semibold text-[#7E5C4A]">
+                        <div className="flex items-center justify-between text-xs font-semibold text-[#5D6D7E]">
                           <span>Packages Used</span>
                           <span>{card.packagesUsed.toLocaleString()}</span>
                         </div>
-                        <div className="h-2 rounded-full bg-[#E9D9C4] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#E2B566]" style={{ width: `${Math.max(card.barWidth, 10)}%` }} />
+                        <div className="h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                          <div className="h-full rounded-full bg-[#E9C46A]" style={{ width: `${Math.max(card.barWidth, 10)}%` }} />
                         </div>
-                        <p className="text-[11px] italic text-[#9A7D63]">Based on defined package ratios</p>
+                        <p className="text-[11px] italic text-[#8C9AAA]">Based on defined package ratios</p>
                       </div>
                     ))}
                   </div>
