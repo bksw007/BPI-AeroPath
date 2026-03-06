@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { GlobalClickEffect } from "@/components/shared/GlobalClickEffect";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 export default function RootLayout({
   children,
@@ -32,10 +33,12 @@ export default function RootLayout({
         className="antialiased bg-app-gradient"
         suppressHydrationWarning={true}
       >
-        <AuthProvider>
-          <GlobalClickEffect />
-          {children}
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <GlobalClickEffect />
+            {children}
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

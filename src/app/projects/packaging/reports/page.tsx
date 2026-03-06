@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUp,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
   Database,
   Download,
   Filter,
@@ -101,6 +104,12 @@ type PackagingBreakdownKey =
 type ShipmentDropdownFieldKey = "customerName" | "consigneeName" | "product" | "transportMode";
 const REPORTS_COLLECTION = "packaging_reports";
 const REPORTS_SOURCE_CSV = "/files/packing_export_2026-02-27_23_update.csv";
+const REPORTS_QUERY_KEY = ["packaging-reports"] as const;
+const REPORTS_FILTER_COOKIE = "packaging_reports_filters";
+const REPORTS_PAGE_SIZE = 80;
+const REPORTS_CACHE_DB = "packaging-reports-cache-db";
+const REPORTS_CACHE_STORE = "reports";
+const REPORTS_CACHE_KEY = "rows_v1";
 
 function CountingNumber({
   value,
@@ -591,8 +600,106 @@ const toFirestoreReportPayload = (row: PackingReportRow) => ({
   remark: row.remark,
 });
 
+const openReportsCacheDb = (): Promise<IDBDatabase | null> =>
+  new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.indexedDB) {
+      resolve(null);
+      return;
+    }
+
+    const request = window.indexedDB.open(REPORTS_CACHE_DB, 1);
+    request.onupgradeneeded = () => {
+      const dbInstance = request.result;
+      if (!dbInstance.objectStoreNames.contains(REPORTS_CACHE_STORE)) {
+        dbInstance.createObjectStore(REPORTS_CACHE_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+
+const readReportsCache = async (): Promise<PackingReportRow[] | null> => {
+  const dbInstance = await openReportsCacheDb();
+  if (!dbInstance) return null;
+
+  return new Promise((resolve) => {
+    const tx = dbInstance.transaction(REPORTS_CACHE_STORE, "readonly");
+    const store = tx.objectStore(REPORTS_CACHE_STORE);
+    const request = store.get(REPORTS_CACHE_KEY);
+    request.onsuccess = () => {
+      const payload = request.result as { rows?: unknown } | undefined;
+      const rows = Array.isArray(payload?.rows) ? (payload?.rows as PackingReportRow[]) : null;
+      resolve(rows);
+    };
+    request.onerror = () => resolve(null);
+  });
+};
+
+const writeReportsCache = async (rows: PackingReportRow[]): Promise<void> => {
+  const dbInstance = await openReportsCacheDb();
+  if (!dbInstance) return;
+
+  await new Promise<void>((resolve) => {
+    const tx = dbInstance.transaction(REPORTS_CACHE_STORE, "readwrite");
+    const store = tx.objectStore(REPORTS_CACHE_STORE);
+    store.put({ rows, updatedAt: Date.now() }, REPORTS_CACHE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+};
+
+const loadReportsFromFirestore = async (): Promise<PackingReportRow[]> => {
+  const colRef = collection(db, REPORTS_COLLECTION);
+  let snapshot = await getDocs(colRef);
+
+  if (snapshot.empty) {
+    const res = await fetch(REPORTS_SOURCE_CSV);
+    if (!res.ok) throw new Error(`CSV load failed (${res.status})`);
+    const csvText = await res.text();
+    const initialRows = parsePackingCsv(csvText);
+
+    const chunkSize = 450;
+    for (let i = 0; i < initialRows.length; i += chunkSize) {
+      const batch = writeBatch(db);
+      const chunk = initialRows.slice(i, i + chunkSize);
+      chunk.forEach((row, chunkIndex) => {
+        const seedIndex = i + chunkIndex + 1;
+        const docRef = doc(colRef, `seed-${String(seedIndex).padStart(5, "0")}`);
+        batch.set(docRef, toFirestoreReportPayload({ ...row, id: docRef.id }));
+      });
+      await batch.commit();
+    }
+    snapshot = await getDocs(colRef);
+  }
+
+  const rowsFromSnapshot = snapshot.docs.map((item) => mapAnyToPackingReportRow(item.id, item.data()));
+  const datesToNormalize = snapshot.docs
+    .map((item) => {
+      const rawDate = String((item.data() as { date?: unknown })?.date || "").trim();
+      const normalizedDate = normalizeDateToIso(rawDate);
+      if (!rawDate || !normalizedDate || rawDate === normalizedDate) return null;
+      return { id: item.id, date: normalizedDate };
+    })
+    .filter((item): item is { id: string; date: string } => !!item);
+
+  if (datesToNormalize.length > 0) {
+    const chunkSize = 450;
+    for (let i = 0; i < datesToNormalize.length; i += chunkSize) {
+      const batch = writeBatch(db);
+      const chunk = datesToNormalize.slice(i, i + chunkSize);
+      chunk.forEach((item) => {
+        batch.update(doc(colRef, item.id), { date: item.date });
+      });
+      await batch.commit();
+    }
+  }
+
+  return rowsFromSnapshot;
+};
+
 export default function PackagingReportsPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [rows, setRows] = useState<PackingReportRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -616,6 +723,8 @@ export default function PackagingReportsPage() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("Saved successfully");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cacheHydrated, setCacheHydrated] = useState(false);
   const [manualShipmentOptions, setManualShipmentOptions] = useState<Record<ShipmentDropdownFieldKey, string[]>>({
     customerName: [],
     consigneeName: [],
@@ -628,69 +737,46 @@ export default function PackagingReportsPage() {
   const addModalContentRef = useRef<HTMLDivElement | null>(null);
   const lastReadLogRef = useRef<Record<string, number>>({});
   const successTimerRef = useRef<number | null>(null);
+  const reportsQuery = useQuery({
+    queryKey: REPORTS_QUERY_KEY,
+    queryFn: loadReportsFromFirestore,
+    enabled: cacheHydrated,
+  });
 
   useEffect(() => {
-    const loadFromFirestore = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const colRef = collection(db, REPORTS_COLLECTION);
-        let snapshot = await getDocs(colRef);
-
-        if (snapshot.empty) {
-          const res = await fetch(REPORTS_SOURCE_CSV);
-          if (!res.ok) throw new Error(`CSV load failed (${res.status})`);
-          const csvText = await res.text();
-          const initialRows = parsePackingCsv(csvText);
-
-          const chunkSize = 450;
-          for (let i = 0; i < initialRows.length; i += chunkSize) {
-            const batch = writeBatch(db);
-            const chunk = initialRows.slice(i, i + chunkSize);
-            chunk.forEach((row, chunkIndex) => {
-              // Use deterministic seed IDs so repeated bootstrap runs stay idempotent.
-              const seedIndex = i + chunkIndex + 1;
-              const docRef = doc(colRef, `seed-${String(seedIndex).padStart(5, "0")}`);
-              batch.set(docRef, toFirestoreReportPayload({ ...row, id: docRef.id }));
-            });
-            await batch.commit();
-          }
-          snapshot = await getDocs(colRef);
-        }
-
-        const rowsFromSnapshot = snapshot.docs.map((item) => mapAnyToPackingReportRow(item.id, item.data()));
-        const datesToNormalize = snapshot.docs
-          .map((item) => {
-            const rawDate = String((item.data() as { date?: unknown })?.date || "").trim();
-            const normalizedDate = normalizeDateToIso(rawDate);
-            if (!rawDate || !normalizedDate || rawDate === normalizedDate) return null;
-            return { id: item.id, date: normalizedDate };
-          })
-          .filter((item): item is { id: string; date: string } => !!item);
-
-        if (datesToNormalize.length > 0) {
-          const chunkSize = 450;
-          for (let i = 0; i < datesToNormalize.length; i += chunkSize) {
-            const batch = writeBatch(db);
-            const chunk = datesToNormalize.slice(i, i + chunkSize);
-            chunk.forEach((item) => {
-              batch.update(doc(colRef, item.id), { date: item.date });
-            });
-            await batch.commit();
-          }
-        }
-
-        setRows(rowsFromSnapshot);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        setError(message);
-      } finally {
+    void (async () => {
+      const cachedRows = await readReportsCache();
+      if (cachedRows && cachedRows.length > 0) {
+        setRows((prev) => (prev.length > 0 ? prev : cachedRows));
+        queryClient.setQueryData<PackingReportRow[]>(REPORTS_QUERY_KEY, cachedRows);
         setIsLoading(false);
       }
-    };
+      setCacheHydrated(true);
+    })();
+  }, [queryClient]);
 
-    loadFromFirestore();
-  }, []);
+  useEffect(() => {
+    if (reportsQuery.data) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRows(reportsQuery.data);
+      setError(null);
+      setIsLoading(false);
+      void writeReportsCache(reportsQuery.data);
+      return;
+    }
+
+    if (reportsQuery.error) {
+      const message =
+        reportsQuery.error instanceof Error ? reportsQuery.error.message : "Unknown error";
+      setError(message);
+      setIsLoading(false);
+      return;
+    }
+
+    if (reportsQuery.isPending && rows.length === 0) {
+      setIsLoading(true);
+    }
+  }, [reportsQuery.data, reportsQuery.error, reportsQuery.isPending, rows.length]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -720,6 +806,62 @@ export default function PackagingReportsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
     addModalContentRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }, [isAddModalOpen, isReviewingAddRecord]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const rawCookie = document.cookie
+      .split("; ")
+      .find((entry) => entry.startsWith(`${REPORTS_FILTER_COOKIE}=`));
+    if (!rawCookie) return;
+
+    try {
+      const payload = JSON.parse(decodeURIComponent(rawCookie.split("=")[1])) as Partial<{
+        year: string;
+        month: string;
+        customer: string;
+        consignee: string;
+        product: string;
+        mode: string;
+      }>;
+
+      if (payload.year) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedYear(payload.year);
+      }
+      if (payload.month) {
+        setSelectedMonth(payload.month);
+      }
+      if (payload.customer) {
+        setSelectedCustomer(payload.customer);
+      }
+      if (payload.consignee) {
+        setSelectedConsignee(payload.consignee);
+      }
+      if (payload.product) {
+        setSelectedProduct(payload.product);
+      }
+      if (payload.mode) {
+        setSelectedMode(payload.mode);
+      }
+    } catch {
+      // ignore invalid cookie payload
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const payload = encodeURIComponent(
+      JSON.stringify({
+        year: selectedYear,
+        month: selectedMonth,
+        customer: selectedCustomer,
+        consignee: selectedConsignee,
+        product: selectedProduct,
+        mode: selectedMode,
+      })
+    );
+    document.cookie = `${REPORTS_FILTER_COOKIE}=${payload}; path=/; max-age=2592000; SameSite=Lax`;
+  }, [selectedYear, selectedMonth, selectedCustomer, selectedConsignee, selectedProduct, selectedMode]);
 
   useEffect(() => {
     return () => {
@@ -814,6 +956,25 @@ export default function PackagingReportsPage() {
         return a.date.localeCompare(b.date);
       });
   }, [rows, selectedYear, selectedMonth, selectedCustomer, selectedConsignee, selectedProduct, selectedMode]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentPage(1);
+  }, [selectedYear, selectedMonth, selectedCustomer, selectedConsignee, selectedProduct, selectedMode]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / REPORTS_PAGE_SIZE));
+  const paginatedRows = useMemo(() => {
+    const safePage = Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * REPORTS_PAGE_SIZE;
+    return filteredRows.slice(start, start + REPORTS_PAGE_SIZE);
+  }, [filteredRows, currentPage, totalPages]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const stats = useMemo(() => {
     const totalRows = filteredRows.length;
@@ -913,23 +1074,29 @@ export default function PackagingReportsPage() {
     const total = items.reduce((sum, item) => sum + item.value, 0);
     const radius = 66;
     const circumference = 2 * Math.PI * radius;
-    let offset = 0;
     const colors = ["#9A7656", "#D7B894", "#E9C46A", "#CDB79E"];
+    const segments = items.reduce<
+      Array<{ label: string; value: number; color: string; dashArray: string; dashOffset: number }>
+    >((acc, item, index) => {
+      const length = total ? (item.value / total) * circumference : 0;
+      const previousLength = acc.reduce((sum, segment) => {
+        const [first] = segment.dashArray.split(" ");
+        return sum + (Number(first) || 0);
+      }, 0);
+
+      acc.push({
+        ...item,
+        color: colors[index % colors.length],
+        dashArray: `${length} ${circumference - length}`,
+        dashOffset: -previousLength,
+      });
+      return acc;
+    }, []);
 
     return {
       total,
       circumference,
-      segments: items.map((item, index) => {
-        const length = total ? (item.value / total) * circumference : 0;
-        const segment = {
-          ...item,
-          color: colors[index % colors.length],
-          dashArray: `${length} ${circumference - length}`,
-          dashOffset: -offset,
-        };
-        offset += length;
-        return segment;
-      }),
+      segments,
     };
   }, [filteredRows]);
 
@@ -1321,9 +1488,12 @@ export default function PackagingReportsPage() {
 
     try {
       await setDoc(doc(db, REPORTS_COLLECTION, targetRowId), toFirestoreReportPayload(newRow));
-      setRows((prev) =>
-        editingRowId ? prev.map((row) => (row.id === editingRowId ? newRow : row)) : [newRow, ...prev]
-      );
+      const nextRows = editingRowId
+        ? rows.map((row) => (row.id === editingRowId ? newRow : row))
+        : [newRow, ...rows];
+      setRows(nextRows);
+      queryClient.setQueryData<PackingReportRow[]>(REPORTS_QUERY_KEY, nextRows);
+      void writeReportsCache(nextRows);
 
       if (editingRowId) {
         const changes: IActivityChange[] = [];
@@ -1389,7 +1559,10 @@ export default function PackagingReportsPage() {
     const deletingRow = pendingDeleteRow;
     try {
       await deleteDoc(doc(db, REPORTS_COLLECTION, deletingRow.id));
-      setRows((prev) => prev.filter((row) => row.id !== deletingRow.id));
+      const nextRows = rows.filter((row) => row.id !== deletingRow.id);
+      setRows(nextRows);
+      queryClient.setQueryData<PackingReportRow[]>(REPORTS_QUERY_KEY, nextRows);
+      void writeReportsCache(nextRows);
       setPendingDeleteRow(null);
       setSelectedRow(null);
       await logReportsActivity({
@@ -1512,7 +1685,10 @@ export default function PackagingReportsPage() {
                       Add Record
                     </button>
                     <button
-                      onClick={() => window.location.reload()}
+                      onClick={() => {
+                        setIsLoading(true);
+                        void reportsQuery.refetch();
+                      }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/70 text-[#7E5C4A] hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] rounded-full text-xs font-semibold transition-all border border-white"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
@@ -1969,11 +2145,43 @@ export default function PackagingReportsPage() {
 
               <DataTable
                 columns={columns}
-                data={filteredRows}
+                data={paginatedRows}
                 keyField="id"
                 onRowClick={handleOpenRowDetail}
                 emptyMessage={isLoading ? "Loading report rows..." : "No report records found."}
               />
+              {filteredRows.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 px-1">
+                  <p className="text-xs font-semibold text-[#7E5C4A]/85">
+                    Showing {(currentPage - 1) * REPORTS_PAGE_SIZE + 1}-
+                    {Math.min(currentPage * REPORTS_PAGE_SIZE, filteredRows.length)} of{" "}
+                    {filteredRows.length.toLocaleString()} rows
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage <= 1}
+                      className="inline-flex items-center gap-1 rounded-full border border-[#D4AA7D]/40 bg-white/70 px-3 py-1.5 text-xs font-semibold text-[#7E5C4A] transition-colors hover:bg-[#272727] hover:text-[#EFD09E] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                      Prev
+                    </button>
+                    <span className="rounded-full border border-[#D4AA7D]/30 bg-[#EEF2F6] px-3 py-1 text-xs font-bold text-[#7E5C4A]">
+                      Page {currentPage} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage >= totalPages}
+                      className="inline-flex items-center gap-1 rounded-full border border-[#D4AA7D]/40 bg-white/70 px-3 py-1.5 text-xs font-semibold text-[#7E5C4A] transition-colors hover:bg-[#272727] hover:text-[#EFD09E] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </ModuleHeader>
         </div>
