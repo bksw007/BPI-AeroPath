@@ -22,6 +22,8 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { Modal } from "@/components/shared/Modal";
 import { db } from "@/lib/firebase/config";
 import { collection, deleteDoc, doc, getDocs, setDoc, writeBatch } from "firebase/firestore";
+import { useAuth } from "@/contexts/AuthContext";
+import { PackagingService, IActivityChange } from "@/lib/firebase/services/packaging.service";
 
 interface PackingReportRow {
   id: string;
@@ -576,15 +578,16 @@ const toFirestoreReportPayload = (row: PackingReportRow) => ({
 });
 
 export default function PackagingReportsPage() {
+  const { user } = useAuth();
   const [rows, setRows] = useState<PackingReportRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchValue, setSearchValue] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedMonth, setSelectedMonth] = useState("All");
-  const [selectedShipment, setSelectedShipment] = useState("All");
+  const [selectedCustomer, setSelectedCustomer] = useState("All");
+  const [selectedConsignee, setSelectedConsignee] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState("All");
   const [selectedMode, setSelectedMode] = useState("All");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -609,6 +612,7 @@ export default function PackagingReportsPage() {
   const filterAreaRef = useRef<HTMLDivElement | null>(null);
   const dateInputRef = useRef<HTMLInputElement | null>(null);
   const addModalContentRef = useRef<HTMLDivElement | null>(null);
+  const lastReadLogRef = useRef<Record<string, number>>({});
   const successTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -629,8 +633,10 @@ export default function PackagingReportsPage() {
           for (let i = 0; i < initialRows.length; i += chunkSize) {
             const batch = writeBatch(db);
             const chunk = initialRows.slice(i, i + chunkSize);
-            chunk.forEach((row) => {
-              const docRef = doc(colRef);
+            chunk.forEach((row, chunkIndex) => {
+              // Use deterministic seed IDs so repeated bootstrap runs stay idempotent.
+              const seedIndex = i + chunkIndex + 1;
+              const docRef = doc(colRef, `seed-${String(seedIndex).padStart(5, "0")}`);
               batch.set(docRef, toFirestoreReportPayload({ ...row, id: docRef.id }));
             });
             await batch.commit();
@@ -687,21 +693,25 @@ export default function PackagingReportsPage() {
 
   const filterOptions = useMemo(() => {
     const years = new Set<string>();
-    const shipments = new Set<string>();
+    const customers = new Set<string>();
+    const consignees = new Set<string>();
     const products = new Set<string>();
     const modes = new Set<string>();
 
     rows.forEach((row) => {
       const parsed = parseDateDDMMYYYY(row.date);
       if (parsed) years.add(String(parsed.getFullYear()));
-      if (row.shipment && row.shipment !== "-") shipments.add(row.shipment);
+      if (row.customerName && row.customerName !== "-") customers.add(row.customerName);
+      const consigneeLabel = row.consigneeName || row.shipment;
+      if (consigneeLabel && consigneeLabel !== "-") consignees.add(consigneeLabel);
       if (row.product && row.product !== "-") products.add(row.product);
       if (row.mode && row.mode !== "-") modes.add(row.mode);
     });
 
     return {
       years: Array.from(years).sort((a, b) => Number(b) - Number(a)),
-      shipments: Array.from(shipments).sort(),
+      customers: Array.from(customers).sort(),
+      consignees: Array.from(consignees).sort(),
       products: Array.from(products).sort(),
       modes: Array.from(modes).sort(),
     };
@@ -741,22 +751,20 @@ export default function PackagingReportsPage() {
         const year = parsed ? String(parsed.getFullYear()) : "";
         const month = parsed ? String(parsed.getMonth() + 1) : "";
 
-        const matchSearch =
-          row.shipment.toLowerCase().includes(searchValue.toLowerCase()) ||
-          row.product.toLowerCase().includes(searchValue.toLowerCase()) ||
-          row.mode.toLowerCase().includes(searchValue.toLowerCase());
-
         const matchYear = selectedYear === "All" || year === selectedYear;
         const matchMonth = selectedMonth === "All" || month === selectedMonth;
-        const matchShipment = selectedShipment === "All" || row.shipment === selectedShipment;
+        const matchCustomer = selectedCustomer === "All" || (row.customerName || "-") === selectedCustomer;
+        const matchConsignee =
+          selectedConsignee === "All" ||
+          (row.consigneeName || row.shipment || "-") === selectedConsignee;
         const matchProduct = selectedProduct === "All" || row.product === selectedProduct;
         const matchMode = selectedMode === "All" || row.mode === selectedMode;
 
         return (
-          matchSearch &&
           matchYear &&
           matchMonth &&
-          matchShipment &&
+          matchCustomer &&
+          matchConsignee &&
           matchProduct &&
           matchMode
         );
@@ -769,7 +777,7 @@ export default function PackagingReportsPage() {
         if (!aDate && bDate) return 1;
         return a.date.localeCompare(b.date);
       });
-  }, [rows, searchValue, selectedYear, selectedMonth, selectedShipment, selectedProduct, selectedMode]);
+  }, [rows, selectedYear, selectedMonth, selectedCustomer, selectedConsignee, selectedProduct, selectedMode]);
 
   const stats = useMemo(() => {
     const totalRows = filteredRows.length;
@@ -970,12 +978,12 @@ export default function PackagingReportsPage() {
 
   const claySurfaceClass =
     "bg-[#F0F4F8] border border-[#E7EDF5] shadow-[8px_8px_18px_rgba(166,180,200,0.35),-8px_-8px_18px_rgba(255,255,255,0.9)]";
-  const clayChartCardClass = `p-5 ${claySurfaceClass}`;
+  const clayChartCardClass = `group/chart p-5 ${claySurfaceClass} transition-all duration-300 hover:-translate-y-1 hover:shadow-[12px_12px_24px_rgba(166,180,200,0.4),-10px_-10px_20px_rgba(255,255,255,0.93)]`;
   const clayBadgeCardClass = `group p-5 ${claySurfaceClass} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`;
   const clayChartInnerCardClass =
-    "rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-3 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)]";
+    "group/inner rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-3 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)] transition-all duration-300 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:shadow-[9px_9px_16px_rgba(166,180,200,0.32),-8px_-8px_16px_rgba(255,255,255,0.9)]";
   const clayChartMiniCardClass =
-    "rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-4 space-y-2 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)]";
+    "group/mini rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-4 space-y-2 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)] transition-all duration-300 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:shadow-[9px_9px_16px_rgba(166,180,200,0.32),-8px_-8px_16px_rgba(255,255,255,0.9)]";
 
   const reviewTotals = useMemo(() => calculatePackagingTotals(addForm), [addForm]);
 
@@ -989,7 +997,40 @@ export default function PackagingReportsPage() {
     { key: "totalPackages", header: "Total Pkg", align: "center" },
   ];
 
-  const exportToCsv = () => {
+  const activityUser = user?.displayName || user?.email || "System";
+
+  const logReportsActivity = async (payload: {
+    action: "Create" | "Read" | "Update" | "Delete" | "Export";
+    targetId: string;
+    targetName: string;
+    details?: string;
+    changes?: IActivityChange[];
+  }) => {
+    await PackagingService.logActivity({
+      project: "Packaging Console",
+      category: "Reports",
+      user: activityUser,
+      ...payload,
+    });
+  };
+
+  const handleOpenRowDetail = (row: PackingReportRow) => {
+    setSelectedRow(row);
+
+    const now = Date.now();
+    const lastLoggedAt = lastReadLogRef.current[row.id] || 0;
+    if (now - lastLoggedAt < 5000) return;
+    lastReadLogRef.current[row.id] = now;
+
+    void logReportsActivity({
+      action: "Read",
+      targetId: row.id,
+      targetName: `${row.shipment} / ${row.product}`,
+      details: `Viewed packing record detail for ${row.date}.`,
+    });
+  };
+
+  const exportToCsv = async () => {
     if (!filteredRows.length) return;
 
     const header = [
@@ -1061,15 +1102,22 @@ export default function PackagingReportsPage() {
 
     link.click();
     URL.revokeObjectURL(url);
+
+    await logReportsActivity({
+      action: "Export",
+      targetId: "filtered-records",
+      targetName: `CSV Export (${filteredRows.length} records)`,
+      details: `Exported packaging report CSV with ${filteredRows.length} records.`,
+    });
   };
 
   const resetFilters = () => {
     setSelectedYear("All");
     setSelectedMonth("All");
-    setSelectedShipment("All");
+    setSelectedCustomer("All");
+    setSelectedConsignee("All");
     setSelectedProduct("All");
     setSelectedMode("All");
-    setSearchValue("");
   };
 
   const openAddModal = () => {
@@ -1207,6 +1255,7 @@ export default function PackagingReportsPage() {
     const customerName = addForm.customerName.trim();
     const consigneeName = addForm.consigneeName.trim();
     const transportMode = addForm.transportMode.trim();
+    const previousRow = editingRowId ? rows.find((row) => row.id === editingRowId) || null : null;
 
     const targetRowId = editingRowId || doc(collection(db, REPORTS_COLLECTION)).id;
     const newRow: PackingReportRow = {
@@ -1240,6 +1289,45 @@ export default function PackagingReportsPage() {
       setRows((prev) =>
         editingRowId ? prev.map((row) => (row.id === editingRowId ? newRow : row)) : [newRow, ...prev]
       );
+
+      if (editingRowId) {
+        const changes: IActivityChange[] = [];
+        const trackField = (field: string, before: string | number, after: string | number) => {
+          if (String(before) !== String(after)) {
+            changes.push({ field, before, after });
+          }
+        };
+
+        if (previousRow) {
+          trackField("Date", previousRow.date, newRow.date);
+          trackField("Customer Name", previousRow.customerName || "-", newRow.customerName || "-");
+          trackField("Consignee Name", previousRow.shipment, newRow.shipment);
+          trackField("Product", previousRow.product, newRow.product);
+          trackField("Transport Mode", previousRow.mode, newRow.mode);
+          trackField("SI QTY", previousRow.siQty, newRow.siQty);
+          trackField("Total Product QTY", previousRow.qty, newRow.qty);
+          trackField("Total Packages", previousRow.totalPackages, newRow.totalPackages);
+        }
+
+        await logReportsActivity({
+          action: "Update",
+          targetId: newRow.id,
+          targetName: `${newRow.shipment} / ${newRow.product}`,
+          changes: changes.length > 0 ? changes : undefined,
+          details:
+            changes.length > 0
+              ? `Updated packing record with ${changes.length} changed fields.`
+              : "Updated packing record.",
+        });
+      } else {
+        await logReportsActivity({
+          action: "Create",
+          targetId: newRow.id,
+          targetName: `${newRow.shipment} / ${newRow.product}`,
+          details: `Created new packing record for ${newRow.date}.`,
+        });
+      }
+
       openSuccessModal(editingRowId ? "Record updated" : "Record saved");
       closeAddModal();
     } catch (err) {
@@ -1263,11 +1351,18 @@ export default function PackagingReportsPage() {
 
   const handleDeleteRecord = async () => {
     if (!pendingDeleteRow) return;
+    const deletingRow = pendingDeleteRow;
     try {
-      await deleteDoc(doc(db, REPORTS_COLLECTION, pendingDeleteRow.id));
-      setRows((prev) => prev.filter((row) => row.id !== pendingDeleteRow.id));
+      await deleteDoc(doc(db, REPORTS_COLLECTION, deletingRow.id));
+      setRows((prev) => prev.filter((row) => row.id !== deletingRow.id));
       setPendingDeleteRow(null);
       setSelectedRow(null);
+      await logReportsActivity({
+        action: "Delete",
+        targetId: deletingRow.id,
+        targetName: `${deletingRow.shipment} / ${deletingRow.product}`,
+        details: `Deleted packing record for ${deletingRow.date}.`,
+      });
       openSuccessModal("Record deleted");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Delete failed";
@@ -1323,10 +1418,19 @@ export default function PackagingReportsPage() {
                     </span>
                   )}
 
-                  {selectedShipment !== "All" && (
+                  {selectedCustomer !== "All" && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EEF2F6] text-[#7E5C4A] rounded-full text-xs font-medium border border-[#D4AA7D]/35">
-                      {selectedShipment}
-                      <button onClick={() => setSelectedShipment("All")} className="hover:text-[#272727]">
+                      {selectedCustomer}
+                      <button onClick={() => setSelectedCustomer("All")} className="hover:text-[#272727]">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {selectedConsignee !== "All" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EEF2F6] text-[#7E5C4A] rounded-full text-xs font-medium border border-[#D4AA7D]/35">
+                      {selectedConsignee}
+                      <button onClick={() => setSelectedConsignee("All")} className="hover:text-[#272727]">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -1352,10 +1456,10 @@ export default function PackagingReportsPage() {
 
                   {(selectedYear !== "All" ||
                     selectedMonth !== "All" ||
-                    selectedShipment !== "All" ||
+                    selectedCustomer !== "All" ||
+                    selectedConsignee !== "All" ||
                     selectedProduct !== "All" ||
-                    selectedMode !== "All" ||
-                    searchValue.trim() !== "") && (
+                    selectedMode !== "All") && (
                     <button
                       onClick={resetFilters}
                       className="text-xs text-[#7E5C4A]/80 hover:text-rose-700 transition-colors"
@@ -1395,17 +1499,6 @@ export default function PackagingReportsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
                       <div>
                         <label className="block text-[10px] font-black text-[#7E5C4A]/80 uppercase tracking-wide mb-1">
-                          Search
-                        </label>
-                        <input
-                          value={searchValue}
-                          onChange={(event) => setSearchValue(event.target.value)}
-                          placeholder="Shipment/Product/Mode"
-                          className="w-full px-3 py-2 bg-white/70 border border-white rounded-lg text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-black text-[#7E5C4A]/80 uppercase tracking-wide mb-1">
                           Year
                         </label>
                         <select
@@ -1440,17 +1533,34 @@ export default function PackagingReportsPage() {
                       </div>
                       <div>
                         <label className="block text-[10px] font-black text-[#7E5C4A]/80 uppercase tracking-wide mb-1">
-                          Shipment
+                          Customer
                         </label>
                         <select
-                          value={selectedShipment}
-                          onChange={(event) => setSelectedShipment(event.target.value)}
+                          value={selectedCustomer}
+                          onChange={(event) => setSelectedCustomer(event.target.value)}
                           className="w-full px-3 py-2 bg-white/70 border border-white rounded-lg text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
                         >
-                          <option value="All">All Shipments</option>
-                          {filterOptions.shipments.map((shipment) => (
-                            <option key={shipment} value={shipment}>
-                              {shipment}
+                          <option value="All">All Customers</option>
+                          {filterOptions.customers.map((customer) => (
+                            <option key={customer} value={customer}>
+                              {customer}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-[#7E5C4A]/80 uppercase tracking-wide mb-1">
+                          Consignee
+                        </label>
+                        <select
+                          value={selectedConsignee}
+                          onChange={(event) => setSelectedConsignee(event.target.value)}
+                          className="w-full px-3 py-2 bg-white/70 border border-white rounded-lg text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                        >
+                          <option value="All">All Consignees</option>
+                          {filterOptions.consignees.map((consignee) => (
+                            <option key={consignee} value={consignee}>
+                              {consignee}
                             </option>
                           ))}
                         </select>
@@ -1558,29 +1668,55 @@ export default function PackagingReportsPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-4">
                   <GlassCard className={clayChartCardClass}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Database className="w-4 h-4 text-[#5D6D7E]" />
-                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Packing Volume Timeline</h3>
+                    <div className="flex items-center gap-2 mb-3 transition-all duration-300 group-hover/chart:-translate-y-3">
+                      <Database className="w-4 h-4 text-[#5D6D7E] transition-transform duration-300 group-hover/chart:scale-110 group-hover/chart:-rotate-3" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Packing Volume Timeline</h3>
                     </div>
                     {timelineChart.hasData ? (
                       <div className="overflow-x-auto">
                         <svg
                           viewBox={`0 0 ${timelineChart.width} ${timelineChart.height}`}
-                          className="w-full min-w-[660px] h-[250px]"
+                          className="w-full min-w-[660px] h-[250px] transition-transform duration-300 group-hover/chart:scale-[1.03]"
                         >
                           {timelineChart.yTicks.map((tick) => {
                             const y = 14 + (212 - (tick / Math.max(...timelineChart.yTicks, 1)) * 212);
                             return (
-                              <g key={tick}>
-                                <line x1="40" x2="904" y1={y} y2={y} stroke="#D6DEE8" strokeDasharray="4 6" />
-                                <text x="12" y={y + 4} fontSize="11" fill="#8C9AAA">
+                              <g key={tick} className="transition-all duration-300 group-hover/chart:translate-x-0.5">
+                                <line
+                                  x1="40"
+                                  x2="904"
+                                  y1={y}
+                                  y2={y}
+                                  stroke="#D6DEE8"
+                                  strokeDasharray="4 6"
+                                  className="transition-opacity duration-300 group-hover/chart:opacity-90"
+                                />
+                                <text
+                                  x="12"
+                                  y={y + 4}
+                                  fontSize="11"
+                                  fill="#8C9AAA"
+                                  className="transition-all duration-300 group-hover/chart:-translate-x-0.5"
+                                >
                                   {tick}
                                 </text>
                               </g>
                             );
                           })}
-                          <path d={timelineChart.packagePath} fill="none" stroke="#9A7656" strokeWidth="3" />
-                          <path d={timelineChart.productPath} fill="none" stroke="#E9C46A" strokeWidth="3" />
+                          <path
+                            d={timelineChart.packagePath}
+                            fill="none"
+                            stroke="#9A7656"
+                            strokeWidth="3"
+                            className="transition-all duration-300 group-hover/chart:translate-y-[-1px]"
+                          />
+                          <path
+                            d={timelineChart.productPath}
+                            fill="none"
+                            stroke="#E9C46A"
+                            strokeWidth="3"
+                            className="transition-all duration-300 group-hover/chart:translate-y-[-1px]"
+                          />
                           {timelineChart.points.map((point) => (
                             <text
                               key={point.x}
@@ -1589,6 +1725,7 @@ export default function PackagingReportsPage() {
                               textAnchor="middle"
                               fontSize="10"
                               fill="#8C9AAA"
+                              className="transition-all duration-300 group-hover/chart:-translate-y-2"
                             >
                               {point.label}
                             </text>
@@ -1599,11 +1736,11 @@ export default function PackagingReportsPage() {
                       <p className="text-sm text-[#5D6D7E]/70 py-6">No timeline data</p>
                     )}
                     <div className="flex flex-wrap items-center gap-4 text-sm font-bold pt-1">
-                      <span className="inline-flex items-center gap-1.5 text-[#5D6D7E]">
+                      <span className="inline-flex items-center gap-1.5 text-[#5D6D7E] transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:scale-105">
                         <span className="h-2.5 w-2.5 rounded-full bg-[#9A7656]" />
                         Packages Used
                       </span>
-                      <span className="inline-flex items-center gap-1.5 text-[#5D6D7E]">
+                      <span className="inline-flex items-center gap-1.5 text-[#5D6D7E] transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:scale-105">
                         <span className="h-2.5 w-2.5 rounded-full bg-[#E9C46A]" />
                         Products (QTY)
                       </span>
@@ -1611,13 +1748,21 @@ export default function PackagingReportsPage() {
                   </GlassCard>
 
                   <GlassCard className={clayChartCardClass}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Package className="w-4 h-4 text-[#5D6D7E]" />
-                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Transport Mode</h3>
+                    <div className="flex items-center gap-2 mb-3 transition-all duration-300 group-hover/chart:-translate-y-3">
+                      <Package className="w-4 h-4 text-[#5D6D7E] transition-transform duration-300 group-hover/chart:scale-110 group-hover/chart:-rotate-3" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Transport Mode</h3>
                     </div>
                     <div className="flex items-center justify-center py-2">
-                      <svg viewBox="0 0 180 180" className="w-[210px] h-[210px]">
-                        <circle cx="90" cy="90" r="66" fill="none" stroke="#EEE2D2" strokeWidth="20" />
+                      <svg viewBox="0 0 180 180" className="w-[210px] h-[210px] transition-transform duration-300 group-hover/chart:scale-[1.03]">
+                        <circle
+                          cx="90"
+                          cy="90"
+                          r="66"
+                          fill="none"
+                          stroke="#EEE2D2"
+                          strokeWidth="20"
+                          className="transition-transform duration-300 group-hover/chart:scale-[1.03]"
+                        />
                         {transportModeChart.segments.map((segment) => (
                           <circle
                             key={segment.label}
@@ -1631,19 +1776,34 @@ export default function PackagingReportsPage() {
                             strokeDashoffset={segment.dashOffset}
                             strokeLinecap="round"
                             transform="rotate(-90 90 90)"
+                            className="transition-transform duration-300 group-hover/chart:scale-[1.03]"
                           />
                         ))}
-                        <text x="90" y="88" textAnchor="middle" className="fill-[#34495E]" fontSize="26" fontWeight="700">
+                        <text
+                          x="90"
+                          y="88"
+                          textAnchor="middle"
+                          className="fill-[#34495E] transition-all duration-300 group-hover/chart:-translate-y-2"
+                          fontSize="26"
+                          fontWeight="700"
+                        >
                           {transportModeChart.total}
                         </text>
-                        <text x="90" y="106" textAnchor="middle" className="fill-[#8C9AAA]" fontSize="10" fontWeight="600">
+                        <text
+                          x="90"
+                          y="106"
+                          textAnchor="middle"
+                          className="fill-[#8C9AAA] transition-all duration-300 group-hover/chart:translate-y-1"
+                          fontSize="10"
+                          fontWeight="600"
+                        >
                           records
                         </text>
                       </svg>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm font-bold">
                       {transportModeChart.segments.map((segment) => (
-                        <span key={segment.label} className="inline-flex items-center gap-1.5 text-[#5D6D7E]">
+                        <span key={segment.label} className="inline-flex items-center gap-1.5 text-[#5D6D7E] transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:scale-105">
                           <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: segment.color }} />
                           {segment.label}
                         </span>
@@ -1654,21 +1814,21 @@ export default function PackagingReportsPage() {
 
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_2fr] gap-4">
                   <GlassCard className={clayChartCardClass}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Boxes className="w-4 h-4 text-[#5D6D7E]" />
-                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Top Customers</h3>
+                    <div className="flex items-center gap-2 mb-4 transition-all duration-300 group-hover/chart:-translate-y-3">
+                      <Boxes className="w-4 h-4 text-[#5D6D7E] transition-transform duration-300 group-hover/chart:scale-110 group-hover/chart:-rotate-3" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Top Customers</h3>
                     </div>
                     <div className="space-y-4">
                       {topCustomersChart.length > 0 ? (
                         topCustomersChart.map((customer) => (
-                          <div key={customer.label} className="space-y-1.5">
+                          <div key={customer.label} className="group/row space-y-1.5 transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3">
                             <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#5D6D7E]">
                               <span>{customer.label}</span>
                               <span>{customer.value.toLocaleString()}</span>
                             </div>
                             <div className="h-3 rounded-full bg-[#EFF3F8] border border-[#D6DEE8] overflow-hidden">
                               <div
-                                className="h-full rounded-full transition-all duration-500"
+                                className="h-full rounded-full transition-all duration-500 origin-left group-hover/chart:scale-x-[1.02] group-hover/row:scale-x-[1.03]"
                                 style={{ width: `${Math.max(customer.widthPct, 8)}%`, backgroundColor: customer.color }}
                               />
                             </div>
@@ -1681,9 +1841,9 @@ export default function PackagingReportsPage() {
                   </GlassCard>
 
                   <GlassCard className={clayChartCardClass}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Package className="w-4 h-4 text-[#5D6D7E]" />
-                      <h3 className="text-lg font-black text-[#34495E] tracking-tight">Package Type Usage</h3>
+                    <div className="flex items-center gap-2 mb-4 transition-all duration-300 group-hover/chart:-translate-y-3">
+                      <Package className="w-4 h-4 text-[#5D6D7E] transition-transform duration-300 group-hover/chart:scale-110 group-hover/chart:-rotate-3" />
+                      <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Package Type Usage</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className={clayChartInnerCardClass}>
@@ -1693,11 +1853,11 @@ export default function PackagingReportsPage() {
                         </div>
                         <div className="space-y-2">
                           {packageTypeUsage.standard.items.map((item) => (
-                            <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-2">
+                            <div key={item.label} className="group/item grid grid-cols-[1fr_auto] items-center gap-2 transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3">
                               <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
                               <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
                               <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                                <div className="h-full rounded-full bg-[#9A7656]" style={{ width: `${(item.value / packageTypeUsage.standard.max) * 100}%` }} />
+                                <div className="h-full rounded-full bg-[#9A7656] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/item:scale-x-[1.04]" style={{ width: `${(item.value / packageTypeUsage.standard.max) * 100}%` }} />
                               </div>
                             </div>
                           ))}
@@ -1711,11 +1871,11 @@ export default function PackagingReportsPage() {
                         </div>
                         <div className="space-y-2">
                           {packageTypeUsage.boxes.items.map((item) => (
-                            <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-2">
+                            <div key={item.label} className="group/item grid grid-cols-[1fr_auto] items-center gap-2 transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3">
                               <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
                               <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
                               <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                                <div className="h-full rounded-full bg-[#D7B894]" style={{ width: `${(item.value / packageTypeUsage.boxes.max) * 100}%` }} />
+                                <div className="h-full rounded-full bg-[#D7B894] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/item:scale-x-[1.04]" style={{ width: `${(item.value / packageTypeUsage.boxes.max) * 100}%` }} />
                               </div>
                             </div>
                           ))}
@@ -1728,7 +1888,7 @@ export default function PackagingReportsPage() {
                           <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.returnable.total.toLocaleString()}</span>
                         </div>
                         <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#E9C46A]" style={{ width: `${Math.min(packageTypeUsage.returnable.total, 100)}%` }} />
+                          <div className="h-full rounded-full bg-[#E9C46A] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/inner:scale-x-[1.04]" style={{ width: `${Math.min(packageTypeUsage.returnable.total, 100)}%` }} />
                         </div>
                       </div>
 
@@ -1738,7 +1898,7 @@ export default function PackagingReportsPage() {
                           <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.warp.total.toLocaleString()}</span>
                         </div>
                         <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#CDB79E]" style={{ width: `${Math.min(packageTypeUsage.warp.total, 100)}%` }} />
+                          <div className="h-full rounded-full bg-[#CDB79E] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/inner:scale-x-[1.04]" style={{ width: `${Math.min(packageTypeUsage.warp.total, 100)}%` }} />
                         </div>
                       </div>
                     </div>
@@ -1746,26 +1906,26 @@ export default function PackagingReportsPage() {
                 </div>
 
                 <GlassCard className={clayChartCardClass}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Hash className="w-4 h-4 text-[#5D6D7E]" />
-                    <h3 className="text-lg font-black text-[#34495E] tracking-tight">Ratio Analysis (Product Capacity)</h3>
+                  <div className="flex items-center gap-2 mb-4 transition-all duration-300 group-hover/chart:-translate-y-3">
+                    <Hash className="w-4 h-4 text-[#5D6D7E] transition-transform duration-300 group-hover/chart:scale-110 group-hover/chart:-rotate-3" />
+                    <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Ratio Analysis (Product Capacity)</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                     {ratioAnalysis.map((card) => (
                       <div key={card.title} className={clayChartMiniCardClass}>
-                        <p className="text-xs font-black text-[#5D6D7E]">{card.title}</p>
-                        <p className="text-3xl font-black text-[#34495E] leading-none">
+                        <p className="text-xs font-black text-[#5D6D7E] transition-all duration-300 group-hover/chart:-translate-y-2">{card.title}</p>
+                        <p className="text-3xl font-black text-[#34495E] leading-none transition-all duration-300 group-hover/chart:translate-x-0.5">
                           {card.capacity.toLocaleString(undefined, { maximumFractionDigits: 1 })}
                           <span className="text-sm font-bold text-[#8C9AAA] ml-1">units capacity</span>
                         </p>
-                        <div className="flex items-center justify-between text-xs font-semibold text-[#5D6D7E]">
+                        <div className="flex items-center justify-between text-xs font-semibold text-[#5D6D7E] transition-all duration-300 group-hover/chart:translate-y-1">
                           <span>Packages Used</span>
                           <span>{card.packagesUsed.toLocaleString()}</span>
                         </div>
                         <div className="h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#E9C46A]" style={{ width: `${Math.max(card.barWidth, 10)}%` }} />
+                          <div className="h-full rounded-full bg-[#E9C46A] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/mini:scale-x-[1.04]" style={{ width: `${Math.max(card.barWidth, 10)}%` }} />
                         </div>
-                        <p className="text-[11px] italic text-[#8C9AAA]">Based on defined package ratios</p>
+                        <p className="text-[11px] italic text-[#8C9AAA] transition-all duration-300 group-hover/chart:translate-y-1">Based on defined package ratios</p>
                       </div>
                     ))}
                   </div>
@@ -1776,7 +1936,7 @@ export default function PackagingReportsPage() {
                 columns={columns}
                 data={filteredRows}
                 keyField="id"
-                onRowClick={(row) => setSelectedRow(row)}
+                onRowClick={handleOpenRowDetail}
                 emptyMessage={isLoading ? "Loading report rows..." : "No report records found."}
               />
             </div>

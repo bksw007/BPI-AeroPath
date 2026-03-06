@@ -10,6 +10,7 @@ import {
   Clock, 
   TrendingUp, 
   Plus, 
+  Eye,
   Edit, 
   Trash2, 
   FileText,
@@ -102,6 +103,8 @@ export default function PackagingActivityPage() {
     switch (action) {
       case "Create":
         return { icon: <Plus className="w-3 h-3" />, color: "bg-[#9ACD32]/15 text-[#5a7a1a] border-[#9ACD32]/35" };
+      case "Read":
+        return { icon: <Eye className="w-3 h-3" />, color: "bg-sky-100 text-sky-700 border-sky-200" };
       case "Update":
         return { icon: <Edit className="w-3 h-3" />, color: "bg-[#D4AA7D]/20 text-[#7E5C4A] border-[#D4AA7D]/35" };
       case "Delete":

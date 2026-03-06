@@ -25,7 +25,7 @@ export interface IActivityLog {
   id?: string;
   timestamp: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   project: string; // e.g. "Smart Packaging"
-  action: 'Create' | 'Update' | 'Delete' | 'Import' | 'Export';
+  action: 'Create' | 'Read' | 'Update' | 'Delete' | 'Import' | 'Export';
   category: string;
   targetId: string;
   targetName: string;
