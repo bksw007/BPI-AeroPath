@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Download, Filter, PlusCircle, RefreshCw, Save, X } from "lucide-react";
+import { ArrowUp, Download, Filter, Pencil, PlusCircle, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { ModuleHeader } from "@/components/projects/material-control/ModuleHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
@@ -448,6 +448,37 @@ const calculatePackagingTotals = (form: AddRecordForm) => {
   };
 };
 
+const mapRowToAddForm = (row: PackingReportRow): AddRecordForm => {
+  const breakdown = row.packagingBreakdown;
+  return {
+    date: row.date || "",
+    customerName: row.customerName || "",
+    product: row.product || "",
+    consigneeName: row.shipment || row.consigneeName || "",
+    transportMode: row.transportMode || row.mode || "",
+    siQty: String(row.siQty || ""),
+    totalProductQty: String(row.qty || ""),
+    qty110x110x115: String(breakdown?.qty110x110x115 ?? ""),
+    qty110x110x90: String(breakdown?.qty110x110x90 ?? ""),
+    qty110x110x65: String(breakdown?.qty110x110x65 ?? ""),
+    qty80x120x115: String(breakdown?.qty80x120x115 ?? ""),
+    qty80x120x90: String(breakdown?.qty80x120x90 ?? ""),
+    qty80x120x65: String(breakdown?.qty80x120x65 ?? ""),
+    returnableQty: String(breakdown?.returnableQty ?? ""),
+    qty42x46x68: String(breakdown?.qty42x46x68 ?? ""),
+    qty47x66x68: String(breakdown?.qty47x66x68 ?? ""),
+    qty53x53x58: String(breakdown?.qty53x53x58 ?? ""),
+    qty57x64x84: String(breakdown?.qty57x64x84 ?? ""),
+    qty68x74x86: String(breakdown?.qty68x74x86 ?? ""),
+    qty70x100x90: String(breakdown?.qty70x100x90 ?? ""),
+    qty27x27x22: String(breakdown?.qty27x27x22 ?? ""),
+    qty53x53x19: String(breakdown?.qty53x53x19 ?? ""),
+    warpQty: String(breakdown?.warpQty ?? ""),
+    unitQty: String(breakdown?.unitQty ?? ""),
+    remark: row.remark || "",
+  };
+};
+
 export default function PackagingReportsPage() {
   const [rows, setRows] = useState<PackingReportRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -461,12 +492,16 @@ export default function PackagingReportsPage() {
   const [selectedProduct, setSelectedProduct] = useState("All");
   const [selectedMode, setSelectedMode] = useState("All");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [isReviewingAddRecord, setIsReviewingAddRecord] = useState(false);
   const [isBatchInputOpen, setIsBatchInputOpen] = useState(false);
   const [batchInputText, setBatchInputText] = useState("");
   const [batchInputError, setBatchInputError] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<PackingReportRow | null>(null);
+  const [pendingDeleteRow, setPendingDeleteRow] = useState<PackingReportRow | null>(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("Saved successfully");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [manualShipmentOptions, setManualShipmentOptions] = useState<Record<ShipmentDropdownFieldKey, string[]>>({
     customerName: [],
@@ -477,6 +512,8 @@ export default function PackagingReportsPage() {
   const [addForm, setAddForm] = useState<AddRecordForm>(buildInitialAddForm());
   const filterAreaRef = useRef<HTMLDivElement | null>(null);
   const dateInputRef = useRef<HTMLInputElement | null>(null);
+  const addModalContentRef = useRef<HTMLDivElement | null>(null);
+  const successTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const loadCsv = async () => {
@@ -520,6 +557,18 @@ export default function PackagingReportsPage() {
     document.addEventListener("mousedown", onPointerDownOutside);
     return () => document.removeEventListener("mousedown", onPointerDownOutside);
   }, [isFilterExpanded]);
+
+  useEffect(() => {
+    if (!isAddModalOpen || !isReviewingAddRecord) return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    addModalContentRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [isAddModalOpen, isReviewingAddRecord]);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) window.clearTimeout(successTimerRef.current);
+    };
+  }, []);
 
   const filterOptions = useMemo(() => {
     const years = new Set<string>();
@@ -697,6 +746,7 @@ export default function PackagingReportsPage() {
     const now = new Date();
     const date = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
     setAddForm(buildInitialAddForm(date));
+    setEditingRowId(null);
     setIsReviewingAddRecord(false);
     setIsBatchInputOpen(false);
     setBatchInputText("");
@@ -707,6 +757,7 @@ export default function PackagingReportsPage() {
 
   const closeAddModal = () => {
     setIsAddModalOpen(false);
+    setEditingRowId(null);
     setIsReviewingAddRecord(false);
     setIsBatchInputOpen(false);
     setBatchInputText("");
@@ -724,6 +775,13 @@ export default function PackagingReportsPage() {
       return { ...prev, [fieldKey]: [...prev[fieldKey], nextValue] };
     });
     setAddForm((prev) => ({ ...prev, [fieldKey]: nextValue }));
+  };
+
+  const openSuccessModal = (message: string) => {
+    if (successTimerRef.current) window.clearTimeout(successTimerRef.current);
+    setSuccessMessage(message);
+    setIsSuccessModalOpen(true);
+    successTimerRef.current = window.setTimeout(() => setIsSuccessModalOpen(false), 1300);
   };
 
   const applyBatchPackagingInput = () => {
@@ -772,6 +830,7 @@ export default function PackagingReportsPage() {
     }));
     setBatchInputError(null);
     setIsBatchInputOpen(false);
+    openSuccessModal("Applied batch data");
   };
 
   const validateAddRecord = () => {
@@ -819,8 +878,9 @@ export default function PackagingReportsPage() {
     const consigneeName = addForm.consigneeName.trim();
     const transportMode = addForm.transportMode.trim();
 
+    const targetRowId = editingRowId || `${Date.now()}`;
     const newRow: PackingReportRow = {
-      id: `${Date.now()}`,
+      id: targetRowId,
       date: addForm.date.trim(),
       shipment: consigneeName,
       mode: transportMode,
@@ -845,9 +905,32 @@ export default function PackagingReportsPage() {
       remark: addForm.remark.trim(),
     };
 
-    // Local insert now; this function can call Firebase create API in next step.
-    setRows((prev) => [newRow, ...prev]);
+    setRows((prev) =>
+      editingRowId ? prev.map((row) => (row.id === editingRowId ? newRow : row)) : [newRow, ...prev]
+    );
+    openSuccessModal(editingRowId ? "Record updated" : "Record saved");
     closeAddModal();
+  };
+
+  const openEditModalFromDetail = () => {
+    if (!selectedRow) return;
+    setEditingRowId(selectedRow.id);
+    setAddForm(mapRowToAddForm(selectedRow));
+    setIsReviewingAddRecord(false);
+    setIsBatchInputOpen(false);
+    setBatchInputText("");
+    setBatchInputError(null);
+    setAddError(null);
+    setIsAddModalOpen(true);
+    setSelectedRow(null);
+  };
+
+  const handleDeleteRecord = () => {
+    if (!pendingDeleteRow) return;
+    setRows((prev) => prev.filter((row) => row.id !== pendingDeleteRow.id));
+    setPendingDeleteRow(null);
+    setSelectedRow(null);
+    openSuccessModal("Record deleted");
   };
 
   const scrollToTop = () => {
@@ -1116,10 +1199,10 @@ export default function PackagingReportsPage() {
       <Modal
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
-        title="Add Packing Record"
+        title={editingRowId ? "Edit Packing Record" : "Add Packing Record"}
         className="max-w-5xl"
       >
-        <div className="space-y-4">
+        <div ref={addModalContentRef} className="space-y-4">
           {addError && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
               {addError}
@@ -1470,79 +1553,144 @@ export default function PackagingReportsPage() {
         className="max-w-2xl"
       >
         {selectedRow && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                { label: "Date", value: selectedRow.date },
-                { label: "Customer Name", value: selectedRow.customerName || "-" },
-                { label: "Consignee Name", value: selectedRow.shipment },
-                { label: "Transport Mode", value: selectedRow.transportMode || selectedRow.mode },
-                { label: "Product", value: selectedRow.product },
-                { label: "SI QTY", value: selectedRow.siQty },
-                { label: "Total Product QTY", value: selectedRow.qty },
-                { label: "Total Packages", value: selectedRow.totalPackages },
-                { label: "Standard Total", value: selectedRow.standardTotal },
-                { label: "Boxes Total", value: selectedRow.boxesTotal },
-                { label: "Carton Total", value: selectedRow.cartonTotal },
-                { label: "Warp Total", value: selectedRow.warpTotal },
-                { label: "Returnable Total", value: selectedRow.returnableTotal },
-                { label: "Ratio Standard", value: selectedRow.ratioStandard.toFixed(2) },
-                { label: "Ratio Boxes", value: selectedRow.ratioBoxes.toFixed(2) },
-                { label: "Ratio Carton", value: selectedRow.ratioCarton.toFixed(2) },
-                { label: "Ratio Warp", value: selectedRow.ratioWarp.toFixed(2) },
-                { label: "Ratio Returnable", value: selectedRow.ratioReturnable.toFixed(2) },
-              ].map((field) => (
-                <div key={field.label} className="rounded-xl border border-[#D4AA7D]/35 bg-white/70 px-3 py-2">
-                  <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{field.label}</p>
-                  <p className="text-sm font-semibold text-[#272727] mt-1">{field.value}</p>
-                </div>
-              ))}
+              <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/75 px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80 mb-2">Shipment Summary</p>
+                {[
+                  { label: "Date", value: selectedRow.date },
+                  { label: "Customer", value: selectedRow.customerName || "-" },
+                  { label: "Consignee", value: selectedRow.shipment || "-" },
+                  { label: "Product", value: selectedRow.product || "-" },
+                  { label: "Transport", value: selectedRow.transportMode || selectedRow.mode || "-" },
+                ].map((field) => (
+                  <div key={field.label} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
+                    <span className="text-xs font-semibold text-[#7E5C4A]">{field.label}</span>
+                    <span className="text-sm font-semibold text-[#272727]">{field.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/75 px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80 mb-2">Totals Snapshot</p>
+                {[
+                  { label: "SI QTY", value: selectedRow.siQty },
+                  { label: "Total Product QTY", value: selectedRow.qty },
+                  { label: "Total Packages", value: selectedRow.totalPackages },
+                  { label: "Standard", value: selectedRow.standardTotal },
+                  { label: "Boxes", value: selectedRow.boxesTotal },
+                  { label: "Carton", value: selectedRow.cartonTotal },
+                  { label: "Warp", value: selectedRow.warpTotal },
+                  { label: "Returnable", value: selectedRow.returnableTotal },
+                ].map((field) => (
+                  <div key={field.label} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
+                    <span className="text-xs font-semibold text-[#7E5C4A]">{field.label}</span>
+                    <span className="text-sm font-bold text-[#272727] tabular-nums">{field.value.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/75 px-3 py-2">
+              <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80 mb-2">Ratios</p>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {[
+                  { label: "Standard", value: selectedRow.ratioStandard },
+                  { label: "Boxes", value: selectedRow.ratioBoxes },
+                  { label: "Carton", value: selectedRow.ratioCarton },
+                  { label: "Warp", value: selectedRow.ratioWarp },
+                  { label: "Returnable", value: selectedRow.ratioReturnable },
+                ].map((ratio) => (
+                  <div key={ratio.label} className="rounded-lg border border-[#D4AA7D]/25 bg-white/85 px-2.5 py-2 text-center">
+                    <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">{ratio.label}</p>
+                    <p className="text-sm font-bold text-[#272727] mt-1 tabular-nums">{ratio.value.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {selectedRow.packagingBreakdown && (
-              <div className="space-y-2">
-                <p className="text-xs font-black uppercase tracking-wider text-[#7E5C4A]">Packaging Breakdown</p>
-                <div className="space-y-2">
-                  {PACKAGING_GROUPS.map((group) => (
-                    <div key={group.title} className="rounded-xl border border-[#D4AA7D]/30 bg-white/70 p-2.5">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80 mb-1.5">
-                        {group.title}
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {group.keys.map((key) => (
-                          <div key={key} className="rounded-lg border border-[#D4AA7D]/25 bg-white/80 px-3 py-2">
-                            <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">
-                              {PACKAGING_FIELD_BY_KEY[key].label}
-                            </p>
-                            <p className="text-sm font-semibold text-[#272727] mt-1">
-                              {selectedRow.packagingBreakdown?.[key]?.toLocaleString() || 0}
-                            </p>
-                          </div>
-                        ))}
+              <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/75 px-3 py-2">
+                <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80 mb-2">Packaging Breakdown</p>
+                <div className="space-y-1 max-h-[260px] overflow-auto pr-1">
+                  {PACKAGING_GROUPS.flatMap((group) => group.keys)
+                    .filter((key) => (selectedRow.packagingBreakdown?.[key] || 0) > 0)
+                    .map((key) => (
+                      <div key={key} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
+                        <span className="text-xs font-semibold text-[#7E5C4A]">{PACKAGING_FIELD_BY_KEY[key].label}</span>
+                        <span className="text-sm font-bold text-[#272727] tabular-nums">
+                          {(selectedRow.packagingBreakdown?.[key] || 0).toLocaleString()} Pkg.
+                        </span>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  {PACKAGING_GROUPS.flatMap((group) => group.keys).every(
+                    (key) => (selectedRow.packagingBreakdown?.[key] || 0) === 0
+                  ) && <p className="text-xs text-[#7E5C4A]/70">No package quantity.</p>}
                 </div>
               </div>
             )}
 
-            <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/70 px-3 py-2">
+            <div className="rounded-xl border border-[#D4AA7D]/35 bg-white/75 px-3 py-2">
               <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">Remark</p>
-              <p className="text-sm font-medium text-[#272727] mt-1 whitespace-pre-wrap">
-                {selectedRow.remark || "-"}
-              </p>
+              <p className="text-sm font-medium text-[#272727] mt-1 whitespace-pre-wrap">{selectedRow.remark || "-"}</p>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
               <button
-                onClick={() => setSelectedRow(null)}
-                className="px-4 py-2 rounded-lg bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] text-sm font-semibold transition-colors"
+                onClick={() => setPendingDeleteRow(selectedRow)}
+                className="px-4 py-2 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold transition-colors inline-flex items-center gap-2"
               >
-                Close
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+              <button
+                onClick={openEditModalFromDetail}
+                className="px-4 py-2 rounded-lg bg-[#272727] hover:bg-[#1f1f1f] text-[#EFD09E] text-sm font-semibold transition-colors inline-flex items-center gap-2"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit
               </button>
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        isOpen={!!pendingDeleteRow}
+        onClose={() => setPendingDeleteRow(null)}
+        title="Confirm Delete"
+        className="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#7E5C4A]">
+            Delete this packing record for <span className="font-bold text-[#272727]">{pendingDeleteRow?.date}</span>?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setPendingDeleteRow(null)}
+              className="px-4 py-2 rounded-lg border border-[#D4AA7D]/35 text-[#7E5C4A] text-sm font-semibold hover:bg-white/70 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteRecord}
+              className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-colors"
+            >
+              Confirm Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        title="Success"
+        className="max-w-xs"
+      >
+        <div className="py-1">
+          <p className="text-sm font-semibold text-[#272727]">{successMessage}</p>
+        </div>
       </Modal>
 
       {showScrollTop && (
