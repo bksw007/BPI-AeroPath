@@ -8,6 +8,7 @@ interface ModuleHeaderProps {
   description?: string;
   backHref?: string;
   backLabel?: string;
+  backLinkVariant?: "default" | "packaging";
   action?: React.ReactNode;
   children?: React.ReactNode;
 }
@@ -17,19 +18,36 @@ export function ModuleHeader({
   description,
   backHref = "/projects/material-control",
   backLabel = "Material Control",
+  backLinkVariant = "default",
   action,
   children,
 }: ModuleHeaderProps) {
+  const isPackagingBackLink =
+    backLinkVariant === "packaging" ||
+    (backHref === "/projects/packaging" && backLabel === "Packaging Console");
+
   return (
     <div className="space-y-6">
       <div className="relative flex items-center justify-center pt-2">
         {/* Back Link - Positioned Absolute Left */}
         <Link
           href={backHref}
-          className="absolute left-0 inline-flex items-center gap-2 text-[#7E5C4A]/80 hover:text-[#272727] transition-colors text-sm md:text-base font-semibold"
+          className={
+            isPackagingBackLink
+              ? "absolute left-0 inline-flex items-center gap-2 text-[#7E5C4A] hover:text-[#272727] transition-colors text-sm md:text-base group"
+              : "absolute left-0 inline-flex items-center gap-2 text-[#7E5C4A]/80 hover:text-[#272727] transition-colors text-sm md:text-base font-semibold"
+          }
         >
-          <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-          <span className="hidden sm:inline">{backLabel}</span>
+          <ArrowLeft
+            className={
+              isPackagingBackLink
+                ? "w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform"
+                : "w-4 h-4 md:w-5 md:h-5"
+            }
+          />
+          <span className={isPackagingBackLink ? "hidden sm:inline font-medium" : "hidden sm:inline"}>
+            {backLabel}
+          </span>
         </Link>
         
         {/* Title */}

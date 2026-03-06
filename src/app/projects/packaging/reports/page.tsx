@@ -1288,6 +1288,7 @@ export default function PackagingReportsPage() {
             description="Realtime packaging records with shipment details, package breakdown, and export-ready reporting."
             backHref="/projects/packaging"
             backLabel="Packaging Console"
+            backLinkVariant="packaging"
           >
             <div className="mt-8 space-y-6">
               <div ref={filterAreaRef}>
