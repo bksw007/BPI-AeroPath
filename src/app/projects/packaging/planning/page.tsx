@@ -36,7 +36,7 @@ import type { AdjustmentValidationResult, POCase, PlanAdjustmentRecord, PlanAdju
 import { createAdjustmentRecord, clonePlanResult, summarizePlan } from "@/lib/planning/adjustments.helpers";
 import { applyAdjustment, applyAdjustments } from "@/lib/planning/adjustments.reducer";
 import { buildExpectedQtyMap, validateAdjustedResult } from "@/lib/planning/adjustments.validation";
-import { buildPackingDetailSheetEntries } from "@/lib/packing-details/export.helpers";
+import { buildPackingDetailSheetEntries, summarizePoNos } from "@/lib/packing-details/export.helpers";
 import type { PackingDetailsExportOptions } from "@/lib/packing-details/export.types";
 import { useAuth } from "@/lib/hooks/useAuth";
 
@@ -137,6 +137,7 @@ export default function PackagingBookingPage() {
 
   const expectedQtyMap = useMemo(() => buildExpectedQtyMap(rawData), [rawData]);
   const totalNoCount = useMemo(() => planResult.reduce((sum, poGroup) => sum + poGroup.cases.length, 0), [planResult]);
+  const poSummaries = useMemo(() => summarizePoNos(planResult), [planResult]);
 
   const updateWorkingPlan = (next: POCase[]) => {
     setPlanResult(next);
@@ -1200,7 +1201,7 @@ export default function PackagingBookingPage() {
       {isPackingDetailsDialogOpen ? (
         <PackingDetailsExportDialog
           open={isPackingDetailsDialogOpen}
-          maxNo={totalNoCount}
+          poSummaries={poSummaries}
           shipmentOptions={shipmentOptions}
           defaultShipment={selectedCustomer?.code}
           isSubmitting={isExportingPackingDetails}

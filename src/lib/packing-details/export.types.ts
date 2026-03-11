@@ -7,7 +7,8 @@ export type NoSelectionMode = "all" | "custom";
 
 export interface PackingDetailsExportOptions {
   selectionMode: NoSelectionMode;
-  noRangeInput: string;
+  selectedPos: string[];
+  poNoRangeMap: Record<string, string>;
   startCaseNo: number;
   shipment: string;
   shipBy: ShipByOption;
@@ -38,6 +39,11 @@ export interface BuildSheetEntriesResult {
   entries: PackingDetailSheetEntry[];
   errors: string[];
   totalNoCount: number;
+}
+
+export interface PoNoSummary {
+  po: string;
+  totalNos: number;
 }
 
 export type PlanResultForExport = POCase[];

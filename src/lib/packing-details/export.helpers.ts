@@ -3,6 +3,7 @@ import type {
   FlattenedPlanCase,
   PackingDetailSheetEntry,
   PackingDetailsExportOptions,
+  PoNoSummary,
   PlanResultForExport,
 } from "@/lib/packing-details/export.types";
 
@@ -29,6 +30,12 @@ export const flattenPlanCases = (planResult: PlanResultForExport): FlattenedPlan
 
   return rows;
 };
+
+export const summarizePoNos = (planResult: PlanResultForExport): PoNoSummary[] =>
+  planResult.map((poGroup) => ({
+    po: poGroup.po,
+    totalNos: poGroup.cases.length,
+  }));
 
 const toInt = (value: string): number | null => {
   if (!/^\d+$/.test(value)) return null;
@@ -87,28 +94,6 @@ export const parseNoSelection = (input: string): ParsedNoSelection => {
   };
 };
 
-const buildSelectedNos = (
-  totalNoCount: number,
-  options: PackingDetailsExportOptions
-): { selectedNos: number[]; errors: string[] } => {
-  if (options.selectionMode === "all") {
-    return {
-      selectedNos: Array.from({ length: totalNoCount }, (_, i) => i + 1),
-      errors: [],
-    };
-  }
-
-  const parsed = parseNoSelection(options.noRangeInput);
-  const rangeErrors = parsed.selectedNos
-    .filter((no) => no < 1 || no > totalNoCount)
-    .map((no) => `Range includes No. ${no} but plan has only ${totalNoCount}.`);
-
-  return {
-    selectedNos: parsed.selectedNos.filter((no) => no >= 1 && no <= totalNoCount),
-    errors: [...parsed.errors, ...rangeErrors],
-  };
-};
-
 export const buildPackingDetailSheetEntries = (
   planResult: PlanResultForExport,
   options: PackingDetailsExportOptions
@@ -120,6 +105,19 @@ export const buildPackingDetailSheetEntries = (
     return {
       entries: [],
       errors: ["No plan rows available for export."],
+      totalNoCount,
+    };
+  }
+
+  const availablePoSet = new Set(planResult.map((group) => group.po));
+  const selectedPos = Array.from(
+    new Set(options.selectedPos.map((po) => po.trim()).filter((po) => po.length > 0))
+  ).filter((po) => availablePoSet.has(po));
+
+  if (selectedPos.length === 0) {
+    return {
+      entries: [],
+      errors: ["Please select at least one PO."],
       totalNoCount,
     };
   }
@@ -141,27 +139,69 @@ export const buildPackingDetailSheetEntries = (
     };
   }
 
-  const selected = buildSelectedNos(totalNoCount, options);
-  if (selected.errors.length > 0) {
-    return { entries: [], errors: selected.errors, totalNoCount };
-  }
-  if (selected.selectedNos.length === 0) {
-    return { entries: [], errors: ["No. selection is empty."], totalNoCount };
-  }
+  const rowsByPo = new Map<string, FlattenedPlanCase[]>();
+  flattened.forEach((row) => {
+    const rows = rowsByPo.get(row.po) || [];
+    rows.push(row);
+    rowsByPo.set(row.po, rows);
+  });
 
-  const noToCase = new Map<number, FlattenedPlanCase>();
-  flattened.forEach((row) => noToCase.set(row.no, row));
+  const selectedRows: FlattenedPlanCase[] = [];
+  const errors: string[] = [];
 
-  const entries: PackingDetailSheetEntry[] = selected.selectedNos.map((sourceNo, idx) => {
-    const row = noToCase.get(sourceNo);
-    if (!row) {
-      throw new Error(`Unexpected missing No. ${sourceNo}`);
+  planResult.forEach((poGroup) => {
+    if (!selectedPos.includes(poGroup.po)) return;
+    const po = poGroup.po;
+    const rows = rowsByPo.get(po) || [];
+    if (rows.length === 0) return;
+
+    if (options.selectionMode === "all") {
+      selectedRows.push(...rows);
+      return;
     }
+
+    const rangeInput = (options.poNoRangeMap[po] || "").trim();
+    const parsed = parseNoSelection(rangeInput);
+    if (parsed.errors.length > 0) {
+      parsed.errors.forEach((error) => errors.push(`PO ${po}: ${error}`));
+      return;
+    }
+    if (parsed.selectedNos.length === 0) {
+      errors.push(`PO ${po}: No. range is required for Custom mode.`);
+      return;
+    }
+
+    const outOfRange = parsed.selectedNos.filter((no) => no < 1 || no > rows.length);
+    if (outOfRange.length > 0) {
+      outOfRange.forEach((no) => {
+        errors.push(`PO ${po}: Range includes No. ${no} but this PO has only ${rows.length}.`);
+      });
+      return;
+    }
+
+    parsed.selectedNos.forEach((noInPo) => {
+      const row = rows[noInPo - 1];
+      if (row) selectedRows.push(row);
+    });
+  });
+
+  if (errors.length > 0) {
+    return { entries: [], errors, totalNoCount };
+  }
+  if (selectedRows.length === 0) {
+    return {
+      entries: [],
+      errors: ["No rows selected. Please select at least one PO/No."],
+      totalNoCount,
+    };
+  }
+
+  const entries: PackingDetailSheetEntry[] = selectedRows.map((row, idx) => {
     const mappedCaseNo = options.startCaseNo + idx;
     const totalQty = row.caseData.items.reduce((sum, item) => sum + item.qty, 0);
 
     return {
-      sourceNo,
+      sourceNo: row.no,
       po: row.po,
       originalCaseNo: row.originalCaseNo,
       mappedCaseNo,
