@@ -26,8 +26,7 @@ const drawTextInField = (
   field: RectField,
   font: PDFFont,
   size = 10,
-  color = TEXT_COLOR,
-  characterSpacing = 0
+  color = TEXT_COLOR
 ) => {
   page.drawText(text, {
     x: field.x + 1,
@@ -35,7 +34,6 @@ const drawTextInField = (
     size,
     font,
     color,
-    characterSpacing,
     maxWidth: field.width - 2,
     lineHeight: size + 1,
   });
