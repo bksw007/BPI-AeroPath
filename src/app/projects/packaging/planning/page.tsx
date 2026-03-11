@@ -31,10 +31,13 @@ import { generatePackingListPDF } from "@/lib/utils/pdfGenerator";
 import { generatePackingDetailsPDF, generateLayoutGridPDF } from "@/lib/utils/pdfTemplateGenerator";
 import { AdjustmentToolbar } from "@/components/projects/packaging/planning/AdjustmentToolbar";
 import { EditableCaseRow } from "@/components/projects/packaging/planning/EditableCaseRow";
+import { PackingDetailsExportDialog } from "@/components/projects/packaging/planning/PackingDetailsExportDialog";
 import type { AdjustmentValidationResult, POCase, PlanAdjustmentRecord, PlanAdjustmentOp } from "@/lib/planning/adjustments.types";
 import { createAdjustmentRecord, clonePlanResult, summarizePlan } from "@/lib/planning/adjustments.helpers";
 import { applyAdjustment, applyAdjustments } from "@/lib/planning/adjustments.reducer";
 import { buildExpectedQtyMap, validateAdjustedResult } from "@/lib/planning/adjustments.validation";
+import { buildPackingDetailSheetEntries } from "@/lib/packing-details/export.helpers";
+import type { PackingDetailsExportOptions } from "@/lib/packing-details/export.types";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 interface PlanSummary {
@@ -100,6 +103,10 @@ export default function PackagingBookingPage() {
   const [isHistoryMode, setIsHistoryMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExportingPlan, setIsExportingPlan] = useState(false);
+  const [isExportingPackingDetails, setIsExportingPackingDetails] = useState(false);
+  const [isLoadingShipmentOptions, setIsLoadingShipmentOptions] = useState(false);
+  const [isPackingDetailsDialogOpen, setIsPackingDetailsDialogOpen] = useState(false);
+  const [shipmentOptions, setShipmentOptions] = useState<string[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
   const [editingCustomerCode, setEditingCustomerCode] = useState<string | null>(null);
@@ -129,6 +136,7 @@ export default function PackagingBookingPage() {
   );
 
   const expectedQtyMap = useMemo(() => buildExpectedQtyMap(rawData), [rawData]);
+  const totalNoCount = useMemo(() => planResult.reduce((sum, poGroup) => sum + poGroup.cases.length, 0), [planResult]);
 
   const updateWorkingPlan = (next: POCase[]) => {
     setPlanResult(next);
@@ -452,16 +460,40 @@ export default function PackagingBookingPage() {
     }
   };
 
-  const handleExportPackingDetails = () => {
+  const handleExportPackingDetails = async () => {
     if (!planResult.length || !selectedCustomer) return;
     if (validationResult.errors.length > 0) {
       alert("Please resolve validation errors before exporting.");
       return;
     }
 
-    const pdfData = buildPackingPlanPdfData();
-    const poList = planResult.map(p => p.po);
-    generatePackingDetailsPDF(pdfData, selectedCustomer.code, poList);
+    setIsLoadingShipmentOptions(true);
+    try {
+      const inverterConsignees = await PackagingService.getInverterConsigneeOptions();
+      const merged = Array.from(new Set([selectedCustomer.code, ...inverterConsignees]));
+      setShipmentOptions(merged);
+      setIsPackingDetailsDialogOpen(true);
+    } finally {
+      setIsLoadingShipmentOptions(false);
+    }
+  };
+
+  const handleConfirmExportPackingDetails = async (options: PackingDetailsExportOptions) => {
+    if (!planResult.length || !selectedCustomer) return;
+
+    const built = buildPackingDetailSheetEntries(planResult, options);
+    if (built.errors.length > 0) {
+      alert(built.errors[0]);
+      return;
+    }
+
+    setIsExportingPackingDetails(true);
+    try {
+      await generatePackingDetailsPDF(built.entries, selectedCustomer.code);
+      setIsPackingDetailsDialogOpen(false);
+    } finally {
+      setIsExportingPackingDetails(false);
+    }
   };
 
   const handleEnterEditMode = () => {
@@ -1121,11 +1153,13 @@ export default function PackagingBookingPage() {
 
                                   <button 
                                       onClick={handleExportPackingDetails}
-                                      disabled={validationResult.errors.length > 0}
+                                      disabled={validationResult.errors.length > 0 || isExportingPackingDetails || isLoadingShipmentOptions || totalNoCount === 0}
                                       className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#9ACD32]/55 hover:bg-[#EFD09E]/70 transition-all group "
                                   >
                                       <FileText className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#5a7a1a] transition-colors"/>
-                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#5a7a1a]">Download Packing Details</span>
+                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#5a7a1a]">
+                                        {isLoadingShipmentOptions ? "Loading Shipment..." : isExportingPackingDetails ? "Preparing..." : "Download Packing Details"}
+                                      </span>
                                   </button>
                                   
                                   <button 
@@ -1162,6 +1196,18 @@ export default function PackagingBookingPage() {
 
         </div>
       </section>
+
+      {isPackingDetailsDialogOpen ? (
+        <PackingDetailsExportDialog
+          open={isPackingDetailsDialogOpen}
+          maxNo={totalNoCount}
+          shipmentOptions={shipmentOptions}
+          defaultShipment={selectedCustomer?.code}
+          isSubmitting={isExportingPackingDetails}
+          onClose={() => setIsPackingDetailsDialogOpen(false)}
+          onSubmit={handleConfirmExportPackingDetails}
+        />
+      ) : null}
 
       {/* Split Case Modal */}
       {splitDraft && (

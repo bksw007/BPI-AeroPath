@@ -235,5 +235,28 @@ export const PackagingService = {
       console.error(`Error fetching spec for ${sku}:`, error);
       return null;
     }
+  },
+
+  // Get unique consignee list from packing reports where Product contains "Inverter"
+  getInverterConsigneeOptions: async (): Promise<string[]> => {
+    try {
+      const snapshot = await getDocs(collection(db, 'packaging_reports'));
+      const options = new Set<string>();
+
+      snapshot.docs.forEach((rowDoc) => {
+        const data = rowDoc.data() as Record<string, unknown>;
+        const product = String(data.product || '').toLowerCase();
+        if (!product.includes('inverter')) return;
+
+        const consignee = String(data.consigneeName || data.shipment || '').trim();
+        if (!consignee || consignee === '-') return;
+        options.add(consignee);
+      });
+
+      return Array.from(options).sort((a, b) => a.localeCompare(b));
+    } catch (error) {
+      console.error('Error fetching inverter consignee options:', error);
+      return [];
+    }
   }
 };
