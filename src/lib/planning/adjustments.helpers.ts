@@ -36,6 +36,23 @@ export function clonePlanResult(planResult: POCase[]): POCase[] {
   }));
 }
 
+function getCaseSortPriority(input: Pick<PackedCase, "type" | "note">): number {
+  const type = input.type.trim().toLowerCase();
+  const note = (input.note || "").toLowerCase();
+  const isManual = type.includes("manual");
+  const isSame = type.includes("same");
+  const isSameOrManual = isSame || isManual;
+
+  if (type.includes("mono")) return 1;
+  if (isSameOrManual && note.includes("overflow")) return 2;
+  if (isSameOrManual && type.includes("pallet")) return 3;
+  if (isSameOrManual && type.includes("box")) return 4;
+  if (type.includes("mixed")) return 5;
+  if (type.includes("warp")) return 6;
+  if (type.includes("unknown")) return 7;
+  return 8;
+}
+
 export function createAdjustmentRecord(op: PlanAdjustmentOp, actor = "Planner"): PlanAdjustmentRecord {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -48,7 +65,12 @@ export function createAdjustmentRecord(op: PlanAdjustmentOp, actor = "Planner"):
 
 export function normalizeCaseNumbers(planResult: POCase[]): POCase[] {
   return planResult.map((poGroup) => {
-    const sorted = [...poGroup.cases].sort((a, b) => a.caseNo - b.caseNo);
+    const sorted = [...poGroup.cases].sort((a, b) => {
+      const priorityDiff = getCaseSortPriority(a) - getCaseSortPriority(b);
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.caseNo - b.caseNo;
+    });
+
     return {
       po: poGroup.po,
       cases: sorted.map((c, idx) => ({ ...cloneCase(c), caseNo: idx + 1 })),
