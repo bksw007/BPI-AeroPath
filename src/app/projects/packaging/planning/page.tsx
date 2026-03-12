@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { 
   FileSpreadsheet, 
   RotateCcw, 
@@ -120,6 +120,7 @@ export default function PackagingBookingPage() {
   const [customerForm, setCustomerForm] = useState<CustomerFormState>({ code: "", type: "E" });
   const [pendingDeleteCustomerCode, setPendingDeleteCustomerCode] = useState<string | null>(null);
   const [skuDimensions, setSkuDimensions] = useState<Record<string, SkuDimension>>({});
+  const savePlanInFlightRef = useRef(false);
 
   // --- Load History on Mount ---
   useEffect(() => {
@@ -267,11 +268,20 @@ export default function PackagingBookingPage() {
 
   // --- Save Plan ---
   const handleSavePlan = async () => {
-      if (!planResult.length || !selectedCustomer || (isHistoryMode && adjustmentRecords.length === 0)) return;
+      if (
+        savePlanInFlightRef.current ||
+        !planResult.length ||
+        !selectedCustomer
+      ) return;
       if (validationResult.errors.length > 0) {
         alert("Please resolve validation errors before saving.");
         return;
       }
+      if (isHistoryMode && adjustmentRecords.length === 0) {
+        alert("This saved plan has no new changes to save.");
+        return;
+      }
+      savePlanInFlightRef.current = true;
       setIsSaving(true);
       
       try {
@@ -294,6 +304,8 @@ export default function PackagingBookingPage() {
               setShowSuccessModal(true); // Show Modal
               setIsHistoryMode(true); // Disable save button
               loadHistory(); // Refresh history
+          } else if (result.duplicate) {
+              alert("This plan already exists in Recent Calculations. Duplicate save was blocked.");
           } else {
               alert("Failed to save plan.");
           }
@@ -301,6 +313,7 @@ export default function PackagingBookingPage() {
           console.error("Save error", e);
           alert("Error saving plan.");
       } finally {
+          savePlanInFlightRef.current = false;
           setIsSaving(false);
       }
   };

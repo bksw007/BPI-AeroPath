@@ -53,6 +53,26 @@ export interface PackagingProductDTO {
   packingRules: Record<string, unknown>;
 }
 
+function buildPackingPlanFingerprint(planData: {
+  customer: { id: string; name: string; region: string };
+  poList: string[];
+  effectiveData?: string;
+  data: string;
+}): string {
+  const source = JSON.stringify({
+    customer: planData.customer,
+    poList: [...planData.poList].sort(),
+    effectiveData: planData.effectiveData || planData.data,
+  });
+
+  let hash = 0;
+  for (let i = 0; i < source.length; i += 1) {
+    hash = (hash * 31 + source.charCodeAt(i)) >>> 0;
+  }
+
+  return `pack_${hash.toString(16)}`;
+}
+
 export const PackagingService = {
   // Bulk Import with Batch Writes (Upsert by SKU)
   importItems: async (items: PackagingProductDTO[]) => {
@@ -173,12 +193,24 @@ export const PackagingService = {
     activityUser?: string;
   }) => {
     try {
+      const fingerprint = buildPackingPlanFingerprint(planData);
+      const duplicateQuery = query(
+        collection(db, 'packing_plans'),
+        where('fingerprint', '==', fingerprint),
+        limit(1)
+      );
+      const duplicateSnapshot = await getDocs(duplicateQuery);
+      if (!duplicateSnapshot.empty) {
+        return { success: false, duplicate: true, id: duplicateSnapshot.docs[0]?.id };
+      }
+
       const batch = writeBatch(db);
       
       // 1. Create Plan Document
       const planRef = doc(collection(db, 'packing_plans'));
       batch.set(planRef, {
         ...planData,
+        fingerprint,
         createdAt: serverTimestamp()
       });
 
