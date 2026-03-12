@@ -34,7 +34,7 @@ export function PackingDetailsExportDialog({
   const [selectionMode, setSelectionMode] = useState<NoSelectionMode>("all");
   const [selectedPos, setSelectedPos] = useState<string[]>(() => poSummaries.map((row) => row.po));
   const [poNoRangeMap, setPoNoRangeMap] = useState<Record<string, string>>({});
-  const [startCaseNoInput, setStartCaseNoInput] = useState("4427");
+  const [startCaseNoInput, setStartCaseNoInput] = useState("");
   const [shipment, setShipment] = useState(() => defaultShipment?.trim() || shipmentOptions[0] || "");
   const [shipBy, setShipBy] = useState<ShipByOption>("Sea");
   const [product, setProduct] = useState<ProductOption>("Inverter");
@@ -226,7 +226,7 @@ export function PackingDetailsExportDialog({
                   onClick={() => setSelectionMode("all")}
                   className={`rounded-lg border px-3 py-2 text-sm font-bold ${
                     selectionMode === "all"
-                      ? "border-[#9ACD32] bg-[#9ACD32]/15 text-[#5a7a1a] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
+                      ? "border-[#D4AA7D]/55 bg-[#F8E3C0]/85 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                       : "border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                   }`}
                 >
@@ -237,7 +237,7 @@ export function PackingDetailsExportDialog({
                   onClick={() => setSelectionMode("custom")}
                   className={`rounded-lg border px-3 py-2 text-sm font-bold ${
                     selectionMode === "custom"
-                      ? "border-[#9ACD32] bg-[#9ACD32]/15 text-[#5a7a1a] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
+                      ? "border-[#D4AA7D]/55 bg-[#F8E3C0]/85 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                       : "border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                   }`}
                 >
@@ -306,7 +306,7 @@ export function PackingDetailsExportDialog({
                     value={startCaseNoInput}
                     onChange={(e) => setStartCaseNoInput(e.target.value)}
                     placeholder="เช่น 4427"
-                    className="w-full rounded-lg border border-[#D4AA7D]/45 bg-white px-3 py-2 text-sm text-[#272727] outline-none focus:border-[#7E5C4A]/60"
+                    className="h-10 w-full appearance-none rounded-lg border border-[#D4AA7D]/45 bg-white px-3 py-2 text-sm text-[#272727] outline-none focus:border-[#7E5C4A]/60"
                   />
                 </div>
 
@@ -315,7 +315,7 @@ export function PackingDetailsExportDialog({
                   <select
                     value={shipBy}
                     onChange={(e) => setShipBy(e.target.value as ShipByOption)}
-                    className="w-full rounded-lg border border-[#D4AA7D]/45 bg-white px-3 py-2 text-sm text-[#272727] outline-none focus:border-[#7E5C4A]/60"
+                    className="h-10 w-full rounded-lg border border-[#D4AA7D]/45 bg-white px-3 py-2 text-sm text-[#272727] outline-none focus:border-[#7E5C4A]/60"
                   >
                     <option value="Air">Air</option>
                     <option value="Sea">Sea</option>
@@ -362,7 +362,7 @@ export function PackingDetailsExportDialog({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg border border-[#9ACD32]/60 bg-[#9ACD32]/15 text-[#5a7a1a] font-bold text-sm hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-[#D4AA7D]/55 bg-[#F8E3C0]/85 text-[#7E5C4A] font-bold text-sm hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Generating..." : "Generate PDF"}
           </button>
