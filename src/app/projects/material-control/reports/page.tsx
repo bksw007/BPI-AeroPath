@@ -35,10 +35,26 @@ export default function ReportsPage() {
   // State
   const [searchValue, setSearchValue] = useState("");
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [filterMonth, setFilterMonth] = useState("All");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [reportTypes] = useState(["Activity", "Analytics", "Inventory", "Receiving", "Requisition"]);
   const [selectedReportType, setSelectedReportType] = useState("");
+  const monthOptions = [
+    { value: "All", label: "All Months" },
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
 
   // Table Columns
   const columns: Column<ReportSummary>[] = [
@@ -76,9 +92,13 @@ export default function ReportsPage() {
 
   // Filter data
   const filteredData = reports.filter((report) => {
-    const matchesSearch = report.name.toLowerCase().includes(searchValue.toLowerCase());
+    const month = report.lastGenerated.slice(5, 7);
+    const matchesSearch =
+      report.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      report.type.toLowerCase().includes(searchValue.toLowerCase());
     const matchesYear = filterYear === "All" || report.lastGenerated.startsWith(filterYear);
-    return matchesSearch && matchesYear;
+    const matchesMonth = filterMonth === "All" || month === filterMonth;
+    return matchesSearch && matchesYear && matchesMonth;
   });
 
   return (
@@ -170,7 +190,24 @@ export default function ReportsPage() {
                   icon: <Download className="w-4 h-4" />,
                   onClick: () => console.log("Export all"),
                 }}
-              />
+              >
+                <div className="flex min-w-[150px] flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">
+                    Month
+                  </label>
+                  <select
+                    value={filterMonth}
+                    onChange={(event) => setFilterMonth(event.target.value)}
+                    className="px-4 py-2 bg-[#FDF6EC] border border-[#E8DCC9] rounded-lg text-sm text-[#7E5C4A] hover:bg-[#F6EDDE] transition-colors outline-none focus:ring-2 focus:ring-[#D4AA7D]/35 focus:border-[#D4AA7D]/50"
+                  >
+                    {monthOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </SearchToolbar>
 
               {/* Data Table */}
               <DataTable

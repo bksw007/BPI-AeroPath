@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local docs / example assets
+public/files/ExamplePage.tsx
+public/files/flow edit plannig.rtf
+public/files/Data Inverter Main.csv
+public/files/Packing Details - Exmple.pdf
+public/files/Packing Plan - Main_Data.csv
+public/files/PackingPlan_FEI_202602051839.csv
+public/files/bin_pack.rtf
+public/files/example theme.rtf
+public/files/packing_export_2026-02-27_23-23.csv
+public/files/packing_export_2026-02-27_23_update.csv
+public/files/logic_bin_files/
