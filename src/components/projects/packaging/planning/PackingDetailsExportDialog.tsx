@@ -163,14 +163,14 @@ export function PackingDetailsExportDialog({
                   <button
                     type="button"
                     onClick={selectAllFilteredPo}
-                    className="rounded-lg border border-[#D4AA7D]/45 px-2.5 py-1 text-xs font-bold text-[#7E5C4A] hover:bg-[#EFD09E]/35"
+                    className="rounded-lg border border-[#D4AA7D]/45 px-2.5 py-1 text-xs font-bold text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-colors"
                   >
                     Select Filtered
                   </button>
                   <button
                     type="button"
                     onClick={clearFilteredPo}
-                    className="rounded-lg border border-[#D4AA7D]/45 px-2.5 py-1 text-xs font-bold text-[#7E5C4A] hover:bg-[#EFD09E]/35"
+                    className="rounded-lg border border-[#D4AA7D]/45 px-2.5 py-1 text-xs font-bold text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-colors"
                   >
                     Clear Filtered
                   </button>
@@ -226,8 +226,8 @@ export function PackingDetailsExportDialog({
                   onClick={() => setSelectionMode("all")}
                   className={`rounded-lg border px-3 py-2 text-sm font-bold ${
                     selectionMode === "all"
-                      ? "border-[#9ACD32] bg-[#9ACD32]/15 text-[#5a7a1a]"
-                      : "border-[#D4AA7D]/40 text-[#7E5C4A]"
+                      ? "border-[#9ACD32] bg-[#9ACD32]/15 text-[#5a7a1a] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
+                      : "border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                   }`}
                 >
                   All No. from selected PO
@@ -237,8 +237,8 @@ export function PackingDetailsExportDialog({
                   onClick={() => setSelectionMode("custom")}
                   className={`rounded-lg border px-3 py-2 text-sm font-bold ${
                     selectionMode === "custom"
-                      ? "border-[#9ACD32] bg-[#9ACD32]/15 text-[#5a7a1a]"
-                      : "border-[#D4AA7D]/40 text-[#7E5C4A]"
+                      ? "border-[#9ACD32] bg-[#9ACD32]/15 text-[#5a7a1a] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
+                      : "border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                   }`}
                 >
                   Custom No. by PO
@@ -354,7 +354,7 @@ export function PackingDetailsExportDialog({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg border border-[#D4AA7D]/45 text-[#7E5C4A] font-bold text-sm"
+            className="px-4 py-2 rounded-lg border border-[#D4AA7D]/45 text-[#7E5C4A] font-bold text-sm hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-colors"
           >
             Cancel
           </button>
@@ -362,7 +362,7 @@ export function PackingDetailsExportDialog({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-lg border border-[#9ACD32]/60 bg-[#9ACD32]/15 text-[#5a7a1a] font-bold text-sm disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-[#9ACD32]/60 bg-[#9ACD32]/15 text-[#5a7a1a] font-bold text-sm hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Generating..." : "Generate PDF"}
           </button>

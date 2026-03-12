@@ -28,7 +28,7 @@ import { PackingLogicService } from "@/lib/services/packing-logic/PackingLogicSe
 import type { PackingInput, PackingOutput, PackedCase, PackingPlanResult } from "@/lib/services/packing-logic/packing.types";
 import { generatePackingListPDFMake } from "@/lib/utils/pdfMakeGenerator";
 import { generatePackingListPDF } from "@/lib/utils/pdfGenerator";
-import { generatePackingDetailsPDF, generateLayoutGridPDF } from "@/lib/utils/pdfTemplateGenerator";
+import { generatePackingDetailsPDF } from "@/lib/utils/pdfTemplateGenerator";
 import { AdjustmentToolbar } from "@/components/projects/packaging/planning/AdjustmentToolbar";
 import { EditableCaseRow } from "@/components/projects/packaging/planning/EditableCaseRow";
 import { PackingDetailsExportDialog } from "@/components/projects/packaging/planning/PackingDetailsExportDialog";
@@ -666,7 +666,7 @@ export default function PackagingBookingPage() {
     { id: 4, label: "Save Plan", icon: Save },
   ];
 
-  const proceedToSaveButtonClass = "group h-12 px-8 rounded-xl border border-[#E6E6E6] bg-gradient-to-br from-[#FFFFFF] via-[#F5F5F5] to-[#EBEBEB] text-[#4F4B64] font-bold shadow-[8px_8px_16px_rgba(160,160,160,0.25),-6px_-6px_14px_rgba(255,255,255,0.9)] transition-all hover:border-[#EFD09E] hover:text-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:via-[#272635] hover:to-[#1F1D2B] hover:shadow-[10px_12px_20px_rgba(39,38,53,0.35)] flex items-center gap-2";
+  const proceedToSaveButtonClass = "group h-12 px-8 rounded-xl border border-[#E6E6E6] bg-gradient-to-br from-[#FFFFFF] via-[#F5F5F5] to-[#EBEBEB] text-[#4F4B64] font-bold shadow-[8px_8px_16px_rgba(160,160,160,0.25),-6px_-6px_14px_rgba(255,255,255,0.9)] transition-all hover:border-[#272727] hover:text-[#EFD09E] hover:bg-gradient-to-br hover:from-[#3A374F] hover:via-[#272727] hover:to-[#1F1D2B] hover:shadow-[10px_12px_20px_rgba(39,38,53,0.35)] flex items-center gap-2";
 
   const getCaseAccuracyScore = (c: PackedCase): number => {
     const type = (c.type || "").toLowerCase();
@@ -757,7 +757,7 @@ export default function PackagingBookingPage() {
                             <button
                                 type="button"
                                 onClick={() => openCustomerForm()}
-                                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[#D4AA7D]/55 bg-[#F8E3C0]/80 text-[#4F3A2A] text-sm font-bold transition-colors hover:bg-[#272635] hover:border-[#EFD09E] hover:text-[#EFD09E]"
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[#D4AA7D]/55 bg-[#F8E3C0]/80 text-[#4F3A2A] text-sm font-bold transition-colors hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                             >
                                 <Plus className="w-4 h-4" />
                                 Manage Customers
@@ -773,7 +773,7 @@ export default function PackagingBookingPage() {
                                         p-4 rounded-2xl border text-left transition-all duration-200 group
                                         ${selectedCustomer?.code === code
                                            ? "border-[#D1914F] bg-gradient-to-br from-[#FCE8C8] to-[#E8C090] shadow-[inset_2px_2px_1px_rgba(255,245,229,0.9),inset_-4px_-5px_10px_rgba(167,108,49,0.24),8px_10px_16px_rgba(165,108,54,0.22)] ring-2 ring-[#D1914F]/45"
-                                           : "border-[#EAC9A3] bg-gradient-to-br from-[#FAE7C8] to-[#EAC394] shadow-[10px_12px_20px_rgba(160,103,48,0.22),-6px_-6px_14px_rgba(255,244,223,0.85),inset_1px_1px_0_rgba(255,246,230,0.85)] hover:border-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:to-[#1F1D2B] hover:translate-y-[1px] hover:shadow-[7px_8px_14px_rgba(39,38,53,0.36),-4px_-4px_10px_rgba(255,244,223,0.45),inset_1px_1px_0_rgba(255,255,255,0.12)] active:translate-y-[3px] active:shadow-[inset_2px_2px_2px_rgba(255,255,255,0.08),inset_-3px_-3px_6px_rgba(9,9,14,0.4)]"
+                                           : "border-[#EAC9A3] bg-gradient-to-br from-[#FAE7C8] to-[#EAC394] shadow-[10px_12px_20px_rgba(160,103,48,0.22),-6px_-6px_14px_rgba(255,244,223,0.85),inset_1px_1px_0_rgba(255,246,230,0.85)] hover:border-[#272727] hover:bg-gradient-to-br hover:from-[#3A374F] hover:to-[#1F1D2B] hover:translate-y-[1px] hover:shadow-[7px_8px_14px_rgba(39,38,53,0.36),-4px_-4px_10px_rgba(255,244,223,0.45),inset_1px_1px_0_rgba(255,255,255,0.12)] active:translate-y-[3px] active:shadow-[inset_2px_2px_2px_rgba(255,255,255,0.08),inset_-3px_-3px_6px_rgba(9,9,14,0.4)]"
                                         }
                                      `}
                                 >
@@ -797,7 +797,7 @@ export default function PackagingBookingPage() {
                                         <button 
                                             key={plan.id}
                                             onClick={() => handleLoadPlan(plan)}
-                                            className="p-4 bg-gradient-to-br from-[#F8E0BC] to-[#E9C08F] border border-[#D9AE7E]/55 rounded-2xl text-left transition-all duration-200 group shadow-[8px_9px_16px_rgba(161,104,47,0.2),-4px_-4px_10px_rgba(255,244,224,0.75),inset_1px_1px_0_rgba(255,247,231,0.85)] hover:-translate-y-1 hover:scale-[1.01] hover:border-[#EFD09E] hover:bg-gradient-to-br hover:from-[#302E41] hover:to-[#1F1D2B] hover:shadow-[12px_14px_24px_rgba(39,38,53,0.34),-4px_-4px_10px_rgba(255,244,224,0.4),inset_1px_1px_0_rgba(255,255,255,0.12)]"
+                                            className="p-4 bg-gradient-to-br from-[#F8E0BC] to-[#E9C08F] border border-[#D9AE7E]/55 rounded-2xl text-left transition-all duration-200 group shadow-[8px_9px_16px_rgba(161,104,47,0.2),-4px_-4px_10px_rgba(255,244,224,0.75),inset_1px_1px_0_rgba(255,247,231,0.85)] hover:-translate-y-1 hover:scale-[1.01] hover:border-[#272727] hover:bg-gradient-to-br hover:from-[#3A374F] hover:to-[#1F1D2B] hover:shadow-[12px_14px_24px_rgba(39,38,53,0.34),-4px_-4px_10px_rgba(255,244,224,0.4),inset_1px_1px_0_rgba(255,255,255,0.12)]"
                                         >
                                             <div className="flex justify-between items-start mb-2">
                                                 <span className="font-bold text-[#3B2B1F] group-hover:text-[#EFD09E]">{plan.customer.name}</span>
@@ -842,7 +842,7 @@ export default function PackagingBookingPage() {
                                     </h3>
                                     <button
                                       onClick={handleSampleData}
-                                      className="text-xs px-3 py-1.5 rounded-lg border border-[#D4AA7D]/45 bg-[#F8E3C0]/75 text-[#7E5C4A] font-bold transition-colors hover:bg-[#272635] hover:border-[#EFD09E] hover:text-[#EFD09E]"
+                                      className="text-xs px-3 py-1.5 rounded-lg border border-[#D4AA7D]/45 bg-[#F8E3C0]/75 text-[#7E5C4A] font-bold transition-colors hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                                     >
                                         Load Sample
                                     </button>
@@ -856,14 +856,14 @@ export default function PackagingBookingPage() {
                                 <div className="mt-4 flex justify-between items-center">
                                     <button
                                       onClick={() => setActiveStep(1)}
-                                      className="px-4 py-2 rounded-xl border border-[#D4AA7D]/45 bg-[#F8E3C0]/70 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272635] hover:border-[#EFD09E] font-bold text-sm transition-colors"
+                                      className="px-4 py-2 rounded-xl border border-[#D4AA7D]/45 bg-[#F8E3C0]/70 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272727] hover:border-[#272727] font-bold text-sm transition-colors"
                                     >
                                         Back
                                     </button>
                                     <button 
                                         onClick={handleGeneratePlan}
                                         disabled={!rawData || isProcessing}
-                                        className="px-6 py-3 rounded-xl border border-[#D4AA7D]/45 bg-[#F8E3C0]/70 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272635] hover:border-[#EFD09E] font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                                        className="px-6 py-3 rounded-xl border border-[#D4AA7D]/45 bg-[#F8E3C0]/70 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272727] hover:border-[#272727] font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                                     >
                                          {isProcessing ? (
                                              <>Processing...</>
@@ -1079,7 +1079,7 @@ export default function PackagingBookingPage() {
                          <div className="flex justify-center pt-8 gap-4">
                               <button 
                                   onClick={() => { setActiveStep(2); setPlanResult([]); setBasePlanResult([]); setIsHistoryMode(false); setIsEditMode(false); setAdjustmentRecords([]); setRedoRecords([]); setSelectedCaseKeys({}); setValidationResult({ errors: [], warnings: [] }); }}
-                                  className="px-6 py-3 border-2 border-[#D4AA7D]/45 text-[#7E5C4A] font-bold rounded-xl hover:border-[#7E5C4A]/60 hover:text-[#272727] hover:bg-gradient-to-br hover:from-[#FFFFFF] hover:to-[#ECECEC] transition-all flex items-center gap-2"
+                                  className="px-6 py-3 border-2 border-[#D4AA7D]/45 text-[#7E5C4A] font-bold rounded-xl hover:border-[#272727] hover:text-[#EFD09E] hover:bg-[#272727] transition-all flex items-center gap-2"
                               >
                                   <RotateCcw className="w-4 h-4"/> Back to Input
                               </button>
@@ -1123,7 +1123,7 @@ export default function PackagingBookingPage() {
                                       className={`flex flex-col items-center justify-center gap-3 p-6 bg-white border-2 rounded-2xl transition-all group ${
                                           isSaving || validationResult.errors.length > 0 || (isHistoryMode && adjustmentRecords.length === 0) 
                                           ? 'border-[#D4AA7D]/40 opacity-50 cursor-not-allowed' 
-                                          : 'border-[#D4AA7D]/35 hover:border-[#9ACD32] hover:bg-[#EFD09E]/55 cursor-pointer'
+                                          : 'border-[#D4AA7D]/35 hover:border-[#272727] hover:bg-[#272727] cursor-pointer'
                                       }`}
                                   >
                                       {isHistoryMode && adjustmentRecords.length === 0 ? (
@@ -1133,8 +1133,8 @@ export default function PackagingBookingPage() {
                                           </>
                                       ) : (
                                           <>
-                                            <Save className={`w-8 h-8 text-[#7E5C4A] ${!isSaving && 'group-hover:text-[#5a7a1a]'} transition-colors`}/>
-                                            <span className={`font-bold text-[#7E5C4A] ${!isSaving && 'group-hover:text-[#5a7a1a]'}`}>
+                                            <Save className={`w-8 h-8 text-[#7E5C4A] ${!isSaving && 'group-hover:text-[#EFD09E]'} transition-colors`}/>
+                                            <span className={`font-bold text-[#7E5C4A] ${!isSaving && 'group-hover:text-[#EFD09E]'}`}>
                                                 {isSaving ? 'Saving...' : 'Save to DB'}
                                             </span>
                                           </>
@@ -1144,10 +1144,10 @@ export default function PackagingBookingPage() {
                                   <button 
                                       onClick={handleExportPDF}
                                       disabled={isExportingPlan || validationResult.errors.length > 0}
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#7E5C4A]/55 hover:bg-[#EFD09E]/70 transition-all group"
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#272727] hover:bg-[#272727] transition-all group"
                                   >
-                                      <Download className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#272727] transition-colors"/>
-                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#272727]">
+                                      <Download className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#EFD09E] transition-colors"/>
+                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]">
                                         {isExportingPlan ? "Preparing PDF..." : "Download Plan"}
                                       </span>
                                   </button>
@@ -1155,37 +1155,27 @@ export default function PackagingBookingPage() {
                                   <button 
                                       onClick={handleExportPackingDetails}
                                       disabled={validationResult.errors.length > 0 || isExportingPackingDetails || isLoadingShipmentOptions || totalNoCount === 0}
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#9ACD32]/55 hover:bg-[#EFD09E]/70 transition-all group "
+                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EFD09E]/40 border-2 border-[#D4AA7D]/35 rounded-2xl hover:border-[#272727] hover:bg-[#272727] transition-all group "
                                   >
-                                      <FileText className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#5a7a1a] transition-colors"/>
-                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#5a7a1a]">
+                                      <FileText className="w-8 h-8 text-[#7E5C4A] group-hover:text-[#EFD09E] transition-colors"/>
+                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#EFD09E]">
                                         {isLoadingShipmentOptions ? "Loading Shipment..." : isExportingPackingDetails ? "Preparing..." : "Download Packing Details"}
                                       </span>
                                   </button>
                                   
-                                  <button 
-                                      onClick={generateLayoutGridPDF}
-                                      className="flex flex-col items-center justify-center gap-3 p-6 bg-[#EEF2F6] border-2 border-[#D4AA7D]/45 border-dashed rounded-2xl hover:border-[#7E5C4A]/55 hover:bg-[#EFD09E]/45 transition-all group"
-                                  >
-                                      <div className="w-8 h-8 border border-[#7E5C4A]/50 grid grid-cols-2 grid-rows-2 gap-px bg-[#D4AA7D]/60">
-                                          <div className="bg-white"></div><div className="bg-white"></div>
-                                          <div className="bg-white"></div><div className="bg-white"></div>
-                                      </div>
-                                      <span className="font-bold text-[#7E5C4A] group-hover:text-[#272727]">Download Grid (Dev)</span>
-                                  </button>
                               </div>
                           </GlassCard>
 
                            <div className="mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:justify-center">
                              <button
                                onClick={() => setActiveStep(3)}
-                               className="px-8 py-3 bg-[#EEF2F6] text-[#5A3F2C] font-bold rounded-xl border border-[#D4AA7D]/45 hover:bg-[#EFD09E]/55 transition-all flex items-center justify-center gap-2 flex-1"
+                               className="px-8 py-3 bg-[#EEF2F6] text-[#5A3F2C] font-bold rounded-xl border border-[#D4AA7D]/45 hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] transition-all flex items-center justify-center gap-2 flex-1"
                              >
                                <RotateCcw className="w-4 h-4" /> Back to Review Plan
                              </button>
                              <button 
                                  onClick={() => { setActiveStep(1); setPlanResult([]); setBasePlanResult([]); setPlanSummary(null); setIsHistoryMode(false); setIsEditMode(false); setAdjustmentRecords([]); setRedoRecords([]); setSelectedCaseKeys({}); setValidationResult({ errors: [], warnings: [] }); }}
-                                 className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2 flex-1"
+                                 className="px-8 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#3A374F] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2 flex-1"
                              >
                                  <RotateCcw className="w-4 h-4"/> Start New Plan
                              </button>
@@ -1306,13 +1296,13 @@ export default function PackagingBookingPage() {
                   setSplitDraft(null);
                   setSplitQtyInput("");
                 }}
-                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
+                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmSplitCase}
-                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#1f1f1f]"
+                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#3A374F]"
               >
                 Confirm Split
               </button>
@@ -1354,13 +1344,13 @@ export default function PackagingBookingPage() {
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => setMergeDraft(null)}
-                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
+                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmMergeCases}
-                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#1f1f1f]"
+                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#3A374F]"
               >
                 Confirm Merge
               </button>
@@ -1391,7 +1381,7 @@ export default function PackagingBookingPage() {
               </div>
               <button
                 onClick={closeCustomerForm}
-                className="p-2 text-[#7E5C4A] hover:text-[#272727] hover:bg-[#EFD09E]/60 rounded-lg transition"
+                className="p-2 text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272727] rounded-lg transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1444,7 +1434,7 @@ export default function PackagingBookingPage() {
                       setEditingCustomerCode(null);
                       setCustomerForm({ code: "", type: "E" });
                     }}
-                    className="text-xs font-bold px-2 py-1 rounded border border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#EFD09E]/60"
+                    className="text-xs font-bold px-2 py-1 rounded border border-[#D4AA7D]/40 text-[#7E5C4A] hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                   >
                     Reset
                   </button>
@@ -1472,7 +1462,7 @@ export default function PackagingBookingPage() {
                           className={`py-2 rounded-lg font-bold border transition-all ${
                             customerForm.type === type
                               ? "bg-[#272727] text-[#EFD09E] border-[#272727]"
-                              : "bg-[#EFD09E]/45 text-[#7E5C4A] border-[#D4AA7D]/35 hover:bg-[#EFD09E]/70"
+                              : "bg-[#EFD09E]/45 text-[#7E5C4A] border-[#D4AA7D]/35 hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
                           }`}
                         >
                           {type}
@@ -1484,14 +1474,14 @@ export default function PackagingBookingPage() {
                     {editingCustomerCode && (
                       <button
                         onClick={() => deleteCustomer(editingCustomerCode)}
-                        className="p-3 text-red-500 hover:bg-red-50 rounded-xl border border-red-100"
+                        className="p-3 text-red-500 hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E] rounded-xl border border-red-100"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
                     )}
                     <button
                       onClick={saveCustomer}
-                      className="flex-1 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
+                      className="flex-1 py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#3A374F] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 flex items-center justify-center gap-2"
                     >
                       <Save className="w-4 h-4" /> Save Customer
                     </button>
@@ -1526,13 +1516,13 @@ export default function PackagingBookingPage() {
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => setPendingDeleteCustomerCode(null)}
-                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#EFD09E]/70"
+                className="flex-1 py-2.5 rounded-xl border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] font-bold hover:bg-[#272727] hover:border-[#272727] hover:text-[#EFD09E]"
               >
                 Cancel
               </button>
               <button
                 onClick={() => confirmDeleteCustomer(pendingDeleteCustomerCode)}
-                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#1f1f1f]"
+                className="flex-1 py-2.5 rounded-xl border border-[#7E5C4A]/35 bg-[#272727] text-[#EFD09E] font-bold hover:bg-[#3A374F]"
               >
                 Delete
               </button>
@@ -1564,14 +1554,14 @@ export default function PackagingBookingPage() {
              <button 
                 onClick={handleExportPDF}
                 disabled={isExportingPlan}
-                className="w-full py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#1f1f1f] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#272727] text-[#EFD09E] font-bold rounded-xl hover:bg-[#3A374F] shadow-lg shadow-[#272727]/25 border border-[#EFD09E]/20 transition-all flex items-center justify-center gap-2"
              >
                 <Download className="w-5 h-5"/> {isExportingPlan ? "Preparing PDF..." : "Download PDF"}
              </button>
 
              <button 
                 onClick={() => setShowSuccessModal(false)}
-                className="text-[#7E5C4A] hover:text-[#272727] text-sm font-bold"
+                className="text-[#7E5C4A] hover:text-[#EFD09E] hover:bg-[#272727] rounded-md px-2 py-1 text-sm font-bold transition-colors"
              >
                 Close
              </button>
