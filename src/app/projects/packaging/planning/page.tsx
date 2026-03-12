@@ -53,6 +53,7 @@ interface RecentPlan {
   customer: { name: string; region: string };
   summary: PlanSummary;
   createdAt: { seconds: number; nanoseconds: number };
+  activityUser?: string;
   data?: string; // Legacy JSON string
   baseData?: string; // JSON string
   effectiveData?: string; // JSON string
@@ -77,6 +78,12 @@ interface MergeDraft {
   po: string;
   caseNos: number[];
   packageName: string;
+}
+
+interface SkuDimension {
+  width: number;
+  length: number;
+  height: number;
 }
 
 export default function PackagingBookingPage() {
@@ -112,6 +119,7 @@ export default function PackagingBookingPage() {
   const [editingCustomerCode, setEditingCustomerCode] = useState<string | null>(null);
   const [customerForm, setCustomerForm] = useState<CustomerFormState>({ code: "", type: "E" });
   const [pendingDeleteCustomerCode, setPendingDeleteCustomerCode] = useState<string | null>(null);
+  const [skuDimensions, setSkuDimensions] = useState<Record<string, SkuDimension>>({});
 
   // --- Load History on Mount ---
   useEffect(() => {
@@ -138,6 +146,15 @@ export default function PackagingBookingPage() {
   const expectedQtyMap = useMemo(() => buildExpectedQtyMap(rawData), [rawData]);
   const totalNoCount = useMemo(() => planResult.reduce((sum, poGroup) => sum + poGroup.cases.length, 0), [planResult]);
   const poSummaries = useMemo(() => summarizePoNos(planResult), [planResult]);
+  const planSkus = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          planResult.flatMap((poGroup) => poGroup.cases.flatMap((caseItem) => caseItem.items.map((item) => item.sku)))
+        )
+      ),
+    [planResult]
+  );
 
   const updateWorkingPlan = (next: POCase[]) => {
     setPlanResult(next);
@@ -187,6 +204,44 @@ export default function PackagingBookingPage() {
     }
     setValidationResult(validateAdjustedResult(planResult, expectedQtyMap));
   }, [expectedQtyMap, planResult]);
+
+  useEffect(() => {
+    const missingSkus = planSkus.filter((sku) => !skuDimensions[sku]);
+    if (missingSkus.length === 0) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      const fetchedEntries = await Promise.all(
+        missingSkus.map(async (sku) => {
+          const spec = await PackagingService.getProductSpec(sku);
+          if (!spec) return null;
+          return [
+            sku,
+            {
+              width: spec.width,
+              length: spec.length,
+              height: spec.height,
+            },
+          ] as const;
+        })
+      );
+
+      if (cancelled) return;
+
+      const nextEntries = fetchedEntries.filter((entry): entry is readonly [string, SkuDimension] => !!entry);
+      if (nextEntries.length === 0) return;
+
+      setSkuDimensions((prev) => ({
+        ...prev,
+        ...Object.fromEntries(nextEntries),
+      }));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [planSkus, skuDimensions]);
 
   const handleLoadPlan = (plan: RecentPlan) => {
       try {
@@ -348,11 +403,13 @@ export default function PackagingBookingPage() {
     setSelectedCaseKeys({});
     setIsEditMode(false);
     setValidationResult({ errors: [], warnings: [] });
+    setSkuDimensions({});
 
     try {
       // 1. Initialize Service
       const regionCode = selectedCustomer.region === 'US/EU' ? 'E' : selectedCustomer.region === 'R' ? 'R' : 'A';
       
+      const nextSkuDimensions: Record<string, SkuDimension> = {};
       const service = new PackingLogicService(
         { region: regionCode as 'E' | 'A' | 'R' },
         PACKAGE_MASTER_DATA,
@@ -360,6 +417,11 @@ export default function PackagingBookingPage() {
            // Fetch from Firebase
            const spec = await PackagingService.getProductSpec(sku);
            if (!spec) return null;
+           nextSkuDimensions[sku] = {
+             width: spec.width,
+             length: spec.length,
+             height: spec.height,
+           };
            // Map DTO to internal format if needed 
            // (PackingLogicService handles DTO structure internally now if names match, otherwise mapping needed)
            return spec;
@@ -400,6 +462,7 @@ export default function PackagingBookingPage() {
       setPlanResult(normalized);
       setPlanSummary(summarizePlan(normalized));
       setValidationResult(validateAdjustedResult(normalized, expectedQtyMap));
+      setSkuDimensions(nextSkuDimensions);
       
       setActiveStep(3);
       setIsHistoryMode(false);
@@ -752,7 +815,7 @@ export default function PackagingBookingPage() {
                                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#EAC9A3] bg-gradient-to-br from-[#FFF0D5] to-[#E7BE8A] shadow-[5px_5px_10px_rgba(166,110,54,0.22),-4px_-4px_10px_rgba(255,245,225,0.8)]">
                                    <Search className="w-4 h-4 text-[#7E5C4A]"/>
                                 </span>
-                                Select Customer
+                                Select Customer Preset
                             </h3>
                             <button
                                 type="button"
@@ -779,7 +842,7 @@ export default function PackagingBookingPage() {
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="font-bold text-base text-[#3B2B1F] group-hover:text-[#EFD09E] leading-none">{code}</div>
-                                        <div className="text-[11px] leading-none text-[#7E5C4A] font-semibold bg-[#F8E3C0]/80 border border-[#D4AA7D]/45 px-2 py-1 rounded-lg shadow-[inset_1px_1px_0_rgba(255,247,232,0.9)] group-hover:bg-[#3A374F] group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/55">
+                                        <div className="text-[11px] leading-none text-[#7E5C4A] font-semibold bg-[#FAEFD9]/88 border border-[#D4AA7D]/38 px-2 py-1 rounded-lg shadow-[inset_1px_1px_0_rgba(255,247,232,0.9)] group-hover:bg-[#3A374F] group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/55">
                                             {customerPackTypeMapping[code] === 'A' ? 'Asia Region' : customerPackTypeMapping[code] === 'R' ? 'R Region' : 'US/EU Region'}
                                         </div>
                                     </div>
@@ -811,8 +874,8 @@ export default function PackagingBookingPage() {
                                                     <span>Item: {plan.summary.totalItems}</span>
                                                 </div>
                                                 <div className="flex justify-between font-medium text-[#3B2B1F] group-hover:text-[#EFD09E]">
-                                                    <span>Pallets: {plan.summary.totalPallets}</span>
-                                                    <span>Boxes: {plan.summary.totalBoxes}</span>
+                                                    <span>Package: {plan.summary.totalPallets + plan.summary.totalBoxes + plan.summary.totalWarps}</span>
+                                                    <span>{plan.activityUser || 'System'}</span>
                                                 </div>
                                             </div>
                                         </button>
@@ -1058,6 +1121,7 @@ export default function PackagingBookingPage() {
                                              key={`${poGroup.po}-${c.caseNo}`}
                                              po={poGroup.po}
                                              caseData={c}
+                                             skuDimensions={skuDimensions}
                                              isEditMode={isEditMode}
                                              packageOptions={availablePackages.map((pkg) => ({ name: pkg.name, category: pkg.category }))}
                                              selected={Boolean(selectedCaseKeys[caseKey(poGroup.po, c.caseNo)])}

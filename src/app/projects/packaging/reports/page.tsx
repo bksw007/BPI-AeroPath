@@ -102,6 +102,11 @@ type PackagingBreakdownKey =
   | "unitQty";
 
 type ShipmentDropdownFieldKey = "customerName" | "consigneeName" | "product" | "transportMode";
+interface ShipmentDropdownModalState {
+  fieldKey: ShipmentDropdownFieldKey;
+  label: string;
+}
+
 const REPORTS_COLLECTION = "packaging_reports";
 const REPORTS_SOURCE_CSV = "/files/packing_export_2026-02-27_23_update.csv";
 const REPORTS_QUERY_KEY = ["packaging-reports"] as const;
@@ -731,9 +736,11 @@ export default function PackagingReportsPage() {
     product: [],
     transportMode: [],
   });
+  const [shipmentDropdownModal, setShipmentDropdownModal] = useState<ShipmentDropdownModalState | null>(null);
+  const [shipmentDropdownValue, setShipmentDropdownValue] = useState("");
+  const [shipmentDropdownError, setShipmentDropdownError] = useState<string | null>(null);
   const [addForm, setAddForm] = useState<AddRecordForm>(buildInitialAddForm());
   const filterAreaRef = useRef<HTMLDivElement | null>(null);
-  const dateInputRef = useRef<HTMLInputElement | null>(null);
   const addModalContentRef = useRef<HTMLDivElement | null>(null);
   const lastReadLogRef = useRef<Record<string, number>>({});
   const successTimerRef = useRef<number | null>(null);
@@ -1105,13 +1112,13 @@ export default function PackagingReportsPage() {
     filteredRows.forEach((row) => {
       const label = (row.shipment || row.consigneeName || "-").trim();
       if (!label || label === "-") return;
-      shipmentMap.set(label, (shipmentMap.get(label) || 0) + 1);
+      shipmentMap.set(label, (shipmentMap.get(label) || 0) + row.qty);
     });
 
     const items = Array.from(shipmentMap.entries())
       .map(([label, value]) => ({ label, value }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+      .slice(0, 6);
     const maxValue = Math.max(...items.map((item) => item.value), 1);
     const colors = ["#9A7656", "#D7B894", "#E9C46A", "#CDB79E", "#B98E63"];
 
@@ -1134,15 +1141,18 @@ export default function PackagingReportsPage() {
 
     const standardItems = toItems(STANDARD_KEYS);
     const boxesItems = toItems(BOXES_KEYS);
+    const cartonItems = toItems(CARTON_KEYS);
 
     const standardTotal = standardItems.reduce((sum, item) => sum + item.value, 0);
     const boxesTotal = boxesItems.reduce((sum, item) => sum + item.value, 0);
+    const cartonTotal = cartonItems.reduce((sum, item) => sum + item.value, 0);
     const returnableTotal = packagingUsageTotals.returnableQty || 0;
     const warpTotal = (packagingUsageTotals.warpQty || 0) + (packagingUsageTotals.unitQty || 0);
 
     return {
       standard: { total: standardTotal, items: standardItems.slice(0, 5), max: Math.max(standardTotal, 1) },
       boxes: { total: boxesTotal, items: boxesItems.slice(0, 5), max: Math.max(boxesTotal, 1) },
+      carton: { total: cartonTotal, items: cartonItems.slice(0, 5), max: Math.max(cartonTotal, 1) },
       returnable: { total: returnableTotal },
       warp: { total: warpTotal },
     };
@@ -1161,6 +1171,11 @@ export default function PackagingReportsPage() {
         packagesUsed: packageTypeUsage.boxes.total,
       },
       {
+        title: "CARTON PACKAGE",
+        capacity: packageTypeUsage.carton.total / 30,
+        packagesUsed: packageTypeUsage.carton.total,
+      },
+      {
         title: "RETURNABLE PACKAGE",
         capacity: packageTypeUsage.returnable.total / 2,
         packagesUsed: packageTypeUsage.returnable.total,
@@ -1170,7 +1185,7 @@ export default function PackagingReportsPage() {
         capacity: packageTypeUsage.warp.total / 10,
         packagesUsed: packageTypeUsage.warp.total,
       },
-    ];
+    ].filter((card) => card.packagesUsed > 0);
 
     const maxUsed = Math.max(...cards.map((card) => card.packagesUsed), 1);
     return cards.map((card) => ({
@@ -1187,6 +1202,52 @@ export default function PackagingReportsPage() {
     "group/inner rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-3 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)] transition-all duration-300 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:shadow-[9px_9px_16px_rgba(166,180,200,0.32),-8px_-8px_16px_rgba(255,255,255,0.9)]";
   const clayChartMiniCardClass =
     "group/mini rounded-2xl border border-[#E7EDF5] bg-[#E8ECF1] p-4 space-y-2 shadow-[6px_6px_12px_rgba(166,180,200,0.28),-6px_-6px_12px_rgba(255,255,255,0.85)] transition-all duration-300 group-hover/chart:-translate-y-2 hover:-translate-y-3 hover:shadow-[9px_9px_16px_rgba(166,180,200,0.32),-8px_-8px_16px_rgba(255,255,255,0.9)]";
+  const packageTypeUsageCards = useMemo(
+    () =>
+      [
+        {
+          key: "standard",
+          title: "STANDARD PACKAGE",
+          total: packageTypeUsage.standard.total,
+          items: packageTypeUsage.standard.items,
+          max: packageTypeUsage.standard.max,
+          color: "#9A7656",
+        },
+        {
+          key: "boxes",
+          title: "BOXES PACKAGE",
+          total: packageTypeUsage.boxes.total,
+          items: packageTypeUsage.boxes.items,
+          max: packageTypeUsage.boxes.max,
+          color: "#D7B894",
+        },
+        {
+          key: "carton",
+          title: "CARTON PACKAGE",
+          total: packageTypeUsage.carton.total,
+          items: packageTypeUsage.carton.items,
+          max: packageTypeUsage.carton.max,
+          color: "#B98E63",
+        },
+        {
+          key: "returnable",
+          title: "RETURNABLE PACKAGE",
+          total: packageTypeUsage.returnable.total,
+          items: [],
+          max: Math.max(packageTypeUsage.returnable.total, 1),
+          color: "#E9C46A",
+        },
+        {
+          key: "warp",
+          title: "WARP PACKAGE",
+          total: packageTypeUsage.warp.total,
+          items: [],
+          max: Math.max(packageTypeUsage.warp.total, 1),
+          color: "#CDB79E",
+        },
+      ].filter((card) => card.total > 0),
+    [packageTypeUsage]
+  );
 
   const reviewTotals = useMemo(() => calculatePackagingTotals(addForm), [addForm]);
 
@@ -1238,6 +1299,7 @@ export default function PackagingReportsPage() {
 
     const header = [
       "Date",
+      "Customer Name",
       "Consignee Name",
       "Transport Mode",
       "Product",
@@ -1263,6 +1325,7 @@ export default function PackagingReportsPage() {
       ...filteredRows.map((row) =>
         [
           row.date,
+          row.customerName || "",
           row.shipment,
           row.mode,
           row.product,
@@ -1332,6 +1395,9 @@ export default function PackagingReportsPage() {
     setBatchInputText("");
     setBatchInputError(null);
     setAddError(null);
+    setShipmentDropdownModal(null);
+    setShipmentDropdownValue("");
+    setShipmentDropdownError(null);
     setIsAddModalOpen(true);
   };
 
@@ -1343,18 +1409,46 @@ export default function PackagingReportsPage() {
     setBatchInputText("");
     setBatchInputError(null);
     setAddError(null);
+    setShipmentDropdownModal(null);
+    setShipmentDropdownValue("");
+    setShipmentDropdownError(null);
   };
 
-  const addShipmentDropdownOption = (fieldKey: ShipmentDropdownFieldKey, label: string) => {
-    const inputValue = window.prompt(`Add ${label}`, "");
-    const nextValue = inputValue?.trim() || "";
-    if (!nextValue) return;
+  const openShipmentDropdownModal = (fieldKey: ShipmentDropdownFieldKey, label: string) => {
+    setShipmentDropdownModal({ fieldKey, label });
+    setShipmentDropdownValue("");
+    setShipmentDropdownError(null);
+  };
+
+  const closeShipmentDropdownModal = () => {
+    setShipmentDropdownModal(null);
+    setShipmentDropdownValue("");
+    setShipmentDropdownError(null);
+  };
+
+  const addShipmentDropdownOption = () => {
+    if (!shipmentDropdownModal) return;
+    const nextValue = shipmentDropdownValue.trim();
+    if (!nextValue) {
+      setShipmentDropdownError("กรุณากรอกชื่อรายการก่อนบันทึก");
+      return;
+    }
+
+    const { fieldKey } = shipmentDropdownModal;
+    const existingOptions = Array.from(
+      new Set([...shipmentDropdownOptions[fieldKey], ...manualShipmentOptions[fieldKey]])
+    );
+    const matchedExistingOption =
+      existingOptions.find((option) => option.toLowerCase() === nextValue.toLowerCase()) || nextValue;
 
     setManualShipmentOptions((prev) => {
-      if (prev[fieldKey].includes(nextValue)) return prev;
-      return { ...prev, [fieldKey]: [...prev[fieldKey], nextValue] };
+      if (prev[fieldKey].some((option) => option.toLowerCase() === matchedExistingOption.toLowerCase())) {
+        return prev;
+      }
+      return { ...prev, [fieldKey]: [...prev[fieldKey], matchedExistingOption] };
     });
-    setAddForm((prev) => ({ ...prev, [fieldKey]: nextValue }));
+    setAddForm((prev) => ({ ...prev, [fieldKey]: matchedExistingOption }));
+    closeShipmentDropdownModal();
   };
 
   const openSuccessModal = (message: string) => {
@@ -1550,6 +1644,9 @@ export default function PackagingReportsPage() {
     setBatchInputText("");
     setBatchInputError(null);
     setAddError(null);
+    setShipmentDropdownModal(null);
+    setShipmentDropdownValue("");
+    setShipmentDropdownError(null);
     setIsAddModalOpen(true);
     setSelectedRow(null);
   };
@@ -2049,6 +2146,9 @@ export default function PackagingReportsPage() {
                         <p className="text-sm text-[#5D6D7E]/70">No customer data</p>
                       )}
                     </div>
+                    <p className="mt-4 text-[11px] font-semibold text-[#8C9AAA]">
+                      Ranked by summed Total Product QTY for the current filtered records.
+                    </p>
                   </GlassCard>
 
                   <GlassCard className={clayChartCardClass}>
@@ -2056,63 +2156,43 @@ export default function PackagingReportsPage() {
                       <Package className="w-4 h-4 text-[#5D6D7E] transition-transform duration-300 group-hover/chart:scale-110 group-hover/chart:-rotate-3" />
                       <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Package Type Usage</h3>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className={clayChartInnerCardClass}>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-black text-[#34495E]">STANDARD PACKAGE</p>
-                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.standard.total.toLocaleString()}</span>
-                        </div>
-                        <div className="space-y-2">
-                          {packageTypeUsage.standard.items.map((item) => (
-                            <div key={item.label} className="group/item grid grid-cols-[1fr_auto] items-center gap-2 transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3">
-                              <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
-                              <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
-                              <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                                <div className="h-full rounded-full bg-[#9A7656] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/item:scale-x-[1.04]" style={{ width: `${(item.value / packageTypeUsage.standard.max) * 100}%` }} />
-                              </div>
+                    {packageTypeUsageCards.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {packageTypeUsageCards.map((card) => (
+                          <div key={card.key} className={clayChartInnerCardClass}>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-sm font-black text-[#34495E]">{card.title}</p>
+                              <span className="text-xs font-black text-[#5D6D7E]">Total: {card.total.toLocaleString()}</span>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className={clayChartInnerCardClass}>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-black text-[#34495E]">BOXES PACKAGE</p>
-                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.boxes.total.toLocaleString()}</span>
-                        </div>
-                        <div className="space-y-2">
-                          {packageTypeUsage.boxes.items.map((item) => (
-                            <div key={item.label} className="group/item grid grid-cols-[1fr_auto] items-center gap-2 transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3">
-                              <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
-                              <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
-                              <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                                <div className="h-full rounded-full bg-[#D7B894] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/item:scale-x-[1.04]" style={{ width: `${(item.value / packageTypeUsage.boxes.max) * 100}%` }} />
+                            {card.items.length > 0 ? (
+                              <div className="space-y-2">
+                                {card.items.map((item) => (
+                                  <div key={item.label} className="group/item grid grid-cols-[1fr_auto] items-center gap-2 transition-all duration-200 group-hover/chart:-translate-y-2 hover:-translate-y-3">
+                                    <p className="text-xs font-semibold text-[#5D6D7E]">{item.label}</p>
+                                    <p className="text-xs font-black text-[#34495E]">{item.value.toLocaleString()}</p>
+                                    <div className="col-span-2 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/item:scale-x-[1.04]"
+                                        style={{ width: `${(item.value / card.max) * 100}%`, backgroundColor: card.color }}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ) : (
+                              <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/inner:scale-x-[1.04]"
+                                  style={{ width: `${Math.min(card.total, 100)}%`, backgroundColor: card.color }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-
-                      <div className={clayChartInnerCardClass}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-black text-[#34495E]">RETURNABLE PACKAGE</p>
-                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.returnable.total.toLocaleString()}</span>
-                        </div>
-                        <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#E9C46A] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/inner:scale-x-[1.04]" style={{ width: `${Math.min(packageTypeUsage.returnable.total, 100)}%` }} />
-                        </div>
-                      </div>
-
-                      <div className={clayChartInnerCardClass}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-black text-[#34495E]">WARP PACKAGE</p>
-                          <span className="text-xs font-black text-[#5D6D7E]">Total: {packageTypeUsage.warp.total.toLocaleString()}</span>
-                        </div>
-                        <div className="mt-3 h-2 rounded-full bg-[#DFE6EE] overflow-hidden">
-                          <div className="h-full rounded-full bg-[#CDB79E] transition-transform duration-300 origin-left group-hover/chart:scale-x-[1.02] group-hover/inner:scale-x-[1.04]" style={{ width: `${Math.min(packageTypeUsage.warp.total, 100)}%` }} />
-                        </div>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-[#5D6D7E]/70">No package type usage data</p>
+                    )}
                   </GlassCard>
                 </div>
 
@@ -2254,22 +2334,23 @@ export default function PackagingReportsPage() {
                             {field.key === "date" ? (
                               <input
                                 id="add-record-date"
-                                ref={dateInputRef}
-                                type="date"
-                                value={normalizeDateToIso(addForm.date)}
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="YYYY-MM-DD"
+                                value={addForm.date}
                                 onChange={(event) =>
                                   setAddForm((prev) => ({
                                     ...prev,
-                                    date: normalizeDateToIso(event.target.value),
+                                    date: event.target.value,
                                   }))
                                 }
-                                onClick={(event) => {
-                                  const target = event.currentTarget as HTMLInputElement & {
-                                    showPicker?: () => void;
-                                  };
-                                  target.showPicker?.();
-                                }}
-                                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35 cursor-pointer"
+                                onBlur={(event) =>
+                                  setAddForm((prev) => ({
+                                    ...prev,
+                                    date: normalizeDateToIso(event.target.value) || event.target.value.trim(),
+                                  }))
+                                }
+                                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
                               />
                             ) : dropdownFieldKey ? (
                               <div className="flex items-center gap-2">
@@ -2289,12 +2370,12 @@ export default function PackagingReportsPage() {
                                 </select>
                                 <button
                                   type="button"
-                                  onClick={() => addShipmentDropdownOption(dropdownFieldKey, field.label)}
-                                  className="w-8 h-8 rounded-md border border-[#D4AA7D]/40 bg-[#EFD09E]/45 text-[#7E5C4A] text-base font-black leading-none hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] transition-colors"
+                                  onClick={() => openShipmentDropdownModal(dropdownFieldKey, field.label)}
+                                  className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-[#D4AA7D]/40 bg-[#EFD09E]/45 px-2 text-[#7E5C4A] hover:bg-[#272727] hover:text-[#EFD09E] hover:border-[#272727] transition-colors"
                                   aria-label={`Add ${field.label}`}
                                   title={`Add ${field.label}`}
                                 >
-                                  +
+                                  <PlusCircle className="w-4 h-4" />
                                 </button>
                               </div>
                             ) : unitSuffix ? (
@@ -2485,29 +2566,47 @@ export default function PackagingReportsPage() {
                           </span>
                         </div>
                       ))}
-                    <div className="pt-2 mt-2 border-t border-[#D4AA7D]/25">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-[#272727] mb-1.5">
-                        Group Totals
-                      </p>
-                    </div>
-                    {[
-                      { label: "Standard Total", value: reviewTotals.standardTotal },
-                      { label: "Boxes Total", value: reviewTotals.boxesTotal },
-                      { label: "Carton Total", value: reviewTotals.cartonTotal },
-                      { label: "Warp Total", value: reviewTotals.warpTotal },
-                      { label: "Returnable Total", value: reviewTotals.returnableTotal },
-                      { label: "Total Packages", value: reviewTotals.totalPackages },
-                    ]
-                      .filter((item) => item.value > 0)
-                      .map((item) => (
-                      <div key={item.label} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
-                        <span className="text-xs font-black uppercase tracking-wide text-[#7E5C4A]">{item.label}</span>
-                        <span className="text-sm font-black text-[#272727] tabular-nums">{item.value.toLocaleString()}</span>
-                      </div>
-                    ))}
                     {reviewTotals.totalPackages === 0 && (
                       <p className="text-xs font-medium text-[#7E5C4A]/70 py-1">No package quantity.</p>
                     )}
+                    <div className="mt-3 border-t border-[#D4AA7D]/25 pt-3 space-y-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#272727]">
+                        Group Totals
+                      </p>
+
+                      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                        {[
+                          { label: "Standard", value: reviewTotals.standardTotal },
+                          { label: "Boxes", value: reviewTotals.boxesTotal },
+                          { label: "Carton", value: reviewTotals.cartonTotal },
+                          { label: "Warp", value: reviewTotals.warpTotal },
+                          { label: "Returnable", value: reviewTotals.returnableTotal },
+                        ].map((item) => (
+                          <div
+                            key={item.label}
+                            className="rounded-xl border border-[#D4AA7D]/25 bg-white/85 px-3 py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+                          >
+                            <p className="text-[10px] font-black uppercase tracking-wide text-[#7E5C4A]/80">
+                              {item.label}
+                            </p>
+                            <p className="mt-1 text-base font-black text-[#272727] tabular-nums">
+                              {item.value.toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-end">
+                        <div className="flex min-w-[186px] items-center justify-between rounded-xl border border-[#D4AA7D]/20 bg-[linear-gradient(135deg,rgba(239,208,158,0.48),rgba(255,255,255,0.92))] px-4 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
+                          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#7E5C4A]">
+                            Total Packages
+                          </p>
+                          <p className="text-2xl font-black leading-none text-[#272727] tabular-nums">
+                            {reviewTotals.totalPackages.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2530,6 +2629,72 @@ export default function PackagingReportsPage() {
             </>
           )}
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!shipmentDropdownModal}
+        onClose={closeShipmentDropdownModal}
+        title={`Add ${shipmentDropdownModal?.label || "Option"}`}
+        className="max-w-md"
+      >
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            addShipmentDropdownOption();
+          }}
+        >
+          <div className="rounded-2xl border border-[#D4AA7D]/30 bg-[linear-gradient(135deg,rgba(239,208,158,0.3),rgba(255,255,255,0.88))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#7E5C4A]/80">Quick Add</p>
+            <p className="mt-2 text-sm text-[#7E5C4A]">
+              เพิ่มรายการใหม่สำหรับ <span className="font-bold text-[#272727]">{shipmentDropdownModal?.label}</span>
+              {" "}แล้วเลือกใช้งานในฟอร์มนี้ได้ทันที
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="shipment-dropdown-option" className="block text-[11px] font-bold text-[#7E5C4A]">
+              {shipmentDropdownModal?.label}
+            </label>
+            <input
+              id="shipment-dropdown-option"
+              type="text"
+              autoFocus
+              value={shipmentDropdownValue}
+              onChange={(event) => {
+                setShipmentDropdownValue(event.target.value);
+                if (shipmentDropdownError) setShipmentDropdownError(null);
+              }}
+              placeholder={`Enter ${shipmentDropdownModal?.label || "value"}`}
+              className="w-full rounded-xl border border-[#D4AA7D]/35 bg-white/90 px-3 py-2.5 text-sm text-[#272727] outline-none transition focus:border-[#9A7656] focus:ring-2 focus:ring-[#D4AA7D]/30"
+            />
+            <p className="text-[11px] text-[#7E5C4A]/75">
+              ระบบจะเลือกค่าที่มีอยู่เดิมให้อัตโนมัติ ถ้าชื่อซ้ำกับรายการเดิม
+            </p>
+            {shipmentDropdownError && (
+              <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+                {shipmentDropdownError}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={closeShipmentDropdownModal}
+              className="px-4 py-2 rounded-lg border border-[#D4AA7D]/35 text-[#7E5C4A] text-sm font-semibold hover:bg-white/70 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#272727] px-4 py-2 text-sm font-semibold text-[#EFD09E] transition-colors hover:bg-[#1f1f1f]"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Save Option
+            </button>
+          </div>
+        </form>
       </Modal>
 
       <Modal
