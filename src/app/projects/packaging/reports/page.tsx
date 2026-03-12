@@ -1981,10 +1981,10 @@ export default function PackagingReportsPage() {
                       <h3 className="text-lg font-black text-[#34495E] tracking-tight transition-all duration-300 group-hover/chart:translate-x-0.5">Packing Volume Timeline</h3>
                     </div>
                     {timelineChart.hasData ? (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-hidden rounded-2xl">
                         <svg
                           viewBox={`0 0 ${timelineChart.width} ${timelineChart.height}`}
-                          className="w-full min-w-[660px] h-[250px] transition-transform duration-300 group-hover/chart:scale-[1.03]"
+                          className="h-[250px] w-full transition-transform duration-300 group-hover/chart:scale-[1.01]"
                         >
                           {timelineChart.yTicks.map((tick) => {
                             const y = 14 + (212 - (tick / Math.max(...timelineChart.yTicks, 1)) * 212);
