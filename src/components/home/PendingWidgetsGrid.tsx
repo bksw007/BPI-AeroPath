@@ -32,6 +32,9 @@ interface WeatherData {
 interface OilPrice {
   OilName: string;
   PriceToday: number;
+  PriceYesterday: number | null;
+  change: number;
+  trend: "up" | "down" | "flat";
 }
 
 interface ExchangeRate {
@@ -288,9 +291,21 @@ function OilPriceWidget() {
         if (Array.isArray(data) && data.length > 0 && data[0].OilList) {
           const oilListStr = data[0].OilList;
           const oilList = typeof oilListStr === "string" ? JSON.parse(oilListStr) : oilListStr;
-          const allFuels = (oilList as { OilName?: string; PriceToday?: number }[])
+          const allFuels = (oilList as { OilName?: string; PriceToday?: number; PriceYesterday?: number }[])
             .filter((item) => item?.OilName && typeof item.OilName === "string")
-            .map((item) => ({ OilName: item.OilName!, PriceToday: item.PriceToday || 0 }));
+            .map((item) => {
+              const priceToday = item.PriceToday || 0;
+              const priceYesterday = typeof item.PriceYesterday === "number" ? item.PriceYesterday : null;
+              const change = priceYesterday === null ? 0 : priceToday - priceYesterday;
+
+              return {
+                OilName: item.OilName!,
+                PriceToday: priceToday,
+                PriceYesterday: priceYesterday,
+                change,
+                trend: change > 0 ? "up" : change < 0 ? "down" : "flat",
+              };
+            });
           setPrices(allFuels);
         }
       } catch (err) {
@@ -320,9 +335,20 @@ function OilPriceWidget() {
           : prices.map((fuel, idx) => (
               <div key={idx} className="flex justify-between items-center text-sm p-2.5 bg-[#EFD09E]/25 rounded-xl border border-[#D4AA7D]/15">
                 <span className="text-[#272727] font-medium text-xs">{fuel.OilName}</span>
-                <span className="font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] border border-[#D4AA7D]/20">
-                  {fuel.PriceToday} ฿
-                </span>
+                <div className="text-right">
+                  <span className="block font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] border border-[#D4AA7D]/20">
+                    {fuel.PriceToday.toFixed(2)} ฿
+                  </span>
+                  <div
+                    className={`mt-1 flex items-center justify-end gap-0.5 text-[10px] font-medium ${
+                      fuel.trend === "up" ? "text-emerald-500" : fuel.trend === "down" ? "text-rose-500" : "text-slate-400"
+                    }`}
+                  >
+                    {fuel.trend === "up" && <TrendingUp className="w-3 h-3" />}
+                    {fuel.trend === "down" && <TrendingUp className="w-3 h-3 rotate-180" />}
+                    <span>{Math.abs(fuel.change).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             ))}
       </div>
