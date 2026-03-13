@@ -47,20 +47,28 @@ const CLAY_INSET =
 // 🕒 Components: World Clock
 // ------------------------------------------------------------------
 function WorldClock({ city, timezone }: { city: string; timezone: string }) {
-  const [time, setTime] = useState(new Date());
-  const [mounted, setMounted] = useState(false);
+  const [timeText, setTimeText] = useState("--:--");
 
   useEffect(() => {
-    setMounted(true);
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    const updateTime = () => {
+      setTimeText(
+        new Date().toLocaleTimeString("en-US", {
+          timeZone: timezone,
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      );
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [timezone]);
 
   return (
     <div className={`flex flex-col items-center p-2.5 rounded-xl border border-white/65 min-w-[70px] bg-[#EEF2F6]/90 ${CLAY_INSET}`}>
-      <span className="text-lg font-bold text-[#272727] font-mono">
-        {mounted ? time.toLocaleTimeString("en-US", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hour12: false }) : "--:--"}
-      </span>
+      <span className="text-lg font-bold text-[#272727] font-mono">{timeText}</span>
       <span className="text-[10px] text-[#7E5C4A] font-medium">{city}</span>
     </div>
   );
@@ -214,6 +222,104 @@ function WeatherWidget() {
 interface OilPrice {
   OilName: string;
   PriceToday: number;
+  PriceYesterday: number | null;
+  change: number;
+  trend: "up" | "down" | "flat";
+}
+
+type FlagCode = "US" | "EU" | "JP" | "GB" | "CN" | "SG" | "TH";
+
+const CURRENCY_FLAG_CODES: Record<string, FlagCode> = {
+  USD: "US",
+  EUR: "EU",
+  JPY: "JP",
+  GBP: "GB",
+  CNY: "CN",
+  SGD: "SG",
+};
+
+const TIME_ZONE_CITIES: Array<{ name: string; tz: string; flagCode: FlagCode }> = [
+  { name: "Bangkok", tz: "Asia/Bangkok", flagCode: "TH" },
+  { name: "Tokyo", tz: "Asia/Tokyo", flagCode: "JP" },
+  { name: "London", tz: "Europe/London", flagCode: "GB" },
+  { name: "New York", tz: "America/New_York", flagCode: "US" },
+];
+
+function FlagIcon({ code, className = "h-6 w-8" }: { code: FlagCode; className?: string }) {
+  const baseClassName = `${className} overflow-hidden rounded-[6px] border border-[#D4AA7D]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]`;
+
+  switch (code) {
+    case "US":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#fff" />
+          {[0, 2.86, 5.72, 8.58, 11.44, 14.3, 17.16].map((y) => (
+            <rect key={y} y={y} width="28" height="1.44" fill="#C43C35" />
+          ))}
+          <rect width="12" height="10" fill="#22408C" />
+        </svg>
+      );
+    case "EU":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#1B4EA1" />
+          <circle cx="14" cy="5" r="1" fill="#F3C93B" />
+          <circle cx="18.5" cy="6.5" r="1" fill="#F3C93B" />
+          <circle cx="20" cy="10" r="1" fill="#F3C93B" />
+          <circle cx="18.5" cy="13.5" r="1" fill="#F3C93B" />
+          <circle cx="14" cy="15" r="1" fill="#F3C93B" />
+          <circle cx="9.5" cy="13.5" r="1" fill="#F3C93B" />
+          <circle cx="8" cy="10" r="1" fill="#F3C93B" />
+          <circle cx="9.5" cy="6.5" r="1" fill="#F3C93B" />
+        </svg>
+      );
+    case "JP":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#fff" />
+          <circle cx="14" cy="10" r="5" fill="#C93C45" />
+        </svg>
+      );
+    case "GB":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#22408C" />
+          <path d="M0 0 L3 0 L28 17.5 L28 20 L25 20 L0 2.5 Z" fill="#fff" />
+          <path d="M28 0 L25 0 L0 17.5 L0 20 L3 20 L28 2.5 Z" fill="#fff" />
+          <path d="M0 0 L1.6 0 L28 18.7 L28 20 L26.4 20 L0 1.3 Z" fill="#C43C35" />
+          <path d="M28 0 L26.4 0 L0 18.7 L0 20 L1.6 20 L28 1.3 Z" fill="#C43C35" />
+          <rect x="10" width="8" height="20" fill="#fff" />
+          <rect y="6" width="28" height="8" fill="#fff" />
+          <rect x="11.5" width="5" height="20" fill="#C43C35" />
+          <rect y="7.5" width="28" height="5" fill="#C43C35" />
+        </svg>
+      );
+    case "CN":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#D64033" />
+          <polygon points="6,3 7,5.6 9.8,5.6 7.5,7.2 8.4,9.8 6,8.2 3.6,9.8 4.5,7.2 2.2,5.6 5,5.6" fill="#F3C93B" />
+        </svg>
+      );
+    case "SG":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="10" fill="#D64033" />
+          <rect y="10" width="28" height="10" fill="#fff" />
+          <circle cx="7" cy="5" r="3.2" fill="#fff" />
+          <circle cx="8.2" cy="5" r="2.4" fill="#D64033" />
+        </svg>
+      );
+    case "TH":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#C43C35" />
+          <rect y="3" width="28" height="3" fill="#fff" />
+          <rect y="6" width="28" height="8" fill="#22408C" />
+          <rect y="14" width="28" height="3" fill="#fff" />
+        </svg>
+      );
+  }
 }
 
 function OilPriceWidget() {
@@ -234,12 +340,21 @@ function OilPriceWidget() {
           const oilListStr = data[0].OilList;
           const oilList = typeof oilListStr === 'string' ? JSON.parse(oilListStr) : oilListStr;
           
-          const allFuels = (oilList as { OilName?: string; PriceToday?: number }[])
+          const allFuels = (oilList as { OilName?: string; PriceToday?: number; PriceYesterday?: number }[])
             .filter((item) => item?.OilName && typeof item.OilName === "string")
-            .map(item => ({
-              OilName: item.OilName!,
-              PriceToday: item.PriceToday || 0
-            }));
+            .map((item) => {
+              const priceToday = item.PriceToday || 0;
+              const priceYesterday = typeof item.PriceYesterday === "number" ? item.PriceYesterday : null;
+              const change = priceYesterday === null ? 0 : priceToday - priceYesterday;
+
+              return {
+                OilName: item.OilName!,
+                PriceToday: priceToday,
+                PriceYesterday: priceYesterday,
+                change,
+                trend: change > 0 ? "up" : change < 0 ? "down" : "flat",
+              };
+            });
           setPrices(allFuels);
         }
       } catch (err) {
@@ -277,9 +392,20 @@ function OilPriceWidget() {
           prices.map((fuel, idx) => (
             <div key={idx} className="flex justify-between items-center text-sm p-2.5 bg-[#EFD09E]/25 rounded-xl hover:bg-[#EFD09E]/50 transition-all border border-[#D4AA7D]/15 hover:border-[#D4AA7D]/30 shadow-sm hover:shadow-md group">
               <span className="text-[#272727] font-medium group-hover:text-[#272727] transition-colors text-xs">{fuel.OilName}</span>
-              <span className="font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-[#D4AA7D]/20 group-hover:text-[#7E5C4A] transition-colors">
-                {fuel.PriceToday} ฿
-              </span>
+              <div className="text-right">
+                <span className="block font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-[#D4AA7D]/20 group-hover:text-[#7E5C4A] transition-colors">
+                  {fuel.PriceToday.toFixed(2)} ฿
+                </span>
+                <div
+                  className={`mt-1 flex items-center justify-end gap-0.5 text-[10px] font-medium ${
+                    fuel.trend === "up" ? "text-emerald-500" : fuel.trend === "down" ? "text-rose-500" : "text-slate-400"
+                  }`}
+                >
+                  {fuel.trend === "up" && <TrendingUp className="w-3 h-3" />}
+                  {fuel.trend === "down" && <TrendingUp className="w-3 h-3 rotate-180" />}
+                  <span>{Math.abs(fuel.change).toFixed(2)}</span>
+                </div>
+              </div>
             </div>
           ))
         )}
@@ -305,19 +431,6 @@ function OilPriceWidget() {
 // ------------------------------------------------------------------
 // 💸 Components: Currency Widget (Mock Data)
 // ------------------------------------------------------------------
-const CURRENCY_FLAGS: Record<string, string> = {
-  USD: "🇺🇸",
-  EUR: "🇪🇺",
-  JPY: "🇯🇵",
-  GBP: "🇬🇧",
-  CNY: "🇨🇳",
-  SGD: "🇸🇬",
-  AUD: "🇦🇺",
-  HKD: "🇭🇰",
-  KRW: "🇰🇷",
-  MYR: "🇲🇾"
-};
-
 const TARGET_CURRENCIES = ["USD", "EUR", "JPY", "GBP", "CNY", "SGD"];
 
 interface ExchangeRate {
@@ -393,7 +506,7 @@ function CurrencyWidget() {
           rates.map((rate) => (
             <div key={rate.currency_id} className="flex items-center justify-between bg-[#EFD09E]/25 px-3 py-3 rounded-xl border border-[#D4AA7D]/15 hover:bg-[#EFD09E]/50 transition-colors">
                <div className="flex items-center gap-2">
-                 <span className="text-2xl">{CURRENCY_FLAGS[rate.currency_id] || "🏳️"}</span>
+                 <FlagIcon code={CURRENCY_FLAG_CODES[rate.currency_id] || "US"} className="h-6 w-8 shrink-0" />
                  <span className="font-bold text-[#272727] text-sm">{rate.currency_id}</span>
                </div>
                <div className="text-right">
@@ -437,15 +550,8 @@ function TimeZoneWidget() {
   useEffect(() => {
     const updateTimes = () => {
       const now = new Date();
-      const cities = [
-        { name: "Bangkok", tz: "Asia/Bangkok" },
-        { name: "Tokyo", tz: "Asia/Tokyo" },
-        { name: "London", tz: "Europe/London" },
-        { name: "New York", tz: "America/New_York" }
-      ];
-      
       const newTimes: Record<string, string> = {};
-      cities.forEach(city => {
+      TIME_ZONE_CITIES.forEach(city => {
         newTimes[city.name] = now.toLocaleTimeString("en-US", {
           timeZone: city.tz,
           hour: "2-digit",
@@ -469,15 +575,10 @@ function TimeZoneWidget() {
       </div>
 
       <div className="flex-1 grid grid-cols-2 gap-4">
-        {[
-          { name: "Bangkok", flag: "🇹🇭" },
-          { name: "Tokyo", flag: "🇯🇵" },
-          { name: "London", flag: "🇬🇧" },
-          { name: "New York", flag: "🇺🇸" }
-        ].map((city) => (
+        {TIME_ZONE_CITIES.map((city) => (
           <div key={city.name} className="flex flex-col p-3 bg-[#EFD09E]/25 rounded-2xl border border-[#D4AA7D]/10 hover:bg-[#EFD09E]/40 transition-all hover:shadow-sm">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-base">{city.flag}</span>
+              <FlagIcon code={city.flagCode} className="h-5 w-7 shrink-0" />
               <span className="text-[11px] font-bold text-[#7E5C4A] uppercase tracking-tight">{city.name}</span>
             </div>
             <div className="text-2xl font-black text-[#272727] font-mono tracking-tighter">

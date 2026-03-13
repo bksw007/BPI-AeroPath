@@ -112,14 +112,14 @@ function FlagIcon({ code, className = "h-6 w-8" }: { code: FlagCode; className?:
       return (
         <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
           <rect width="28" height="20" fill="#22408C" />
-          <path d="M0 0 L11 0 L28 12 L28 20 L17 20 L0 8 Z" fill="#fff" />
-          <path d="M28 0 L17 0 L0 12 L0 20 L11 20 L28 8 Z" fill="#fff" />
-          <path d="M0 0 L4 0 L28 16 L28 20 L24 20 L0 4 Z" fill="#C43C35" />
-          <path d="M28 0 L24 0 L0 16 L0 20 L4 20 L28 4 Z" fill="#C43C35" />
-          <rect x="11" width="6" height="20" fill="#fff" />
-          <rect y="7" width="28" height="6" fill="#fff" />
-          <rect x="12.25" width="3.5" height="20" fill="#C43C35" />
-          <rect y="8.25" width="28" height="3.5" fill="#C43C35" />
+          <path d="M0 0 L3 0 L28 17.5 L28 20 L25 20 L0 2.5 Z" fill="#fff" />
+          <path d="M28 0 L25 0 L0 17.5 L0 20 L3 20 L28 2.5 Z" fill="#fff" />
+          <path d="M0 0 L1.6 0 L28 18.7 L28 20 L26.4 20 L0 1.3 Z" fill="#C43C35" />
+          <path d="M28 0 L26.4 0 L0 18.7 L0 20 L1.6 20 L28 1.3 Z" fill="#C43C35" />
+          <rect x="10" width="8" height="20" fill="#fff" />
+          <rect y="6" width="28" height="8" fill="#fff" />
+          <rect x="11.5" width="5" height="20" fill="#C43C35" />
+          <rect y="7.5" width="28" height="5" fill="#C43C35" />
         </svg>
       );
     case "CN":
