@@ -340,19 +340,20 @@ function OilPriceWidget() {
           const oilListStr = data[0].OilList;
           const oilList = typeof oilListStr === 'string' ? JSON.parse(oilListStr) : oilListStr;
           
-          const allFuels = (oilList as { OilName?: string; PriceToday?: number; PriceYesterday?: number }[])
+          const allFuels: OilPrice[] = (oilList as { OilName?: string; PriceToday?: number; PriceYesterday?: number }[])
             .filter((item) => item?.OilName && typeof item.OilName === "string")
             .map((item) => {
               const priceToday = item.PriceToday || 0;
               const priceYesterday = typeof item.PriceYesterday === "number" ? item.PriceYesterday : null;
               const change = priceYesterday === null ? 0 : priceToday - priceYesterday;
+              const trend: OilPrice["trend"] = change > 0 ? "up" : change < 0 ? "down" : "flat";
 
               return {
                 OilName: item.OilName!,
                 PriceToday: priceToday,
                 PriceYesterday: priceYesterday,
                 change,
-                trend: change > 0 ? "up" : change < 0 ? "down" : "flat",
+                trend,
               };
             });
           setPrices(allFuels);
