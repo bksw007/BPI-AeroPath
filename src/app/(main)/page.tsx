@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import * as motion from "motion/react-client";
-import { GlassCard } from "@/components/shared/GlassCard";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
 import { PendingWidgetsGrid } from "@/components/home/PendingWidgetsGrid";

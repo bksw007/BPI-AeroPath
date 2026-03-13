@@ -42,13 +42,15 @@ interface ExchangeRate {
   trend: "up" | "down" | "flat";
 }
 
-const CURRENCY_FLAGS: Record<string, string> = {
-  USD: "🇺🇸",
-  EUR: "🇪🇺",
-  JPY: "🇯🇵",
-  GBP: "🇬🇧",
-  CNY: "🇨🇳",
-  SGD: "🇸🇬",
+type FlagCode = "US" | "EU" | "JP" | "GB" | "CN" | "SG" | "TH";
+
+const CURRENCY_FLAG_CODES: Record<string, FlagCode> = {
+  USD: "US",
+  EUR: "EU",
+  JPY: "JP",
+  GBP: "GB",
+  CNY: "CN",
+  SGD: "SG",
 };
 
 const CURRENCY_NAMES: Record<string, string> = {
@@ -61,6 +63,89 @@ const CURRENCY_NAMES: Record<string, string> = {
 };
 
 const TARGET_CURRENCIES = ["USD", "EUR", "JPY", "GBP", "CNY", "SGD"];
+const TIME_ZONE_CITIES: Array<{ name: string; tz: string; flagCode: FlagCode }> = [
+  { name: "Bangkok", tz: "Asia/Bangkok", flagCode: "TH" },
+  { name: "Tokyo", tz: "Asia/Tokyo", flagCode: "JP" },
+  { name: "London", tz: "Europe/London", flagCode: "GB" },
+  { name: "New York", tz: "America/New_York", flagCode: "US" },
+];
+
+function FlagIcon({ code, className = "h-6 w-8" }: { code: FlagCode; className?: string }) {
+  const baseClassName = `${className} overflow-hidden rounded-[6px] border border-[#D4AA7D]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]`;
+
+  switch (code) {
+    case "US":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#fff" />
+          {[0, 2.86, 5.72, 8.58, 11.44, 14.3, 17.16].map((y) => (
+            <rect key={y} y={y} width="28" height="1.44" fill="#C43C35" />
+          ))}
+          <rect width="12" height="10" fill="#22408C" />
+        </svg>
+      );
+    case "EU":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#1B4EA1" />
+          <circle cx="14" cy="5" r="1" fill="#F3C93B" />
+          <circle cx="18.5" cy="6.5" r="1" fill="#F3C93B" />
+          <circle cx="20" cy="10" r="1" fill="#F3C93B" />
+          <circle cx="18.5" cy="13.5" r="1" fill="#F3C93B" />
+          <circle cx="14" cy="15" r="1" fill="#F3C93B" />
+          <circle cx="9.5" cy="13.5" r="1" fill="#F3C93B" />
+          <circle cx="8" cy="10" r="1" fill="#F3C93B" />
+          <circle cx="9.5" cy="6.5" r="1" fill="#F3C93B" />
+        </svg>
+      );
+    case "JP":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#fff" />
+          <circle cx="14" cy="10" r="5" fill="#C93C45" />
+        </svg>
+      );
+    case "GB":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#22408C" />
+          <path d="M0 0 L11 0 L28 12 L28 20 L17 20 L0 8 Z" fill="#fff" />
+          <path d="M28 0 L17 0 L0 12 L0 20 L11 20 L28 8 Z" fill="#fff" />
+          <path d="M0 0 L4 0 L28 16 L28 20 L24 20 L0 4 Z" fill="#C43C35" />
+          <path d="M28 0 L24 0 L0 16 L0 20 L4 20 L28 4 Z" fill="#C43C35" />
+          <rect x="11" width="6" height="20" fill="#fff" />
+          <rect y="7" width="28" height="6" fill="#fff" />
+          <rect x="12.25" width="3.5" height="20" fill="#C43C35" />
+          <rect y="8.25" width="28" height="3.5" fill="#C43C35" />
+        </svg>
+      );
+    case "CN":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#D64033" />
+          <polygon points="6,3 7,5.6 9.8,5.6 7.5,7.2 8.4,9.8 6,8.2 3.6,9.8 4.5,7.2 2.2,5.6 5,5.6" fill="#F3C93B" />
+        </svg>
+      );
+    case "SG":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="10" fill="#D64033" />
+          <rect y="10" width="28" height="10" fill="#fff" />
+          <circle cx="7" cy="5" r="3.2" fill="#fff" />
+          <circle cx="8.2" cy="5" r="2.4" fill="#D64033" />
+        </svg>
+      );
+    case "TH":
+      return (
+        <svg viewBox="0 0 28 20" className={baseClassName} aria-hidden="true">
+          <rect width="28" height="20" fill="#C43C35" />
+          <rect y="3" width="28" height="3" fill="#fff" />
+          <rect y="6" width="28" height="8" fill="#22408C" />
+          <rect y="14" width="28" height="3" fill="#fff" />
+        </svg>
+      );
+  }
+}
 
 function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -284,7 +369,7 @@ function CurrencyWidget() {
           : rates.map((rate) => (
               <div key={rate.currency_id} className="flex items-center justify-between bg-[#EFD09E]/25 px-3 py-3 rounded-xl border border-[#D4AA7D]/15">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-3xl leading-none">{CURRENCY_FLAGS[rate.currency_id] || "🏳️"}</span>
+                  <FlagIcon code={CURRENCY_FLAG_CODES[rate.currency_id] || "US"} className="h-6 w-8 shrink-0" />
                   <div className="min-w-0">
                     <span className="font-bold text-[#272727] text-sm block leading-tight">{rate.currency_id}</span>
                     <span className="text-[10px] text-[#7E5C4A] block truncate">
@@ -313,15 +398,8 @@ function TimeZoneWidget() {
   useEffect(() => {
     const updateTimes = () => {
       const now = new Date();
-      const cities = [
-        { name: "Bangkok", tz: "Asia/Bangkok" },
-        { name: "Tokyo", tz: "Asia/Tokyo" },
-        { name: "London", tz: "Europe/London" },
-        { name: "New York", tz: "America/New_York" },
-      ];
-
       const newTimes: Record<string, string> = {};
-      cities.forEach((city) => {
+      TIME_ZONE_CITIES.forEach((city) => {
         newTimes[city.name] = now.toLocaleTimeString("en-US", {
           timeZone: city.tz,
           hour: "2-digit",
@@ -345,15 +423,10 @@ function TimeZoneWidget() {
       </div>
 
       <div className="flex-1 grid grid-cols-2 gap-4">
-        {[
-          { name: "Bangkok", flag: "🇹🇭" },
-          { name: "Tokyo", flag: "🇯🇵" },
-          { name: "London", flag: "🇬🇧" },
-          { name: "New York", flag: "🇺🇸" },
-        ].map((city) => (
+        {TIME_ZONE_CITIES.map((city) => (
           <div key={city.name} className="flex flex-col p-3 bg-[#EFD09E]/25 rounded-2xl border border-[#D4AA7D]/10">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-base">{city.flag}</span>
+              <FlagIcon code={city.flagCode} className="h-5 w-7 shrink-0" />
               <span className="text-[11px] font-bold text-[#7E5C4A] uppercase tracking-tight">{city.name}</span>
             </div>
             <div className="text-2xl font-black text-[#272727] font-mono tracking-tighter">{times[city.name] || "--:--"}</div>
