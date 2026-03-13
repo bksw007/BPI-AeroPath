@@ -336,12 +336,9 @@ function OilPriceWidget() {
           : prices.map((fuel, idx) => (
               <div key={idx} className="flex justify-between items-center text-sm p-2.5 bg-[#EFD09E]/25 rounded-xl border border-[#D4AA7D]/15">
                 <span className="text-[#272727] font-medium text-xs">{fuel.OilName}</span>
-                <div className="text-right">
-                  <span className="block font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] border border-[#D4AA7D]/20">
-                    {fuel.PriceToday.toFixed(2)} ฿
-                  </span>
+                <div className="flex items-center justify-end gap-2">
                   <div
-                    className={`mt-1 flex items-center justify-end gap-0.5 text-[10px] font-medium ${
+                    className={`flex items-center justify-end gap-0.5 text-[10px] font-medium ${
                       fuel.trend === "up" ? "text-emerald-500" : fuel.trend === "down" ? "text-rose-500" : "text-slate-400"
                     }`}
                   >
@@ -349,6 +346,9 @@ function OilPriceWidget() {
                     {fuel.trend === "down" && <TrendingUp className="w-3 h-3 rotate-180" />}
                     <span>{Math.abs(fuel.change).toFixed(2)}</span>
                   </div>
+                  <span className="block font-bold text-[#272727] bg-[#EFD09E] px-2 py-0.5 rounded-lg text-[11px] border border-[#D4AA7D]/20">
+                    {fuel.PriceToday.toFixed(2)} ฿
+                  </span>
                 </div>
               </div>
             ))}
