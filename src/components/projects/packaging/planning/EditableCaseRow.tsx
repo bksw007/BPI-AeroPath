@@ -35,7 +35,7 @@ interface TooltipState {
 }
 
 function toDisplayTypeLabel(type: string): string {
-  const normalized = type.trim();
+  const normalized = type.trim().replace(/\bwarp\b/gi, "Wrap");
   const exactMap: Record<string, string> = {
     "Manual Merge Pallet": "M.Merge Pallet",
     "Manual Merge Box": "M.Merge Box",
@@ -96,10 +96,10 @@ export function EditableCaseRow({
         ) : null}
         <td className="px-4 py-3 text-center font-mono text-[#7E5C4A] group-hover:text-[#EFD09E]">#{caseData.caseNo}</td>
         <td className="px-4 py-3 text-center">
-          <span
-            title={caseData.type}
-            className="inline-block max-w-[140px] rounded-md border border-[#D4AA7D]/45 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[#7E5C4A] whitespace-nowrap overflow-hidden text-ellipsis group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45"
-          >
+        <span
+          title={caseData.type.replace(/\bwarp\b/gi, "Wrap")}
+          className="inline-block max-w-[140px] rounded-md border border-[#D4AA7D]/45 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[#7E5C4A] whitespace-nowrap overflow-hidden text-ellipsis group-hover:text-[#EFD09E] group-hover:border-[#EFD09E]/45"
+        >
             {displayType}
           </span>
         </td>

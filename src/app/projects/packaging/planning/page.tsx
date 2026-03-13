@@ -748,7 +748,7 @@ export default function PackagingBookingPage() {
     const type = (c.type || "").toLowerCase();
     const note = (c.note || "").toLowerCase();
 
-    if (type.includes("unknown") || type.includes("warp")) return 100;
+    if (type.includes("unknown") || type.includes("warp") || type.includes("wrap")) return 100;
     if (type.includes("mixed")) {
       if (note.includes("primary:")) return 94;
       return 80;
@@ -992,7 +992,7 @@ export default function PackagingBookingPage() {
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                              <SummaryCard label="Total Pallets" value={planSummary.totalPallets} icon={Layers} color="sunset" />
                              <SummaryCard label="Total Boxes" value={planSummary.totalBoxes} icon={Box} color="raisin" />
-                             <SummaryCard label="Warp Items" value={planSummary.totalWarps} icon={Archive} color="buff" />
+                             <SummaryCard label="Wrap Items" value={planSummary.totalWarps} icon={Archive} color="buff" />
                              <SummaryCard label="Total Items" value={planSummary.totalItems} icon={Package} color="green" />
                          </div>
                          <AdjustmentToolbar

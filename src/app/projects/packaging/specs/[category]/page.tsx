@@ -254,7 +254,7 @@ export default function CategoryDetailPage() {
       // Track Special Packaging Changes
       const productRules = product.packingRules as unknown as PackagingProduct['packingRules'];
       if (selectedItem.packingRules.warp !== productRules.warp) {
-          changes.push({ field: 'Warp Required', before: String(selectedItem.packingRules.warp), after: String(productRules.warp) });
+          changes.push({ field: 'Wrap Required', before: String(selectedItem.packingRules.warp), after: String(productRules.warp) });
       }
       // Simple check for RTN total change
       const oldRtn = selectedItem.packingRules.rtn?.totalQty || 0;
@@ -1202,7 +1202,7 @@ export default function CategoryDetailPage() {
                   </div>
                   <div className="p-3 bg-[#EEF2F6]/85 rounded-lg border border-[#D4AA7D]/35 space-y-2 flex flex-col justify-center">
                     <div className="flex items-center justify-between">
-                      <h5 className="text-[10px] font-black text-[#272727] uppercase tracking-widest">Warp Required</h5>
+                      <h5 className="text-[10px] font-black text-[#272727] uppercase tracking-widest">Wrap Required</h5>
                       <button 
                         type="button"
                         onClick={() => {
@@ -1432,7 +1432,7 @@ export default function CategoryDetailPage() {
                        {/* Warp */}
                        <div className="bg-[#272727]/95 border border-[#7E5C4A]/45 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all flex flex-col">
                           <div className="bg-[#272727] px-4 py-2 border-b border-[#7E5C4A]/45 flex justify-center">
-                             <span className="text-xs font-black text-[#EFD09E] uppercase tracking-wider">Warp Packaging</span>
+                             <span className="text-xs font-black text-[#EFD09E] uppercase tracking-wider">Wrap Packaging</span>
                           </div>
                           <div className="flex-1 flex flex-col items-center justify-center p-6 gap-2">
                              <div className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-colors", 
@@ -1759,7 +1759,7 @@ export default function CategoryDetailPage() {
                    
                      {/* Warp Toggle */}
                      <div className="flex items-center gap-3">
-                        <label className="text-sm font-bold text-[#7E5C4A]">Warp Required?</label>
+                        <label className="text-sm font-bold text-[#7E5C4A]">Wrap Required?</label>
                         <button
                            type="button"
                            onClick={() => {

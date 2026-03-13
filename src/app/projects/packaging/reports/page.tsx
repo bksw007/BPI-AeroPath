@@ -201,7 +201,7 @@ const PACKAGING_BREAKDOWN_FIELDS: Array<{
   { key: "qty70x100x90", label: "70X100X90 QTY", group: "standard" },
   { key: "qty27x27x22", label: "27X27X22 QTY", group: "standard" },
   { key: "qty53x53x19", label: "53X53X19 QTY", group: "standard" },
-  { key: "warpQty", label: "WARP QTY", group: "warp" },
+  { key: "warpQty", label: "WRAP QTY", group: "warp" },
   { key: "unitQty", label: "UNIT QTY", group: "unit" },
 ];
 
@@ -229,7 +229,7 @@ const PACKAGING_GROUPS: Array<{ title: string; keys: PackagingBreakdownKey[] }> 
   { title: "Standard", keys: STANDARD_KEYS },
   { title: "Boxes", keys: BOXES_KEYS },
   { title: "Carton", keys: CARTON_KEYS },
-  { title: "Warp / Unit", keys: ["warpQty", "unitQty"] },
+  { title: "Wrap / Unit", keys: ["warpQty", "unitQty"] },
   { title: "Returnable", keys: ["returnableQty"] },
 ];
 
@@ -1181,7 +1181,7 @@ export default function PackagingReportsPage() {
         packagesUsed: packageTypeUsage.returnable.total,
       },
       {
-        title: "WARP PACKAGE",
+        title: "WRAP PACKAGE",
         capacity: packageTypeUsage.warp.total / 10,
         packagesUsed: packageTypeUsage.warp.total,
       },
@@ -1239,7 +1239,7 @@ export default function PackagingReportsPage() {
         },
         {
           key: "warp",
-          title: "WARP PACKAGE",
+          title: "WRAP PACKAGE",
           total: packageTypeUsage.warp.total,
           items: [],
           max: Math.max(packageTypeUsage.warp.total, 1),
@@ -1309,12 +1309,12 @@ export default function PackagingReportsPage() {
       "Standard Total",
       "Boxes Total",
       "Carton Total",
-      "Warp Total",
+      "Wrap Total",
       "Returnable Total",
       "Ratio Standard",
       "Ratio Boxes",
       "Ratio Carton",
-      "Ratio Warp",
+      "Ratio Wrap",
       "Ratio Returnable",
       "Remark",
       ...PACKAGING_BREAKDOWN_FIELDS.map((field) => field.label),
@@ -2579,7 +2579,7 @@ export default function PackagingReportsPage() {
                           { label: "Standard", value: reviewTotals.standardTotal },
                           { label: "Boxes", value: reviewTotals.boxesTotal },
                           { label: "Carton", value: reviewTotals.cartonTotal },
-                          { label: "Warp", value: reviewTotals.warpTotal },
+                          { label: "Wrap", value: reviewTotals.warpTotal },
                           { label: "Returnable", value: reviewTotals.returnableTotal },
                         ].map((item) => (
                           <div
@@ -2731,7 +2731,7 @@ export default function PackagingReportsPage() {
                   { label: "Standard", value: selectedRow.standardTotal },
                   { label: "Boxes", value: selectedRow.boxesTotal },
                   { label: "Carton", value: selectedRow.cartonTotal },
-                  { label: "Warp", value: selectedRow.warpTotal },
+                  { label: "Wrap", value: selectedRow.warpTotal },
                   { label: "Returnable", value: selectedRow.returnableTotal },
                 ].map((field) => (
                   <div key={field.label} className="flex items-center justify-between gap-2 py-1 border-b border-[#D4AA7D]/15 last:border-b-0">
@@ -2749,7 +2749,7 @@ export default function PackagingReportsPage() {
                   { label: "Standard", value: selectedRow.ratioStandard },
                   { label: "Boxes", value: selectedRow.ratioBoxes },
                   { label: "Carton", value: selectedRow.ratioCarton },
-                  { label: "Warp", value: selectedRow.ratioWarp },
+                  { label: "Wrap", value: selectedRow.ratioWarp },
                   { label: "Returnable", value: selectedRow.ratioReturnable },
                 ].map((ratio) => (
                   <div key={ratio.label} className="rounded-lg border border-[#D4AA7D]/25 bg-white/85 px-2.5 py-2 text-center">

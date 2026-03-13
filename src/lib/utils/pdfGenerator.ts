@@ -165,7 +165,7 @@ export const generatePackagingSpecPDF = (product: PackagingProduct) => {
   // @ts-expect-error: jspdf-autotable adds finalY
   yPos = doc.lastAutoTable.finalY + 10;
 
-  // --- Special Packaging (RTN & Warp) ---
+  // --- Special Packaging (RTN & Wrap) ---
   // Removed page break check
 
   doc.setFontSize(12);
@@ -196,13 +196,13 @@ export const generatePackagingSpecPDF = (product: PackagingProduct) => {
       doc.text("Not Configured", 18, yPos + 12);
   }
 
-  // Warp Card Style - No Background, Minimal
+  // Wrap Card Style - No Background, Minimal
   // doc.roundedRect(105, yPos, 85, 30, 3, 3, 'FD'); // Removed background
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(100, 100, 100);
-  doc.text("Warp Packaging", 111, yPos + 6);
+  doc.text("Wrap Packaging", 111, yPos + 6);
   
   const warp = product.packingRules.warp;
   doc.setFontSize(11); // Slightly smaller
@@ -338,7 +338,7 @@ export const generatePackingListPDF = (
             else if (typeText.includes('Mixed Pallet')) data.cell.styles.textColor = [234, 88, 12]; // Orange 600
             else if (typeText.includes('Full Box')) data.cell.styles.textColor = [2, 132, 199]; // Sky 600
             else if (typeText.includes('Mixed Box')) data.cell.styles.textColor = [202, 138, 4]; // Yellow 600
-            else if (typeText.includes('Warp')) data.cell.styles.textColor = [147, 51, 234]; // Purple 600
+            else if (typeText.includes('Warp') || typeText.includes('Wrap')) data.cell.styles.textColor = [147, 51, 234]; // Purple 600
         }
       }
     });

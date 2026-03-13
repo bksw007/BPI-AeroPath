@@ -156,7 +156,10 @@ const drawCheckedBox = (page: PDFPage, field: RectField) => {
   });
 };
 
-const resolvePackageField = (dimsRaw: string): PackingDetailFieldKey | null => {
+const resolvePackageField = (dimsRaw: string, typeRaw: string): PackingDetailFieldKey | null => {
+  const type = normalizeText(typeRaw);
+  if (type.includes("warp") || type.includes("wrap")) return "pkg_wrap_left";
+
   const dims = normalizeText(dimsRaw).replace(/[×*]/g, "x");
   const map: Record<string, PackingDetailFieldKey> = {
     "110x110x115": "pkg_110x110x115",
@@ -181,9 +184,9 @@ const resolvePackageField = (dimsRaw: string): PackingDetailFieldKey | null => {
 
 const resolveTypeWordField = (typeRaw: string): PackingDetailFieldKey | null => {
   const type = normalizeText(typeRaw);
+  if (type.includes("warp") || type.includes("wrap")) return "type_word_wrap";
   if (type.includes("pallet")) return "type_word_pallet";
   if (type.includes("box")) return "type_word_box";
-  if (type.includes("warp") || type.includes("wrap")) return "type_word_wrap";
   return null;
 };
 
@@ -268,7 +271,7 @@ export const generatePackingDetailsPDF = async (entries: PackingDetailSheetEntry
       const typeWordField = resolveTypeWordField(entry.caseData.type);
       if (typeWordField) drawWordCircle(page, getField(typeWordField));
 
-      const packageField = resolvePackageField(entry.caseData.dims);
+      const packageField = resolvePackageField(entry.caseData.dims, entry.caseData.type);
       if (packageField) drawCheckedBox(page, getField(packageField));
 
       const items = entry.caseData.items.slice(0, 9);

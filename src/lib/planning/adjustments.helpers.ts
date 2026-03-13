@@ -48,7 +48,7 @@ function getCaseSortPriority(input: Pick<PackedCase, "type" | "note">): number {
   if (isSameOrManual && type.includes("pallet")) return 3;
   if (isSameOrManual && type.includes("box")) return 4;
   if (type.includes("mixed")) return 5;
-  if (type.includes("warp")) return 6;
+  if (type.includes("warp") || type.includes("wrap")) return 6;
   if (type.includes("unknown")) return 7;
   return 8;
 }
@@ -97,7 +97,7 @@ export function summarizePlan(planResult: POCase[]): {
 
   planResult.forEach((poGroup) => {
     poGroup.cases.forEach((c) => {
-      if (c.type.includes("Warp")) totalWarps += 1;
+      if (c.type.includes("Warp") || c.type.includes("Wrap")) totalWarps += 1;
       else if (c.type.includes("Pallet")) totalPallets += 1;
       else if (c.type.includes("Box")) totalBoxes += 1;
 

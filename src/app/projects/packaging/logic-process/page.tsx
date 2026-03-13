@@ -84,7 +84,7 @@ const STEP_FLOW = [
   { id: "input", title: "📥 Input", icon: Package },
   { id: "aggregate", title: "📊 Aggregate", icon: Layers },
   { id: "fetch_specs", title: "🔍 Fetch Specs", icon: Database },
-  { id: "separate_warp", title: "🔧 Warp", icon: Filter },
+  { id: "separate_warp", title: "🔧 Wrap", icon: Filter },
   { id: "split_po", title: "📋 Split PO", icon: SplitSquareHorizontal },
   { id: "check_mono", title: "🎯 Mono", icon: Box },
   { id: "check_overflow", title: "📊 Overflow", icon: Ruler },
@@ -289,12 +289,12 @@ export default function LogicProcessPage() {
       for (const item of items) {
         const dims = item.spec
           ? `${item.spec.width}x${item.spec.length}x${item.spec.height}`
-          : "Warp";
+          : "Wrap";
 
         for (let q = 0; q < item.qty; q++) {
           result.warpCases.push({
             caseNo: caseNo++,
-            type: "Warp Pallet",
+            type: "Wrap Pallet",
             items: [{ sku: item.sku, name: item.spec?.name || "", qty: 1 }],
             dims,
           });
@@ -1068,7 +1068,7 @@ export default function LogicProcessPage() {
           newItems = separateWarp(workingItems);
           const warpCount = workingItems.length - newItems.length;
           setStepDescription(
-            `แยก Warp ${warpCount} | เหลือ ${newItems.length}`,
+            `แยก Wrap ${warpCount} | เหลือ ${newItems.length}`,
           );
           break;
 
@@ -1109,7 +1109,7 @@ export default function LogicProcessPage() {
           const totalMono = Array.from(poResults.values()).reduce((sum, r) => sum + r.monoCases.length, 0);
           const totalSame = Array.from(poResults.values()).reduce((sum, r) => sum + r.sameCases.length, 0);
           const totalMixed = Array.from(poResults.values()).reduce((sum, r) => sum + r.mixedCases.length, 0);
-          setStepDescription(`สรุป: Warp=${totalWarp}, Mono=${totalMono}, Same=${totalSame}, Mixed=${totalMixed}`);
+          setStepDescription(`สรุป: Wrap=${totalWarp}, Mono=${totalMono}, Same=${totalSame}, Mixed=${totalMixed}`);
           break;
 
         case "final":
@@ -1567,7 +1567,7 @@ export default function LogicProcessPage() {
                     {result.warpCases.length > 0 && (
                       <div className="p-2 bg-[#D4AA7D]/10 border-b border-[#D4AA7D]/30">
                         <p className="text-xs font-semibold text-[#7E5C4A] mb-2">
-                          🔴 Warp Cases ({result.warpCases.length})
+                          🔴 Wrap Cases ({result.warpCases.length})
                         </p>
                         <div className="space-y-1">
                           {result.warpCases.map((c, idx) => (

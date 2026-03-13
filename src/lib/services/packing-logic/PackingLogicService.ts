@@ -390,12 +390,12 @@ export class PackingLogicService {
       for (const item of items) {
         const dims = item.spec
           ? `${item.spec.width}x${item.spec.length}x${item.spec.height}`
-          : "Warp";
+          : "Wrap";
 
         for (let q = 0; q < item.qty; q++) {
           result.warpCases.push({
             caseNo: caseNo++,
-            type: "Warp Pallet",
+            type: "Wrap Pallet",
             items: [{ sku: item.sku, name: item.spec?.name || "", qty: 1 }],
             dims,
           });

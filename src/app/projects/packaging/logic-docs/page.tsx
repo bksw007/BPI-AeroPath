@@ -93,21 +93,21 @@ const StepsData: StepItem[] = [
   },
   {
     step: "3-5",
-    title: "Spec Fetching & Warp Classification",
-    desc: "ดึงข้อมูลขนาดสินค้าและคัดแยกสินค้า Warp (Over-dimension)",
+    title: "Spec Fetching & Wrap Classification",
+    desc: "ดึงข้อมูลขนาดสินค้าและคัดแยกสินค้า Wrap (Over-dimension)",
     detail: [
       "1. Get Allowed Packages: ดึงรายการกล่องที่อนุญาตสำหรับ Region (A/E/R) ของ PO นั้นๆ",
       "2. Fetch Specs: ดึงขนาด (WxLxH) จาก SKU Master Data",
-      "3. Warp Rule Check: ตรวจสอบ flag 'warp' ใน database หากเป็น true -> จัดเป็น Warp Case",
-      "4. Dimension Check: หากไม่มี flag แต่มีขนาด M3 >= 0.15 -> ปัดเป็น Warp Case โดยอัตโนมัติ",
+      "3. Wrap Rule Check: ตรวจสอบ flag 'warp' ใน database หากเป็น true -> จัดเป็น Wrap Case",
+      "4. Dimension Check: หากไม่มี flag แต่มีขนาด M3 >= 0.15 -> ปัดเป็น Wrap Case โดยอัตโนมัติ",
       "5. Unknown Handling: หาก M3 < 0.15 และไม่มี Spec -> จัดเป็น Unknown Case และจบกระบวนการ",
       "6. Split PO: กระจายสินค้าเข้า Bucket และคำนวณ Unique Dimensions เพื่อแยก Mono/Mixed PO"
     ],
     objectives: [
-      "แยกสินค้าที่ 'ใส่กล่องปกติไม่ได้' ออกไปจัดการต่างหาก (Warp Handling)",
+      "แยกสินค้าที่ 'ใส่กล่องปกติไม่ได้' ออกไปจัดการต่างหาก (Wrap Handling)",
       "ตรวจสอบว่าสินค้ามี Master Data ครบถ้วนหรือไม่ (Unknown handling)"
     ],
-    context: "การคัดแยก Warp ออกก่อน ช่วยลดความซับซ้อนของ BinPack Algorithm ลงได้กว่า 40%",
+    context: "การคัดแยก Wrap ออกก่อน ช่วยลดความซับซ้อนของ BinPack Algorithm ลงได้กว่า 40%",
     chart: `
     flowchart TD
       A[Items List] --> B[🔍 Fetch Spec & Region Rules]
@@ -115,8 +115,8 @@ const StepsData: StepItem[] = [
       C -- No --> D{Known Dimensions?}
       D -- No --> E[Unknown Case]
       D -- Yes --> F[Calculate M3]
-      C -- Yes --> G{Warp Flag = True?}
-      G -- Yes --> H[🔴 Warp Case]
+      C -- Yes --> G{Wrap Flag = True?}
+      G -- Yes --> H[🔴 Wrap Case]
       G -- No --> I{M3 >= 0.15?}
       I -- Yes --> H
       I -- No --> J[🟢 Normal Case]
@@ -525,7 +525,7 @@ export default function LogicDocsPage() {
                       🎯 Confirmed Rules (98%+)
                     </h4>
                     <p className="text-[11px] text-[#7E5C4A] leading-tight">
-                      กลุ่ม SamePack, Mono และ Warp ใช้ค่าคงที่จากฐานข้อมูลที่ได้รับการยืนยันแล้ว ทำให้ผลลัพธ์มีความคงที่สูงมาก
+                      กลุ่ม SamePack, Mono และ Wrap ใช้ค่าคงที่จากฐานข้อมูลที่ได้รับการยืนยันแล้ว ทำให้ผลลัพธ์มีความคงที่สูงมาก
                     </p>
                   </div>
                   <div className="p-3 bg-white/40 rounded-xl border border-white/60">

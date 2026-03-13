@@ -89,7 +89,10 @@ export const generatePackingListPDFMake = async (
   const totalPallets = results.reduce((acc, r) => acc + r.summary.totalPallets, 0);
   const totalBoxes = results.reduce((acc, r) => acc + r.summary.totalBoxes, 0);
   const totalItems = results.reduce((acc, r) => acc + r.summary.totalItems, 0);
-  const totalWarps = results.reduce((acc, r) => acc + r.cases.filter(c => c.type.includes("Warp")).length, 0);
+  const totalWarps = results.reduce(
+    (acc, r) => acc + r.cases.filter((c) => c.type.includes("Warp") || c.type.includes("Wrap")).length,
+    0
+  );
   const totalPackages = totalPallets + totalBoxes + totalWarps; // Sum of all containers
 
   // Calculate Weighted Accuracy Rate (by packed qty)
@@ -97,7 +100,7 @@ export const generatePackingListPDFMake = async (
     const type = (c.type || "").toLowerCase();
     const note = (c.note || "").toLowerCase();
 
-    if (type.includes("unknown") || type.includes("warp")) return 100;
+    if (type.includes("unknown") || type.includes("warp") || type.includes("wrap")) return 100;
     if (type.includes("mixed")) {
       // High-density mixed path uses Primary/Insert note pattern.
       if (note.includes("primary:")) return 94;
@@ -185,7 +188,7 @@ export const generatePackingListPDFMake = async (
       createSummaryCard("TOTAL PACKAGES", totalPackages.toString(), "#f1f5f9", "#475569"),
       createSummaryCard("TOTAL PALLETS", totalPallets.toString(), "#ecfdf5", "#059669"), 
       createSummaryCard("TOTAL BOXES", totalBoxes.toString(), "#eff6ff", "#2563eb"), 
-      createSummaryCard("TOTAL WARP", totalWarps.toString(), "#faf5ff", "#9333ea"), 
+      createSummaryCard("TOTAL WRAP", totalWarps.toString(), "#faf5ff", "#9333ea"), 
     ],
     columnGap: 5,
     margin: [0, 0, 0, 10], 
