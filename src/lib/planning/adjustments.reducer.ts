@@ -2,6 +2,11 @@ import type { PackedCase } from "@/lib/services/packing-logic/packing.types";
 import type { POCase, PlanAdjustmentOp } from "./adjustments.types";
 import { cloneCase, clonePlanResult, getNextCaseNo, normalizeCaseNumbers } from "./adjustments.helpers";
 
+type AdjustedPackedCase = PackedCase & {
+  _sortHint?: "split_after" | "merge_anchor";
+  _sortAnchorCaseNo?: number;
+};
+
 function aggregateItems(cases: PackedCase[]): PackedCase["items"] {
   const bucket = new Map<string, { sku: string; name: string; qty: number }>();
 
@@ -81,7 +86,9 @@ function mutatePOCase(poCase: POCase, op: PlanAdjustmentOp): POCase {
             qty: splitQty,
           },
         ],
-      });
+        _sortHint: "split_after",
+        _sortAnchorCaseNo: op.caseNo,
+      } as AdjustedPackedCase);
 
       return { ...poCase, cases: nextCases };
     }
@@ -100,7 +107,9 @@ function mutatePOCase(poCase: POCase, op: PlanAdjustmentOp): POCase {
         dims: op.dims,
         note: `Merged from [${op.caseNos.join(",")}]`,
         items: aggregated,
-      });
+        _sortHint: "merge_anchor",
+        _sortAnchorCaseNo: keepCaseNo,
+      } as AdjustedPackedCase);
 
       return { ...poCase, cases: others };
     }

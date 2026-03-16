@@ -1,6 +1,13 @@
 import type { PackedCase } from "@/lib/services/packing-logic/packing.types";
 import type { POCase, PlanAdjustmentOp, PlanAdjustmentRecord } from "./adjustments.types";
 
+type AdjustmentSortHint = "split_after" | "merge_anchor";
+
+type AdjustedPackedCase = PackedCase & {
+  _sortHint?: AdjustmentSortHint;
+  _sortAnchorCaseNo?: number;
+};
+
 function describeOp(op: PlanAdjustmentOp): string {
   switch (op.type) {
     case "update_item_qty":
@@ -36,18 +43,30 @@ export function clonePlanResult(planResult: POCase[]): POCase[] {
   }));
 }
 
-function getCaseSortPriority(input: Pick<PackedCase, "type" | "note">): number {
+function isPalletCase(input: Pick<PackedCase, "type" | "dims">): boolean {
+  const type = input.type.trim().toLowerCase();
+  const dims = input.dims.trim().toLowerCase();
+  return type.includes("pallet") || dims.includes("110") || dims.includes("120") || dims === "rtn";
+}
+
+function isBoxCase(input: Pick<PackedCase, "type" | "dims">): boolean {
+  const type = input.type.trim().toLowerCase();
+  const dims = input.dims.trim().toLowerCase();
+  return type.includes("box") || (dims.includes("x") && !isPalletCase(input) && dims !== "wrap");
+}
+
+function getCaseSortPriority(input: Pick<PackedCase, "type" | "note" | "dims">): number {
   const type = input.type.trim().toLowerCase();
   const note = (input.note || "").toLowerCase();
-  const isManual = type.includes("manual");
   const isSame = type.includes("same");
-  const isSameOrManual = isSame || isManual;
+  const isPallet = isPalletCase(input);
+  const isBox = isBoxCase(input);
 
-  if (type.includes("mono")) return 1;
-  if (isSameOrManual && note.includes("overflow")) return 2;
-  if (isSameOrManual && type.includes("pallet")) return 3;
-  if (isSameOrManual && type.includes("box")) return 4;
-  if (type.includes("mixed")) return 5;
+  if (isPallet && note.includes("overflow")) return 1;
+  if (isSame && isPallet && note.includes("same dim group")) return 2;
+  if (isPallet) return 3;
+  if (isSame && isBox) return 4;
+  if (isBox) return 5;
   if (type.includes("warp") || type.includes("wrap")) return 6;
   if (type.includes("unknown")) return 7;
   return 8;
@@ -65,15 +84,61 @@ export function createAdjustmentRecord(op: PlanAdjustmentOp, actor = "Planner"):
 
 export function normalizeCaseNumbers(planResult: POCase[]): POCase[] {
   return planResult.map((poGroup) => {
-    const sorted = [...poGroup.cases].sort((a, b) => {
+    const workingCases = poGroup.cases.map((c) => cloneCase(c) as AdjustedPackedCase);
+    const anchoredSplits = workingCases
+      .filter((c) => c._sortHint === "split_after" && Number.isFinite(c._sortAnchorCaseNo))
+      .sort((a, b) => {
+        const anchorDiff = (a._sortAnchorCaseNo || 0) - (b._sortAnchorCaseNo || 0);
+        if (anchorDiff !== 0) return anchorDiff;
+        return a.caseNo - b.caseNo;
+      });
+    const regularCases = workingCases.filter((c) => c._sortHint !== "split_after" || !Number.isFinite(c._sortAnchorCaseNo));
+
+    const sortedRegular = [...regularCases].sort((a, b) => {
       const priorityDiff = getCaseSortPriority(a) - getCaseSortPriority(b);
       if (priorityDiff !== 0) return priorityDiff;
+
+      const anchorA = a._sortHint === "merge_anchor" && Number.isFinite(a._sortAnchorCaseNo) ? a._sortAnchorCaseNo || a.caseNo : a.caseNo;
+      const anchorB = b._sortHint === "merge_anchor" && Number.isFinite(b._sortAnchorCaseNo) ? b._sortAnchorCaseNo || b.caseNo : b.caseNo;
+      if (anchorA !== anchorB) return anchorA - anchorB;
+
       return a.caseNo - b.caseNo;
+    });
+
+    const oldToNew = new Map<number, number>();
+    const sorted: AdjustedPackedCase[] = [];
+
+    sortedRegular.forEach((currentCase) => {
+      sorted.push(currentCase);
+
+      const matchingSplits = anchoredSplits.filter((splitCase) => splitCase._sortAnchorCaseNo === currentCase.caseNo);
+      if (matchingSplits.length > 0) {
+        sorted.push(...matchingSplits);
+      }
+    });
+
+    const orphanSplits = anchoredSplits.filter(
+      (splitCase) => !sortedRegular.some((currentCase) => currentCase.caseNo === splitCase._sortAnchorCaseNo)
+    );
+    if (orphanSplits.length > 0) {
+      sorted.push(...orphanSplits);
+    }
+
+    sorted.forEach((c, idx) => {
+      oldToNew.set(c.caseNo, idx + 1);
     });
 
     return {
       po: poGroup.po,
-      cases: sorted.map((c, idx) => ({ ...cloneCase(c), caseNo: idx + 1 })),
+      cases: sorted.map((c, idx) => {
+        const nextCase = cloneCase(c) as AdjustedPackedCase;
+        const currentAnchor = c._sortAnchorCaseNo;
+        if (Number.isFinite(currentAnchor)) {
+          nextCase._sortAnchorCaseNo = oldToNew.get(currentAnchor as number) ?? currentAnchor;
+        }
+        nextCase.caseNo = idx + 1;
+        return nextCase;
+      }),
     };
   });
 }
