@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUp,
   Boxes,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Database,
@@ -333,6 +334,11 @@ const parseDateString = (value: string): Date | null => {
 const normalizeDateToIso = (value: string): string => {
   const parsed = parseDateString(value);
   return parsed ? toIsoDate(parsed) : "";
+};
+
+const formatDateForInputDisplay = (value: string): string => {
+  const normalized = normalizeDateToIso(value);
+  return normalized ? normalized.replace(/-/g, "/") : "";
 };
 
 const formatTimelineLabel = (date: Date): string =>
@@ -742,6 +748,7 @@ export default function PackagingReportsPage() {
   const [addForm, setAddForm] = useState<AddRecordForm>(buildInitialAddForm());
   const filterAreaRef = useRef<HTMLDivElement | null>(null);
   const addModalContentRef = useRef<HTMLDivElement | null>(null);
+  const addDatePickerInputRef = useRef<HTMLInputElement | null>(null);
   const lastReadLogRef = useRef<Record<string, number>>({});
   const successTimerRef = useRef<number | null>(null);
   const reportsQuery = useQuery({
@@ -1412,6 +1419,19 @@ export default function PackagingReportsPage() {
     setShipmentDropdownModal(null);
     setShipmentDropdownValue("");
     setShipmentDropdownError(null);
+  };
+
+  const openAddDatePicker = () => {
+    const input = addDatePickerInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
   };
 
   const openShipmentDropdownModal = (fieldKey: ShipmentDropdownFieldKey, label: string) => {
@@ -2331,32 +2351,31 @@ export default function PackagingReportsPage() {
                               {field.label}
                             </label>
                             {field.key === "date" ? (
-                              <input
-                                id="add-record-date"
-                                type="date"
-                                value={normalizeDateToIso(addForm.date)}
-                                onChange={(event) =>
-                                  setAddForm((prev) => ({
-                                    ...prev,
-                                    date: normalizeDateToIso(event.target.value),
-                                  }))
-                                }
-                                onClick={(event) => {
-                                  const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void };
-                                  if (typeof input.showPicker === "function") {
-                                    input.showPicker();
+                              <div className="relative">
+                                <button
+                                  id="add-record-date"
+                                  type="button"
+                                  onClick={openAddDatePicker}
+                                  className="flex w-full items-center justify-between rounded-lg border border-[#D4AA7D]/35 bg-white/85 px-3 py-2 text-sm text-[#272727] outline-none transition-colors focus:ring-2 focus:ring-[#D4AA7D]/35"
+                                >
+                                  <span>{formatDateForInputDisplay(addForm.date) || "yyyy/mm/dd"}</span>
+                                  <CalendarDays className="h-4 w-4 text-[#7E5C4A]" />
+                                </button>
+                                <input
+                                  ref={addDatePickerInputRef}
+                                  type="date"
+                                  tabIndex={-1}
+                                  aria-hidden="true"
+                                  value={normalizeDateToIso(addForm.date)}
+                                  onChange={(event) =>
+                                    setAddForm((prev) => ({
+                                      ...prev,
+                                      date: normalizeDateToIso(event.target.value),
+                                    }))
                                   }
-                                }}
-                                onKeyDown={(event) => {
-                                  if (event.key !== "Tab" && event.key !== "Shift") {
-                                    event.preventDefault();
-                                  }
-                                }}
-                                onPaste={(event) => {
-                                  event.preventDefault();
-                                }}
-                                className="w-full cursor-pointer px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
-                              />
+                                  className="pointer-events-none absolute left-0 top-0 h-0 w-0 opacity-0"
+                                />
+                              </div>
                             ) : dropdownFieldKey ? (
                               <div className="flex items-center gap-2">
                                 <select
