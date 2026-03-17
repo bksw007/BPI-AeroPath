@@ -2329,28 +2329,33 @@ export default function PackagingReportsPage() {
                               className="block text-[11px] font-bold text-[#7E5C4A] mb-1"
                             >
                               {field.label}
-                              {field.key === "date" ? " (YYYY-MM-DD)" : ""}
                             </label>
                             {field.key === "date" ? (
                               <input
                                 id="add-record-date"
-                                type="text"
-                                inputMode="numeric"
-                                placeholder="YYYY-MM-DD"
-                                value={addForm.date}
+                                type="date"
+                                value={normalizeDateToIso(addForm.date)}
                                 onChange={(event) =>
                                   setAddForm((prev) => ({
                                     ...prev,
-                                    date: event.target.value,
+                                    date: normalizeDateToIso(event.target.value),
                                   }))
                                 }
-                                onBlur={(event) =>
-                                  setAddForm((prev) => ({
-                                    ...prev,
-                                    date: normalizeDateToIso(event.target.value) || event.target.value.trim(),
-                                  }))
-                                }
-                                className="w-full px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
+                                onClick={(event) => {
+                                  const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void };
+                                  if (typeof input.showPicker === "function") {
+                                    input.showPicker();
+                                  }
+                                }}
+                                onKeyDown={(event) => {
+                                  if (event.key !== "Tab" && event.key !== "Shift") {
+                                    event.preventDefault();
+                                  }
+                                }}
+                                onPaste={(event) => {
+                                  event.preventDefault();
+                                }}
+                                className="w-full cursor-pointer px-3 py-2 rounded-lg border border-[#D4AA7D]/35 bg-white/85 text-sm text-[#272727] outline-none focus:ring-2 focus:ring-[#D4AA7D]/35"
                               />
                             ) : dropdownFieldKey ? (
                               <div className="flex items-center gap-2">
