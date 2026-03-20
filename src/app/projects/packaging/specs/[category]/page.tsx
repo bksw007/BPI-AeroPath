@@ -85,6 +85,98 @@ const getVolume = (dimStr: string) => {
   return dims[0] * dims[1] * dims[2];
 };
 
+const BOX_EXPORT_SIZES = [
+  "42x46x68",
+  "47x66x68",
+  "57x64x84",
+  "68x74x86",
+  "70x100x90",
+] as const;
+
+const PALLET_EXPORT_SIZES = [
+  "80x120x65",
+  "80x120x90",
+  "80x120x115",
+  "110x110x65",
+  "110x110x90",
+  "110x110x115",
+] as const;
+
+const BASIC_CSV_HEADERS = [
+  "SKU (Item)",
+  "Name",
+  "Category",
+  "Width (cm)",
+  "Length (cm)",
+  "Height (cm)",
+  "Net Weight (kg)",
+  "Gross Weight (kg)",
+  "CBM",
+  "Product Type",
+  "Unit",
+  "Stacking Limit",
+  "Side Box Weight",
+  "Last Updated",
+] as const;
+
+const PACKAGING_CSV_HEADERS = [
+  ...BOX_EXPORT_SIZES.flatMap((size) => [
+    `Box_${size}_Layers`,
+    `Box_${size}_PerLayer`,
+    `Box_${size}_Total`,
+  ]),
+  ...PALLET_EXPORT_SIZES.flatMap((size) => [
+    `Pallet_${size}_Layers`,
+    `Pallet_${size}_PerLayer`,
+    `Pallet_${size}_Total`,
+  ]),
+  "RTN_Layers",
+  "RTN_PerLayer",
+  "RTN_Total",
+  "Warp_Required",
+] as const;
+
+const FULL_CSV_HEADERS = [...BASIC_CSV_HEADERS, ...PACKAGING_CSV_HEADERS] as const;
+
+const escapeCsvValue = (value: unknown): string => {
+  const normalized = value == null ? "" : String(value);
+  return `"${normalized.replace(/"/g, '""')}"`;
+};
+
+const parseCsvRow = (line: string): string[] => {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      values.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current);
+  return values.map((value) => value.trim());
+};
+
+const toCsvBoolean = (value: boolean): string => (value ? "TRUE" : "FALSE");
+
 export default function CategoryDetailPage() {
   const params = useParams();
   const categoryId = params.category as string;
@@ -164,23 +256,40 @@ export default function CategoryDetailPage() {
   const handleExportCSV = () => {
     if (filteredData.length === 0) return;
 
-    // Headers
-    const headers = [
-      "SKU (Item)", "Name", "Category", 
-      "Width (cm)", "Length (cm)", "Height (cm)", 
-      "Net Weight (kg)", "Gross Weight (kg)", "CBM",
-      "Product Type", "Stacking Limit", "Side Box Weight"
-    ];
+    const rows = filteredData.map((item) => {
+      const rowValues: unknown[] = [
+        item.sku,
+        item.name,
+        item.category,
+        item.width,
+        item.length,
+        item.height,
+        item.nw,
+        item.gw,
+        item.cbm,
+        item.productType,
+        item.unit || "",
+        item.stackingLimit,
+        item.sideBoxWeight,
+        item.lastUpdated,
+        ...BOX_EXPORT_SIZES.flatMap((size) => {
+          const rule = item.packingRules?.boxes?.[size];
+          return [rule?.layers ?? "", rule?.perLayer ?? "", rule?.totalQty ?? ""];
+        }),
+        ...PALLET_EXPORT_SIZES.flatMap((size) => {
+          const rule = item.packingRules?.pallets?.[size];
+          return [rule?.layers ?? "", rule?.perLayer ?? "", rule?.totalQty ?? ""];
+        }),
+        item.packingRules?.rtn?.layers ?? "",
+        item.packingRules?.rtn?.perLayer ?? "",
+        item.packingRules?.rtn?.totalQty ?? "",
+        toCsvBoolean(Boolean(item.packingRules?.warp)),
+      ];
 
-    // Rows
-    const rows = filteredData.map(item => [
-      item.sku, item.name, item.category,
-      item.width, item.length, item.height,
-      item.nw, item.gw, item.cbm,
-      item.productType, item.stackingLimit, item.sideBoxWeight
-    ].map(v => `"${v || ''}"`).join(",")); // Quote values
+      return rowValues.map(escapeCsvValue).join(",");
+    });
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," + [FULL_CSV_HEADERS.join(","), ...rows].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -431,25 +540,30 @@ export default function CategoryDetailPage() {
   // ... handleFileUpload ...
   // Helper: Parse CSV
   const parseCSV = (text: string): PackagingProductDTO[] => {
-    const lines = text.trim().split('\n');
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '')); 
+    const lines = text
+      .replace(/^\uFEFF/, '')
+      .split(/\r?\n/)
+      .filter((line) => line.trim().length > 0);
+
+    if (lines.length === 0) return [];
+
+    const headers = parseCsvRow(lines[0]).map((header) => header.replace(/^"|"$/g, ''));
     
     // Key Mapping (CSV Header -> DTO Key)
     const keyMap: Record<string, string> = {
        "SKU (Item)": "sku", "Name": "name", "Category": "category",
        "Width (cm)": "width", "Length (cm)": "length", "Height (cm)": "height",
        "Net Weight (kg)": "nw", "Gross Weight (kg)": "gw", "CBM": "cbm",
-       "Product Type": "productType", "Stacking Limit": "stackingLimit", "Side Box Weight": "sideBoxWeight"
+       "Product Type": "productType", "Unit": "unit", "Stacking Limit": "stackingLimit", "Side Box Weight": "sideBoxWeight",
+       "Last Updated": "lastUpdated"
     };
 
     const results: PackagingProductDTO[] = [];
 
     for (let i = 1; i < lines.length; i++) {
        if (!lines[i].trim()) continue;
-       
-       // Handle CSV split respecting quotes might be needed for complex names, 
-       // but for now assuming simple CSV structure as per previous implementation
-       const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, '')); 
+
+       const values = parseCsvRow(lines[i]).map((value) => value.replace(/^"|"$/g, ''));
        const row: Record<string, string | number> = {};
        
        headers.forEach((h, idx) => {
@@ -481,7 +595,7 @@ export default function CategoryDetailPage() {
           warp: false
        };
 
-       ['42x46x68', '47x66x68', '57x64x84', '68x74x86', '70x100x90'].forEach(size => {
+       BOX_EXPORT_SIZES.forEach(size => {
           if (row[`Box_${size}_Total`]) {
              packingRules.boxes[size] = {
                 layers: Number(row[`Box_${size}_Layers`]) || 0,
@@ -491,7 +605,7 @@ export default function CategoryDetailPage() {
           }
        });
 
-       ['80x120x65', '80x120x90', '80x120x115', '110x110x65', '110x110x90', '110x110x115'].forEach(type => {
+       PALLET_EXPORT_SIZES.forEach(type => {
            if (row[`Pallet_${type}_Total`]) {
               packingRules.pallets[type] = {
                  layers: Number(row[`Pallet_${type}_Layers`]) || 0,
@@ -522,9 +636,10 @@ export default function CategoryDetailPage() {
           width: Number(row.width), length: Number(row.length), height: Number(row.height),
           nw: Number(row.nw), gw: Number(row.gw), cbm: Number(row.cbm),
           productType: (String(row.productType) || 'Carton') as 'Carton' | 'Carton Case' | 'Wooden Case',
+          unit: String(row.unit || ''),
           stackingLimit: Number(row.stackingLimit),
           sideBoxWeight: String(row.sideBoxWeight),
-          lastUpdated: new Date().toISOString().split('T')[0],
+          lastUpdated: String(row.lastUpdated || new Date().toISOString().split('T')[0]),
           packingRules
        });
     }
@@ -557,11 +672,13 @@ export default function CategoryDetailPage() {
        const items = parseCSV(text);
        setImportProgress({status: 'parsing', percent: 80});
 
+       const existingSkus = new Set(products.map((product) => product.sku));
+       const updatedCount = items.filter((item) => existingSkus.has(item.sku)).length;
        const result = await PackagingService.importItems(items);
        
        setImportStats({
           success: result.successCount,
-          updated: 0 
+          updated: updatedCount 
        });
 
         setImportProgress({status: 'complete', percent: 100});
@@ -1848,30 +1965,7 @@ export default function CategoryDetailPage() {
                 </div>
                 <button 
                   onClick={() => {
-                    const headers = [
-                      "SKU (Item)", "Name", "Category", 
-                      "Width (cm)", "Length (cm)", "Height (cm)", 
-                      "Net Weight (kg)", "Gross Weight (kg)", "CBM",
-                      "Product Type", "Stacking Limit", "Side Box Weight",
-                      // Boxes
-                      "Box_42x46x68_Layers", "Box_42x46x68_PerLayer", "Box_42x46x68_Total",
-                      "Box_47x66x68_Layers", "Box_47x66x68_PerLayer", "Box_47x66x68_Total", 
-                      "Box_57x64x84_Layers", "Box_57x64x84_PerLayer", "Box_57x64x84_Total",
-                      "Box_68x74x86_Layers", "Box_68x74x86_PerLayer", "Box_68x74x86_Total",
-                      "Box_70x100x90_Layers", "Box_70x100x90_PerLayer", "Box_70x100x90_Total",
-                      // Pallets
-                      "Pallet_80x120x65_Layers", "Pallet_80x120x65_PerLayer", "Pallet_80x120x65_Total",
-                      "Pallet_80x120x90_Layers", "Pallet_80x120x90_PerLayer", "Pallet_80x120x90_Total",
-                      "Pallet_80x120x115_Layers", "Pallet_80x120x115_PerLayer", "Pallet_80x120x115_Total",
-                      "Pallet_110x110x65_Layers", "Pallet_110x110x65_PerLayer", "Pallet_110x110x65_Total",
-                      "Pallet_110x110x90_Layers", "Pallet_110x110x90_PerLayer", "Pallet_110x110x90_Total",
-                      "Pallet_110x110x115_Layers", "Pallet_110x110x115_PerLayer", "Pallet_110x110x115_Total",
-                      // RTN & Warp
-                      "RTN_Layers", "RTN_PerLayer", "RTN_Total",
-                      "Warp_Required"
-                    ];
-                    
-                    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",");
+                    const csvContent = "data:text/csv;charset=utf-8," + FULL_CSV_HEADERS.join(",");
                     const encodedUri = encodeURI(csvContent);
                     const link = document.createElement("a");
                     link.setAttribute("href", encodedUri);
