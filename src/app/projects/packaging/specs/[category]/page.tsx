@@ -540,6 +540,7 @@ export default function CategoryDetailPage() {
   // ... handleFileUpload ...
   // Helper: Parse CSV
   const parseCSV = (text: string): PackagingProductDTO[] => {
+    const importDate = new Date().toISOString().split('T')[0];
     const lines = text
       .replace(/^\uFEFF/, '')
       .split(/\r?\n/)
@@ -639,7 +640,7 @@ export default function CategoryDetailPage() {
           unit: String(row.unit || ''),
           stackingLimit: Number(row.stackingLimit),
           sideBoxWeight: String(row.sideBoxWeight),
-          lastUpdated: String(row.lastUpdated || new Date().toISOString().split('T')[0]),
+          lastUpdated: importDate,
           packingRules
        });
     }
